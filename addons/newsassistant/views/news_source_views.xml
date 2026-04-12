@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- List view -->
+    <record id="news_source_view_list" model="ir.ui.view">
+        <field name="name">news.source.list</field>
+        <field name="model">news.source</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="url" widget="url"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'ok'"
+                       decoration-danger="state == 'error'"/>
+                <field name="last_scrape_date"/>
+                <field name="article_count"/>
+                <field name="active" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form view -->
+    <record id="news_source_view_form" model="ir.ui.view">
+        <field name="name">news.source.form</field>
+        <field name="model">news.source</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="%(newsassistant.news_article_action)d"
+                                type="action"
+                                class="oe_stat_button"
+                                icon="fa-newspaper-o"
+                                context="{'search_default_source_id': id}">
+                            <field name="article_count" widget="statinfo" string="Articles"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger"
+                            invisible="active"/>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Source Name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="url" widget="url"/>
+                            <field name="active" widget="boolean_toggle"/>
+                        </group>
+                        <group>
+                            <field name="state" widget="badge"
+                                   decoration-success="state == 'ok'"
+                                   decoration-danger="state == 'error'"/>
+                            <field name="last_scrape_date"/>
+                        </group>
+                    </group>
+                    <group string="Error Details" invisible="state != 'error'">
+                        <field name="error_message" nolabel="1" colspan="2"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Search view -->
+    <record id="news_source_view_search" model="ir.ui.view">
+        <field name="name">news.source.search</field>
+        <field name="model">news.source</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="url"/>
+                <filter name="active" string="Active" domain="[('active', '=', True)]"/>
+                <filter name="inactive" string="Archived" domain="[('active', '=', False)]"/>
+                <separator/>
+                <filter name="state_ok" string="OK" domain="[('state', '=', 'ok')]"/>
+                <filter name="state_error" string="Error" domain="[('state', '=', 'error')]"/>
+            </search>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Kanban view -->
+    <record id="news_article_view_kanban" model="ir.ui.view">
+        <field name="name">news.article.kanban</field>
+        <field name="model">news.article</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="stage_id" class="o_kanban_small_column">
+                <templates>
+                    <t t-name="card">
+                        <div class="text-muted small mb-1">
+                            <field name="source_id"/>
+                            <t t-if="record.date.raw_value"> — <field name="date"/></t>
+                        </div>
+                        <div class="fw-bold">
+                            <field name="title"/>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- List view -->
+    <record id="news_article_view_list" model="ir.ui.view">
+        <field name="name">news.article.list</field>
+        <field name="model">news.article</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="title"/>
+                <field name="source_id"/>
+                <field name="date"/>
+                <field name="stage_id"/>
+                <field name="scrape_date"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form view -->
+    <record id="news_article_view_form" model="ir.ui.view">
+        <field name="name">news.article.form</field>
+        <field name="model">news.article</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_refetch" type="object"
+                            string="Re-fetch Article" icon="fa-refresh"
+                            confirm="This will overwrite the current content. Continue?"/>
+                    <field name="stage_id" widget="statusbar"
+                           options="{'clickable': '1'}"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="title"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="source_id"/>
+                            <field name="date"/>
+                            <field name="url" widget="url"/>
+                        </group>
+                        <group>
+                            <field name="scrape_date"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Summary">
+                            <field name="summary" nolabel="1" readonly="1"/>
+                        </page>
+                        <page string="Full Content">
+                            <field name="content" nolabel="1" readonly="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Search view -->
+    <record id="news_article_view_search" model="ir.ui.view">
+        <field name="name">news.article.search</field>
+        <field name="model">news.article</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="title"/>
+                <field name="source_id"/>
+                <field name="content"/>
+                <filter name="filter_new" string="New"
+                        domain="[('stage_id', '=', %(newsassistant.news_article_stage_new)d)]"/>
+                <filter name="filter_relevant" string="Relevant"
+                        domain="[('stage_id', '=', %(newsassistant.news_article_stage_relevant)d)]"/>
+                <separator/>
+                <filter name="filter_today" string="Today"
+                        domain="[('date', '=', (context_today()).strftime('%%Y-%%m-%%d'))]"/>
+                <filter name="filter_week" string="This Week"
+                        domain="[('date', '&gt;=', (context_today() - datetime.timedelta(days=7)).strftime('%%Y-%%m-%%d'))]"/>
+                <filter name="filter_month" string="This Month"
+                        domain="[('date', '&gt;=', (context_today() - datetime.timedelta(days=30)).strftime('%%Y-%%m-%%d'))]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_source" string="Source" context="{'group_by': 'source_id'}"/>
+                    <filter name="group_stage" string="Stage" context="{'group_by': 'stage_id'}"/>
+                    <filter name="group_date" string="Date" context="{'group_by': 'date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="news_article_action" model="ir.actions.act_window">
+        <field name="name">Articles</field>
+        <field name="res_model">news.article</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="search_view_id" ref="news_article_view_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No articles yet
+            </p>
+            <p>
+                Articles will appear here after the daily scraping job runs.
+                You can also trigger a manual scrape from the Sources menu.
+            </p>
+        </field>
+    </record>
+</odoo>

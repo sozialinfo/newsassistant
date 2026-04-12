@@ -1,0 +1,28 @@
+networks:
+  opencode:
+    external: true
+
+services:
+  odoo-newsassistant:
+    image: odoo:18.0
+    container_name: odoo-newsassistant
+    restart: unless-stopped
+    depends_on: []
+    environment:
+      - HOST=postgres
+      - PORT=5432
+      - USER=opencode
+      - PASSWORD=${POSTGRES_PASSWORD}
+      - INFOMANIAK_AI_API_KEY=${INFOMANIAK_AI_API_KEY}
+      - JINA_API_KEY=${JINA_API_KEY}
+    volumes:
+      - ./addons:/mnt/extra-addons
+      - ./odoo.conf:/etc/odoo/odoo.conf:ro
+      - odoo-data:/var/lib/odoo
+      - /home/debian/shared/odoo-src/18.0/oca/web:/mnt/oca/web:ro
+      - /home/debian/shared/odoo-src/18.0/oca/queue:/mnt/oca/queue:ro
+    networks:
+      - opencode
+
+volumes:
+  odoo-data:
