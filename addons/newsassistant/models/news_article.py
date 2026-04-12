@@ -1,21 +1,12 @@
 import json
 import logging
-from io import BytesIO
-from urllib.parse import urlparse
-
-import requests
 
 from odoo import api, fields, models
 
 from odoo.addons.queue_job.exception import RetryableJobError
 
 from .news_source import (
-    AI_TIMEOUT,
-    HTTP_TIMEOUT,
-    MAX_CLEAN_HTML_LENGTH,
-    TRANSIENT_HTTP_CODES,
-    USER_AGENT,
-    clean_html,
+    fetch_page,
     normalize_url,
     parse_ai_json,
 )
@@ -63,170 +54,41 @@ class NewsArticle(models.Model):
         self.ensure_one()
         self._fetch_and_extract()
 
-    def _fetch_via_jina(self):
-        """Fetch article content using the Jina Reader API as fallback.
-
-        Returns the extracted markdown text, or raises an exception.
-        Used when direct HTTP fetch fails (403, bot protection, etc.).
-        """
-        import os
-        jina_key = os.environ.get("JINA_API_KEY")
-        if not jina_key:
-            raise ValueError("JINA_API_KEY environment variable not set")
-
-        jina_url = f"https://r.jina.ai/{self.url}"
-        try:
-            response = requests.get(
-                jina_url,
-                timeout=HTTP_TIMEOUT * 2,  # Jina may take longer
-                headers={
-                    "Authorization": f"Bearer {jina_key}",
-                    "Accept": "text/plain",
-                },
-            )
-        except requests.exceptions.Timeout:
-            raise RetryableJobError(
-                f"Timeout fetching article via Jina: {self.url}",
-                seconds=300,
-                ignore_retry=False,
-            )
-        except requests.exceptions.ConnectionError as e:
-            raise RetryableJobError(
-                f"Connection error fetching via Jina: {e}",
-                seconds=300,
-                ignore_retry=False,
-            )
-
-        if response.status_code in TRANSIENT_HTTP_CODES:
-            raise RetryableJobError(
-                f"Jina API returned {response.status_code}",
-                seconds=300,
-                ignore_retry=False,
-            )
-
-        if response.status_code != 200:
-            raise ValueError(
-                f"Jina API error {response.status_code}: {response.text[:200]}"
-            )
-
-        return response.text
-
     def _fetch_and_extract(self):
         """Queue job: fetch article page and extract content using AI.
 
         Stage 2 of the two-stage pipeline. Fetches the individual article
-        page, pre-cleans the HTML, and uses AI to extract structured content.
-        Falls back to Jina Reader API for pages that block direct access.
+        page using Jina Reader API (renders JavaScript, handles PDFs),
+        and uses AI to extract structured content.
         """
         self.ensure_one()
         _logger.info("Extracting article: %s (%s)", self.title, self.url)
 
-        cleaned_text = None
-        source_type = "HTML news article page"
-        use_jina = False
-
-        # Fetch article page
+        # Fetch article page via Jina (renders JavaScript, handles PDFs)
         try:
-            response = requests.get(
-                self.url,
-                timeout=HTTP_TIMEOUT,
-                headers={"User-Agent": USER_AGENT},
-            )
-        except requests.exceptions.Timeout:
-            raise RetryableJobError(
-                f"Timeout fetching article: {self.url}",
-                seconds=300,
-                ignore_retry=False,
-            )
-        except requests.exceptions.ConnectionError as e:
-            raise RetryableJobError(
-                f"Connection error fetching article: {e}",
-                seconds=300,
-                ignore_retry=False,
-            )
-
-        if response.status_code in TRANSIENT_HTTP_CODES:
-            raise RetryableJobError(
-                f"HTTP {response.status_code} fetching article: {self.url}",
-                seconds=300,
-                ignore_retry=False,
-            )
-
-        if response.status_code == 403:
-            # Bot protection — try Jina Reader as fallback
-            _logger.info(
-                "HTTP 403 for %s, falling back to Jina Reader", self.url
-            )
-            use_jina = True
-        elif response.status_code != 200:
-            _logger.warning(
-                "Permanent HTTP error %s fetching article %s",
-                response.status_code,
-                self.url,
-            )
+            content = fetch_page(self.url)
+        except RetryableJobError:
+            raise
+        except ValueError as e:
+            _logger.warning("Fetch error for article %s: %s", self.url, e)
             self.write({
-                "content": f"[Error: HTTP {response.status_code} fetching article]",
+                "content": f"[Error: {e}]",
                 "scrape_date": fields.Datetime.now(),
             })
             return
 
-        if use_jina:
-            # Fetch via Jina Reader
-            try:
-                cleaned_text = self._fetch_via_jina()
-                source_type = "news article"
-                if len(cleaned_text) > MAX_CLEAN_HTML_LENGTH:
-                    cleaned_text = cleaned_text[:MAX_CLEAN_HTML_LENGTH]
-            except RetryableJobError:
-                raise
-            except Exception as e:
-                _logger.warning("Jina fallback failed for %s: %s", self.url, e)
-                self.write({
-                    "content": f"[Error: Could not fetch article (403 + Jina failed: {e})]",
-                    "scrape_date": fields.Datetime.now(),
-                })
-                return
-        else:
-            # Detect content type and extract text accordingly
-            content_type = response.headers.get("content-type", "").lower()
-            is_pdf = (
-                "application/pdf" in content_type
-                or urlparse(self.url).path.lower().endswith(".pdf")
-            )
-
-            if is_pdf:
-                # Extract text from PDF
-                try:
-                    from pdfminer.high_level import extract_text
-                    cleaned_text = extract_text(BytesIO(response.content))
-                    source_type = "PDF document"
-                    if len(cleaned_text) > MAX_CLEAN_HTML_LENGTH:
-                        cleaned_text = cleaned_text[:MAX_CLEAN_HTML_LENGTH]
-                except Exception as e:
-                    _logger.warning(
-                        "Failed to extract PDF text from %s: %s", self.url, e
-                    )
-                    self.write({
-                        "content": f"[Error: PDF text extraction failed: {e}]",
-                        "scrape_date": fields.Datetime.now(),
-                    })
-                    return
-            else:
-                # Pre-clean HTML
-                cleaned_text = clean_html(response.text)
-
-        if not cleaned_text or not cleaned_text.strip():
-            _logger.warning("No text content extracted from %s", self.url)
+        if not content or not content.strip():
+            _logger.warning("No content extracted from %s", self.url)
             self.write({
-                "content": "[Error: No text content could be extracted]",
+                "content": "[Error: No content could be extracted]",
                 "scrape_date": fields.Datetime.now(),
             })
             return
 
-        # AI Stage 2: extract article content
+        # AI Stage 2: extract article content from markdown
         system_prompt = (
             "/no_think\n"
-            f"You are a news extraction assistant. Given the text from a {source_type}, "
+            "You are a news extraction assistant. Given markdown content from a news article, "
             "extract the article content. Return ONLY a single JSON object with these fields:\n"
             '- "title": the article title (string)\n'
             '- "date": the publication date in ISO 8601 format YYYY-MM-DD, or null if not found\n'
@@ -244,7 +106,7 @@ class NewsArticle(models.Model):
 
         try:
             ai_response = self.source_id._call_infomaniak_ai(
-                system_prompt, cleaned_text
+                system_prompt, content
             )
         except RetryableJobError:
             raise

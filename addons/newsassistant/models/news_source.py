@@ -72,6 +72,69 @@ def clean_html(raw_html):
     return result
 
 
+def fetch_page(url):
+    """Fetch a page using the Jina Reader API.
+
+    Jina renders JavaScript and returns clean markdown content.
+    Requires JINA_API_KEY environment variable.
+
+    Args:
+        url: The URL to fetch.
+
+    Returns:
+        Markdown content from the page (truncated to MAX_CLEAN_HTML_LENGTH).
+
+    Raises:
+        ValueError: If JINA_API_KEY is not set or on permanent API errors.
+        RetryableJobError: On transient failures (timeout, 5xx, rate limit).
+    """
+    import os
+    jina_key = os.environ.get("JINA_API_KEY")
+    if not jina_key:
+        raise ValueError("JINA_API_KEY environment variable not set")
+
+    jina_url = f"https://r.jina.ai/{url}"
+    try:
+        response = requests.get(
+            jina_url,
+            timeout=HTTP_TIMEOUT * 2,  # 60 seconds - Jina may take longer
+            headers={
+                "Authorization": f"Bearer {jina_key}",
+                "Accept": "text/plain",
+            },
+        )
+    except requests.exceptions.Timeout:
+        raise RetryableJobError(
+            f"Timeout fetching via Jina: {url}",
+            seconds=300,
+            ignore_retry=False,
+        )
+    except requests.exceptions.ConnectionError as e:
+        raise RetryableJobError(
+            f"Connection error fetching via Jina: {e}",
+            seconds=300,
+            ignore_retry=False,
+        )
+
+    if response.status_code in TRANSIENT_HTTP_CODES:
+        raise RetryableJobError(
+            f"Jina API returned {response.status_code}",
+            seconds=300,
+            ignore_retry=False,
+        )
+
+    if response.status_code != 200:
+        raise ValueError(
+            f"Jina API error {response.status_code}: {response.text[:200]}"
+        )
+
+    content = response.text
+    if len(content) > MAX_CLEAN_HTML_LENGTH:
+        content = content[:MAX_CLEAN_HTML_LENGTH]
+
+    return content
+
+
 def parse_ai_json(raw_text, expect_array=True):
     """Robustly parse JSON from AI responses.
 
@@ -286,72 +349,41 @@ class NewsSource(models.Model):
         """Queue job: fetch the listing page and discover article URLs.
 
         Stage 1 of the two-stage pipeline. Discovers article URLs from the
-        listing page using AI extraction, then creates news.article stubs
-        and enqueues Stage 2 jobs for each new article.
+        listing page using Jina Reader API (renders JavaScript) and AI extraction,
+        then creates news.article stubs and enqueues Stage 2 jobs for each new article.
         """
         self.ensure_one()
         _logger.info("Scraping listing for source: %s (%s)", self.name, self.url)
 
-        # Fetch listing page
+        # Fetch listing page via Jina (renders JavaScript)
         try:
-            response = requests.get(
-                self.url,
-                timeout=HTTP_TIMEOUT,
-                headers={"User-Agent": USER_AGENT},
-            )
-        except requests.exceptions.Timeout:
-            raise RetryableJobError(
-                f"Timeout fetching listing page: {self.url}",
-                seconds=300,
-                ignore_retry=False,
-            )
-        except requests.exceptions.ConnectionError as e:
-            raise RetryableJobError(
-                f"Connection error fetching listing page: {e}",
-                seconds=300,
-                ignore_retry=False,
-            )
-
-        if response.status_code in TRANSIENT_HTTP_CODES:
-            raise RetryableJobError(
-                f"HTTP {response.status_code} fetching listing page: {self.url}",
-                seconds=300,
-                ignore_retry=False,
-            )
-
-        if response.status_code != 200:
-            # Permanent error
+            content = fetch_page(self.url)
+        except RetryableJobError:
+            raise
+        except ValueError as e:
             self.write({
                 "state": "error",
-                "error_message": f"HTTP {response.status_code} fetching listing page",
+                "error_message": str(e),
             })
-            _logger.warning(
-                "Permanent HTTP error %s for source %s",
-                response.status_code,
-                self.name,
-            )
+            _logger.warning("Fetch error for source %s: %s", self.name, e)
             return
 
-        # Pre-clean HTML
-        cleaned_html = clean_html(response.text)
-
-        # AI Stage 1: discover article URLs
+        # AI Stage 1: discover article URLs from markdown content
         system_prompt = (
             "/no_think\n"
-            "You are a news extraction assistant. Given the HTML from a news listing page, "
+            "You are a news extraction assistant. Given markdown content from a news listing page, "
             "extract all news article links. Return ONLY a JSON array of objects, each with "
             '"title" (string) and "url" (string) fields. '
             "Only include actual news/blog article links, not navigation, category, "
             "pagination, or social media links. "
-            "IMPORTANT: Return the url EXACTLY as it appears in the href attribute of the HTML. "
-            "Do NOT modify, resolve, or rewrite URLs — copy them verbatim from the href. "
+            "Extract URLs exactly as they appear in the markdown links [text](url). "
             "Return a single valid JSON array like [{...}, {...}]. "
             "Do NOT return separate JSON objects on separate lines. "
             "No markdown formatting, no explanation, no code fences."
         )
 
         try:
-            ai_response = self._call_infomaniak_ai(system_prompt, cleaned_html)
+            ai_response = self._call_infomaniak_ai(system_prompt, content)
         except RetryableJobError:
             raise
         except Exception as e:
