@@ -228,23 +228,30 @@ class NewsArticle(models.Model):
             set_error("No content could be extracted")
             return
 
-        # AI Stage 2: extract article content from markdown
+        # AI Stage 2: validate and extract article content from markdown
         system_prompt = (
             "/no_think\n"
-            "You are a news extraction assistant. Given markdown content from a news article, "
-            "extract the article content. Return ONLY a single JSON object with these fields:\n"
-            '- "title": the article title (string)\n'
-            '- "date": the publication date in ISO 8601 format YYYY-MM-DD, or null if not found\n'
-            '- "summary": a 2-3 sentence summary of the article, plain text (string)\n'
-            '- "content": the full article text as clean HTML. Use semantic HTML tags: '
-            "<h2>/<h3> for headings, <p> for paragraphs, <ul>/<ol>/<li> for lists, "
-            "<strong>/<em> for emphasis. Do NOT include <html>, <head>, <body>, "
-            "<nav>, <header>, <footer>, <script>, <style> or any wrapper tags. "
-            "Just the article body content as a sequence of HTML elements. "
-            "No navigation, no boilerplate, no ads. (string)\n"
-            "Keep the original language of the article. Do not translate.\n"
-            "IMPORTANT: Return a single valid JSON object like {\"title\": ..., \"date\": ..., \"summary\": ..., \"content\": ...}. "
-            "No markdown formatting, no explanation, no code fences."
+            "You are a news extraction assistant. Given markdown content, first determine if this "
+            "is a SINGLE news article or blog post.\n\n"
+            "It is NOT an article if it is:\n"
+            "- A listing/index page showing multiple articles\n"
+            "- A category or topic overview page\n"
+            "- A navigation page, homepage, or search results\n"
+            "- A page without substantial article body text\n\n"
+            "If NOT an article, return: {\"is_article\": false, \"reason\": \"brief explanation\"}\n\n"
+            "If it IS an article, extract the content and return:\n"
+            "{\n"
+            '  "is_article": true,\n'
+            '  "title": "the article title (string)",\n'
+            '  "date": "publication date YYYY-MM-DD or null",\n'
+            '  "summary": "2-3 sentence summary (string)",\n'
+            '  "content": "full article as clean HTML"\n'
+            "}\n\n"
+            "For the content field: Use semantic HTML tags (h2, h3, p, ul, ol, li, strong, em). "
+            "Do NOT include html, head, body, nav, header, footer, script, style tags. "
+            "Just the article body content. No navigation, no boilerplate, no ads.\n"
+            "Keep the original language. Do not translate.\n"
+            "IMPORTANT: Return a single valid JSON object. No markdown formatting, no code fences."
         )
 
         add_entry("info", "Calling LLM for content extraction")
@@ -280,16 +287,6 @@ class NewsArticle(models.Model):
                 article_data = article_data[0]
             if not isinstance(article_data, dict):
                 raise ValueError("Expected a JSON object")
-            add_entry(
-                "info",
-                "Successfully parsed article data from LLM response",
-                metadata={
-                    "extracted_title": article_data.get("title", "")[:100],
-                    "extracted_date": article_data.get("date"),
-                    "has_summary": bool(article_data.get("summary")),
-                    "has_content": bool(article_data.get("content")),
-                },
-            )
         except (json.JSONDecodeError, ValueError) as e:
             add_entry(
                 "error",
@@ -303,6 +300,42 @@ class NewsArticle(models.Model):
             )
             set_error(f"Invalid AI response: {e}")
             return
+
+        # Check if content was validated as NOT an article
+        if article_data.get("is_article") is False:
+            reason = article_data.get("reason", "Content is not a single article")
+            add_entry(
+                "warning",
+                f"Not an article: {reason}",
+                metadata={"url": self.url, "reason": reason},
+            )
+            self.write({
+                "state": "skipped",
+                "error_message": f"Not an article: {reason}",
+                "scrape_date": fields.Datetime.now(),
+            })
+            total_duration = time.time() - start_time
+            self._create_log(
+                level="warning",
+                message=f"Skipped (not an article): {self.title[:50]}",
+                duration=total_duration,
+                entries=log_entries,
+                job_id=job_id,
+            )
+            _logger.info("Skipped non-article: %s - %s", self.url, reason)
+            return
+
+        # Validated as article - log and proceed with extraction
+        add_entry(
+            "info",
+            "Successfully parsed article data from LLM response",
+            metadata={
+                "extracted_title": article_data.get("title", "")[:100],
+                "extracted_date": article_data.get("date"),
+                "has_summary": bool(article_data.get("summary")),
+                "has_content": bool(article_data.get("content")),
+            },
+        )
 
         # Update article with extracted data - success!
         vals = {

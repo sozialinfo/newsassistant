@@ -544,13 +544,20 @@ class NewsSource(models.Model):
         system_prompt = (
             "/no_think\n"
             "You are a news extraction assistant. Given markdown content from a news listing page, "
-            "extract all news article links. Return ONLY a JSON array of objects, each with "
+            "extract all news article links from the MAIN CONTENT AREA (not navigation menus).\n\n"
+            "INCLUDE: Individual article links that typically have:\n"
+            "- Specific, descriptive titles (not just 'News' or category names)\n"
+            "- Publication dates near them\n"
+            "- URLs containing patterns like /artikel/, /article/, /post/, /blog/, or date segments\n\n"
+            "EXCLUDE:\n"
+            "- Navigation menu links\n"
+            "- Category/topic index pages (URLs often ending in /news or /category/)\n"
+            "- Links with generic titles like 'News', 'Aktuell', 'Blog' that lead to listing pages\n"
+            "- Pagination, social media, and footer links\n\n"
+            "Return ONLY a JSON array of objects, each with "
             '"title" (string) and "url" (string) fields. '
-            "Only include actual news/blog article links, not navigation, category, "
-            "pagination, or social media links. "
             "Extract URLs exactly as they appear in the markdown links [text](url). "
             "Return a single valid JSON array like [{...}, {...}]. "
-            "Do NOT return separate JSON objects on separate lines. "
             "No markdown formatting, no explanation, no code fences."
         )
 

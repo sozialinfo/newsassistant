@@ -1,4 +1,4 @@
-## ADDED Requirements
+## MODIFIED Requirements
 
 ### Requirement: Stage 1 — Listing page discovery
 
@@ -36,22 +36,6 @@ The system SHALL fetch the listing page URL of a news source via the Jina Reader
 - **WHEN** the listing page content is rendered via JavaScript (e.g., Gatsby, Next.js)
 - **THEN** the Jina Reader API SHALL execute the JavaScript and return the rendered content
 - **THEN** the AI SHALL be able to extract article links from the rendered content
-
-### Requirement: URL-based deduplication
-
-Before processing a discovered article URL, the system SHALL check if a `news.article` record with that URL already exists. If yes, the article SHALL be skipped entirely (no HTTP fetch, no AI call). URLs SHALL be normalized by stripping trailing slashes and URL fragments before comparison.
-
-#### Scenario: Skip known article
-
-- **WHEN** Stage 1 discovers an article URL that already exists in `news.article`
-- **THEN** the system SHALL NOT fetch the article page
-- **THEN** the system SHALL NOT make an AI extraction call for that article
-
-#### Scenario: Normalize URLs for dedup
-
-- **WHEN** Stage 1 discovers URL "https://example.com/article/1/" and "https://example.com/article/1" already exists
-- **THEN** both URLs SHALL normalize to the same value
-- **THEN** the article SHALL be skipped as a duplicate
 
 ### Requirement: Stage 2 — Article content extraction
 
@@ -113,55 +97,3 @@ For each new (non-duplicate) article URL, the system SHALL fetch the article pag
 
 - **WHEN** the system attempts article extraction (success, failure, or skipped)
 - **THEN** a `news.log` record SHALL be created with timestamp, level, duration, and message
-
-### Requirement: Infomaniak AI API integration
-
-The system SHALL call the Infomaniak AI API at `https://api.infomaniak.com/2/ai/{product_id}/openai/v1/chat/completions` using the `qwen3` model. The API key SHALL be read from the `INFOMANIAK_AI_API_KEY` environment variable. The product ID SHALL be read from `ir.config_parameter` key `newsassistant.infomaniak_product_id` (default: `103794`).
-
-#### Scenario: Successful AI API call
-
-- **WHEN** the system sends a chat completion request with valid content
-- **THEN** the API SHALL return a response with extracted article data in JSON format
-
-#### Scenario: API key missing
-
-- **WHEN** the `INFOMANIAK_AI_API_KEY` environment variable is not set
-- **THEN** the system SHALL raise a `UserError` with a clear message explaining the missing configuration
-
-### Requirement: HTTP request configuration
-
-All HTTP requests to external websites SHALL include a reasonable User-Agent header (e.g. "NewsAssistant/1.0") and a timeout of 30 seconds. Requests to the Infomaniak AI API SHALL have a timeout of 120 seconds. Requests to the Jina Reader API SHALL have a timeout of 60 seconds.
-
-#### Scenario: HTTP request timeout
-
-- **WHEN** an external website does not respond within the configured timeout
-- **THEN** the request SHALL time out and raise an appropriate error
-
-#### Scenario: User-Agent header sent
-
-- **WHEN** the system makes an HTTP request to a news source
-- **THEN** the request SHALL include a User-Agent header identifying the scraper
-
-### Requirement: Source state update after scrape
-
-After a successful listing scrape (Stage 1 completes without error), the source's `last_scrape_date` SHALL be updated to the current timestamp and `state` SHALL be set to `'ok'`.
-
-#### Scenario: Successful scrape updates source
-
-- **WHEN** Stage 1 completes successfully for a source
-- **THEN** `last_scrape_date` SHALL be set to the current datetime
-- **THEN** `state` SHALL be `'ok'`
-
-### Requirement: Source scrape creates log entry
-
-When Stage 1 listing scrape completes (success or failure), the system SHALL create a `news.source.log` record with timestamp, status, duration, articles_found (on success), and error_message (on failure).
-
-#### Scenario: Successful scrape logged
-
-- **WHEN** Stage 1 listing scrape completes successfully finding 5 new articles
-- **THEN** a `news.source.log` record SHALL be created with `status='success'` and `articles_found=5`
-
-#### Scenario: Failed scrape logged
-
-- **WHEN** Stage 1 listing scrape fails with a connection timeout
-- **THEN** a `news.source.log` record SHALL be created with `status='error'` and `error_message` describing the timeout
