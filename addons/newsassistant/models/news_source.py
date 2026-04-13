@@ -240,10 +240,29 @@ class NewsSource(models.Model):
     error_message = fields.Text(readonly=True)
     article_count = fields.Integer(compute="_compute_article_count", string="Article Count")
     article_ids = fields.One2many("news.article", "source_id", string="Articles")
+    log_ids = fields.One2many("news.source.log", "source_id", string="Scrape Logs")
 
     def _compute_article_count(self):
         for source in self:
             source.article_count = len(source.article_ids)
+
+    def action_scrape_now(self):
+        """Manual trigger: queue a scrape job for this source."""
+        self.ensure_one()
+        job = self.with_delay(
+            channel="root.newsassistant",
+            description=f"Manual scrape: {self.name}",
+        )._scrape_listing()
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": "Scrape Started",
+                "message": f"Scraping {self.name} in background...",
+                "type": "info",
+                "sticky": False,
+            },
+        }
 
     # -------------------------------------------------------------------------
     # AI Service
@@ -352,8 +371,23 @@ class NewsSource(models.Model):
         listing page using Jina Reader API (renders JavaScript) and AI extraction,
         then creates news.article stubs and enqueues Stage 2 jobs for each new article.
         """
+        import time
         self.ensure_one()
         _logger.info("Scraping listing for source: %s (%s)", self.name, self.url)
+
+        start_time = time.time()
+        SourceLog = self.env["news.source.log"]
+
+        # Helper to create log entry
+        def create_log(status, articles_found=0, error_message=None):
+            duration = time.time() - start_time
+            SourceLog.create({
+                "source_id": self.id,
+                "status": status,
+                "duration": duration,
+                "articles_found": articles_found,
+                "error_message": error_message,
+            })
 
         # Fetch listing page via Jina (renders JavaScript)
         try:
@@ -365,6 +399,7 @@ class NewsSource(models.Model):
                 "state": "error",
                 "error_message": str(e),
             })
+            create_log("error", error_message=str(e))
             _logger.warning("Fetch error for source %s: %s", self.name, e)
             return
 
@@ -387,10 +422,12 @@ class NewsSource(models.Model):
         except RetryableJobError:
             raise
         except Exception as e:
+            error_msg = f"AI extraction error: {e}"
             self.write({
                 "state": "error",
-                "error_message": f"AI extraction error: {e}",
+                "error_message": error_msg,
             })
+            create_log("error", error_message=error_msg)
             _logger.exception("AI error for source %s", self.name)
             return
 
@@ -400,10 +437,12 @@ class NewsSource(models.Model):
             if not isinstance(articles_data, list):
                 raise ValueError("Expected a JSON array")
         except (json.JSONDecodeError, ValueError) as e:
+            error_msg = f"Invalid AI response (not valid JSON): {e}"
             self.write({
                 "state": "error",
-                "error_message": f"Invalid AI response (not valid JSON): {e}",
+                "error_message": error_msg,
             })
+            create_log("error", error_message=error_msg)
             _logger.warning(
                 "Malformed AI response for source %s: %s",
                 self.name,
@@ -480,6 +519,7 @@ class NewsSource(models.Model):
             "error_message": False,
             "last_scrape_date": fields.Datetime.now(),
         })
+        create_log("success", articles_found=new_count)
         _logger.info(
             "Source %s: discovered %d articles, %d new",
             self.name,

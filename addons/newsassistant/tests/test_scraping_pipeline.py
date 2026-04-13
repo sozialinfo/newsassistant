@@ -207,12 +207,13 @@ class TestScrapingPipelineStage2(TransactionCase):
 
     @patch("odoo.addons.newsassistant.models.news_article.fetch_page")
     def test_stage2_jina_error_logs_error(self, mock_fetch):
-        """Test that Jina API error on article page logs error in content."""
+        """Test that Jina API error on article page sets error state."""
         mock_fetch.side_effect = ValueError("Jina API error 404: Not found")
 
         self.article._fetch_and_extract()
 
-        self.assertIn("Error", self.article.content)
+        self.assertEqual(self.article.state, "error")
+        self.assertIn("404", self.article.error_message)
         self.assertTrue(self.article.scrape_date)
 
     @patch("odoo.addons.newsassistant.models.news_article.fetch_page")
@@ -226,7 +227,7 @@ class TestScrapingPipelineStage2(TransactionCase):
     @patch("odoo.addons.newsassistant.models.news_source.requests.post")
     @patch("odoo.addons.newsassistant.models.news_article.fetch_page")
     def test_stage2_malformed_ai_response(self, mock_fetch, mock_post):
-        """Test that malformed AI response is handled gracefully."""
+        """Test that malformed AI response sets error state."""
         mock_fetch.return_value = ARTICLE_MARKDOWN
         ai_response_data = {
             "choices": [{"message": {"content": "not valid json"}}],
@@ -235,7 +236,8 @@ class TestScrapingPipelineStage2(TransactionCase):
 
         self.article._fetch_and_extract()
 
-        self.assertIn("Error", self.article.content)
+        self.assertEqual(self.article.state, "error")
+        self.assertIn("Invalid AI response", self.article.error_message)
         self.assertTrue(self.article.scrape_date)
 
     @patch("odoo.addons.newsassistant.models.news_source.requests.post")
@@ -256,10 +258,11 @@ class TestScrapingPipelineStage2(TransactionCase):
 
     @patch("odoo.addons.newsassistant.models.news_article.fetch_page")
     def test_stage2_missing_jina_key_logs_error(self, mock_fetch):
-        """Test that missing JINA_API_KEY logs error in content."""
+        """Test that missing JINA_API_KEY sets error state."""
         mock_fetch.side_effect = ValueError("JINA_API_KEY environment variable not set")
 
         self.article._fetch_and_extract()
 
-        self.assertIn("JINA_API_KEY", self.article.content)
+        self.assertEqual(self.article.state, "error")
+        self.assertIn("JINA_API_KEY", self.article.error_message)
         self.assertTrue(self.article.scrape_date)

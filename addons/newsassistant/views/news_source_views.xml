@@ -24,6 +24,11 @@
         <field name="model">news.source</field>
         <field name="arch" type="xml">
             <form>
+                <header>
+                    <button name="action_scrape_now" type="object"
+                            string="Scrape Now" icon="fa-refresh"
+                            groups="newsassistant.newsassistant_group_admin"/>
+                </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
                         <button name="%(newsassistant.news_article_action)d"
@@ -56,6 +61,25 @@
                     <group string="Error Details" invisible="state != 'error'">
                         <field name="error_message" nolabel="1" colspan="2"/>
                     </group>
+                    <!-- Scrape History section (admin only) -->
+                    <group string="Scrape History"
+                           groups="newsassistant.newsassistant_group_admin">
+                        <field name="log_ids" nolabel="1" readonly="1">
+                            <list limit="10">
+                                <field name="timestamp"/>
+                                <field name="status" widget="badge"
+                                       decoration-success="status == 'success'"
+                                       decoration-danger="status == 'error'"/>
+                                <field name="articles_found"/>
+                                <field name="duration"/>
+                                <field name="error_message"/>
+                                <button name="action_view_job" type="object"
+                                        string="View Full Log" icon="fa-external-link"
+                                        invisible="not job_id"/>
+                                <field name="job_id" column_invisible="True"/>
+                            </list>
+                        </field>
+                    </group>
                 </sheet>
             </form>
         </field>
@@ -73,7 +97,11 @@
                 <filter name="inactive" string="Archived" domain="[('active', '=', False)]"/>
                 <separator/>
                 <filter name="state_ok" string="OK" domain="[('state', '=', 'ok')]"/>
-                <filter name="state_error" string="Error" domain="[('state', '=', 'error')]"/>
+                <filter name="state_error" string="Has Errors" domain="[('state', '=', 'error')]"/>
+                <filter name="never_scraped" string="Never Scraped"
+                        domain="[('last_scrape_date', '=', False)]"/>
+                <filter name="stale" string="Stale"
+                        domain="[('last_scrape_date', '&lt;', (context_today() - datetime.timedelta(days=7)).strftime('%%Y-%%m-%%d'))]"/>
             </search>
         </field>
     </record>

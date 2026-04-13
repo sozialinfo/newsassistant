@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Module category for News Assistant -->
+        <record id="module_category_newsassistant" model="ir.module.category">
+            <field name="name">News Assistant</field>
+            <field name="sequence">100</field>
+        </record>
+
+        <!-- User group: basic access to articles and sources -->
+        <record id="newsassistant_group_user" model="res.groups">
+            <field name="name">User</field>
+            <field name="category_id" ref="module_category_newsassistant"/>
+        </record>
+
+        <!-- Admin group: debugging tools, implies user -->
+        <record id="newsassistant_group_admin" model="res.groups">
+            <field name="name">Admin</field>
+            <field name="category_id" ref="module_category_newsassistant"/>
+            <field name="implied_ids" eval="[(4, ref('newsassistant_group_user'))]"/>
+        </record>
+    </data>
+</odoo>

@@ -30,6 +30,11 @@
                 <field name="title"/>
                 <field name="source_id"/>
                 <field name="date"/>
+                <field name="state" widget="badge"
+                       decoration-muted="state == 'pending'"
+                       decoration-success="state == 'scraped'"
+                       decoration-danger="state == 'error'"
+                       decoration-warning="state == 'skipped'"/>
                 <field name="stage_id"/>
                 <field name="scrape_date"/>
             </list>
@@ -44,8 +49,18 @@
             <form>
                 <header>
                     <button name="action_refetch" type="object"
-                            string="Re-fetch Article" icon="fa-refresh"
-                            confirm="This will overwrite the current content. Continue?"/>
+                            string="Re-fetch" icon="fa-refresh"
+                            confirm="This will overwrite the current content. Continue?"
+                            groups="newsassistant.newsassistant_group_admin"
+                            invisible="state == 'skipped'"/>
+                    <button name="action_skip" type="object"
+                            string="Skip" icon="fa-ban"
+                            groups="newsassistant.newsassistant_group_admin"
+                            invisible="state == 'skipped'"/>
+                    <button name="action_reset" type="object"
+                            string="Reset" icon="fa-undo"
+                            groups="newsassistant.newsassistant_group_admin"
+                            invisible="state != 'skipped'"/>
                     <field name="stage_id" widget="statusbar"
                            options="{'clickable': '1'}"/>
                 </header>
@@ -72,6 +87,42 @@
                         <page string="Full Content">
                             <field name="content" nolabel="1" readonly="1"/>
                         </page>
+                        <page string="History" groups="newsassistant.newsassistant_group_admin">
+                            <!-- Extraction Status -->
+                            <group>
+                                <group>
+                                    <field name="state" widget="badge"
+                                           decoration-muted="state == 'pending'"
+                                           decoration-success="state == 'scraped'"
+                                           decoration-danger="state == 'error'"
+                                           decoration-warning="state == 'skipped'"/>
+                                    <field name="retry_count"/>
+                                </group>
+                                <group>
+                                    <field name="last_error_date"/>
+                                </group>
+                            </group>
+                            <group string="Error Details" invisible="state not in ('error', 'skipped')">
+                                <field name="error_message" nolabel="1" colspan="2"/>
+                            </group>
+                            <!-- Extraction History -->
+                            <group string="Extraction History">
+                                <field name="log_ids" nolabel="1" readonly="1">
+                                    <list limit="10">
+                                        <field name="timestamp"/>
+                                        <field name="status" widget="badge"
+                                               decoration-success="status == 'success'"
+                                               decoration-danger="status == 'error'"/>
+                                        <field name="duration"/>
+                                        <field name="error_message"/>
+                                        <button name="action_view_job" type="object"
+                                                string="View Full Log" icon="fa-external-link"
+                                                invisible="not job_id"/>
+                                        <field name="job_id" column_invisible="True"/>
+                                    </list>
+                                </field>
+                            </group>
+                        </page>
                     </notebook>
                 </sheet>
             </form>
@@ -92,6 +143,15 @@
                 <filter name="filter_relevant" string="Relevant"
                         domain="[('stage_id', '=', %(newsassistant.news_article_stage_relevant)d)]"/>
                 <separator/>
+                <filter name="filter_state_pending" string="Pending"
+                        domain="[('state', '=', 'pending')]"/>
+                <filter name="filter_state_scraped" string="Scraped"
+                        domain="[('state', '=', 'scraped')]"/>
+                <filter name="filter_state_error" string="Error"
+                        domain="[('state', '=', 'error')]"/>
+                <filter name="filter_state_skipped" string="Skipped"
+                        domain="[('state', '=', 'skipped')]"/>
+                <separator/>
                 <filter name="filter_today" string="Today"
                         domain="[('date', '=', (context_today()).strftime('%%Y-%%m-%%d'))]"/>
                 <filter name="filter_week" string="This Week"
@@ -101,6 +161,7 @@
                 <group expand="0" string="Group By">
                     <filter name="group_source" string="Source" context="{'group_by': 'source_id'}"/>
                     <filter name="group_stage" string="Stage" context="{'group_by': 'stage_id'}"/>
+                    <filter name="group_state" string="State" context="{'group_by': 'state'}"/>
                     <filter name="group_date" string="Date" context="{'group_by': 'date:month'}"/>
                 </group>
             </search>

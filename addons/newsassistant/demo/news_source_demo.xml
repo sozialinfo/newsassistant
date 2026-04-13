@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
+        <!-- Assign admin user to News Assistant Admin group -->
+        <record id="base.user_admin" model="res.users">
+            <field name="groups_id" eval="[(4, ref('newsassistant.newsassistant_group_admin'))]"/>
+        </record>
+
+        <!-- Assign demo user to News Assistant User group -->
+        <record id="base.user_demo" model="res.users">
+            <field name="groups_id" eval="[(4, ref('newsassistant.newsassistant_group_user'))]"/>
+        </record>
+
         <!-- Drupal 11: Cards + list rows -->
         <record id="demo_source_gesundheitsfoerderung" model="news.source">
             <field name="name">Gesundheitsförderung Schweiz</field>

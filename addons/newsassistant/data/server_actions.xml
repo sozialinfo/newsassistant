@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Source: Scrape Selected -->
+    <record id="action_source_scrape_selected" model="ir.actions.server">
+        <field name="name">Scrape Selected</field>
+        <field name="model_id" ref="model_news_source"/>
+        <field name="binding_model_id" ref="model_news_source"/>
+        <field name="binding_view_types">list</field>
+        <field name="groups_id" eval="[(4, ref('newsassistant.newsassistant_group_admin'))]"/>
+        <field name="state">code</field>
+        <field name="code">
+for source in records:
+    source.with_delay(
+        channel="root.newsassistant",
+        description=f"Bulk scrape: {source.name}",
+    )._scrape_listing()
+action = {
+    "type": "ir.actions.client",
+    "tag": "display_notification",
+    "params": {
+        "title": "Scrape Jobs Queued",
+        "message": f"{len(records)} source(s) queued for scraping.",
+        "type": "info",
+        "sticky": False,
+    },
+}
+        </field>
+    </record>
+
+    <!-- Article: Re-fetch Selected -->
+    <record id="action_article_refetch_selected" model="ir.actions.server">
+        <field name="name">Re-fetch Selected</field>
+        <field name="model_id" ref="model_news_article"/>
+        <field name="binding_model_id" ref="model_news_article"/>
+        <field name="binding_view_types">list</field>
+        <field name="groups_id" eval="[(4, ref('newsassistant.newsassistant_group_admin'))]"/>
+        <field name="state">code</field>
+        <field name="code">
+count = 0
+for article in records.filtered(lambda a: a.state != 'skipped'):
+    article.with_delay(
+        channel="root.newsassistant",
+        description=f"Bulk re-fetch: {article.title[:50]}",
+    )._fetch_and_extract()
+    count += 1
+action = {
+    "type": "ir.actions.client",
+    "tag": "display_notification",
+    "params": {
+        "title": "Re-fetch Jobs Queued",
+        "message": f"{count} article(s) queued for re-fetching.",
+        "type": "info",
+        "sticky": False,
+    },
+}
+        </field>
+    </record>
+
+    <!-- Article: Mark as Skipped -->
+    <record id="action_article_skip_selected" model="ir.actions.server">
+        <field name="name">Mark as Skipped</field>
+        <field name="model_id" ref="model_news_article"/>
+        <field name="binding_model_id" ref="model_news_article"/>
+        <field name="binding_view_types">list</field>
+        <field name="groups_id" eval="[(4, ref('newsassistant.newsassistant_group_admin'))]"/>
+        <field name="state">code</field>
+        <field name="code">
+records.write({"state": "skipped"})
+action = {
+    "type": "ir.actions.client",
+    "tag": "display_notification",
+    "params": {
+        "title": "Articles Skipped",
+        "message": f"{len(records)} article(s) marked as skipped.",
+        "type": "info",
+        "sticky": False,
+    },
+}
+        </field>
+    </record>
+
+    <!-- Article: Reset to Pending -->
+    <record id="action_article_reset_selected" model="ir.actions.server">
+        <field name="name">Reset to Pending</field>
+        <field name="model_id" ref="model_news_article"/>
+        <field name="binding_model_id" ref="model_news_article"/>
+        <field name="binding_view_types">list</field>
+        <field name="groups_id" eval="[(4, ref('newsassistant.newsassistant_group_admin'))]"/>
+        <field name="state">code</field>
+        <field name="code">
+records.write({
+    "state": "pending",
+    "error_message": False,
+    "last_error_date": False,
+    "retry_count": 0,
+})
+action = {
+    "type": "ir.actions.client",
+    "tag": "display_notification",
+    "params": {
+        "title": "Articles Reset",
+        "message": f"{len(records)} article(s) reset to pending.",
+        "type": "info",
+        "sticky": False,
+    },
+}
+        </field>
+    </record>
+</odoo>

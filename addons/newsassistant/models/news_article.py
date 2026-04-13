@@ -33,6 +33,23 @@ class NewsArticle(models.Model):
     )
     scrape_date = fields.Datetime(readonly=True)
 
+    # Extraction state tracking
+    state = fields.Selection(
+        [
+            ("pending", "Pending"),
+            ("scraped", "Scraped"),
+            ("error", "Error"),
+            ("skipped", "Skipped"),
+        ],
+        default="pending",
+        readonly=True,
+        index=True,
+    )
+    error_message = fields.Text(readonly=True)
+    retry_count = fields.Integer(default=0, readonly=True)
+    last_error_date = fields.Datetime(readonly=True)
+    log_ids = fields.One2many("news.article.log", "article_id", string="Extraction Logs")
+
     _sql_constraints = [
         ("url_unique", "UNIQUE(url)", "An article with this URL already exists."),
     ]
@@ -52,7 +69,35 @@ class NewsArticle(models.Model):
     def action_refetch(self):
         """Button action: manually re-fetch and re-extract article content."""
         self.ensure_one()
-        self._fetch_and_extract()
+        self.with_delay(
+            channel="root.newsassistant",
+            description=f"Manual re-fetch: {self.title[:50]}",
+        )._fetch_and_extract()
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": "Re-fetch Started",
+                "message": f"Re-fetching article in background...",
+                "type": "info",
+                "sticky": False,
+            },
+        }
+
+    def action_skip(self):
+        """Mark article as skipped (don't retry)."""
+        self.ensure_one()
+        self.write({"state": "skipped"})
+
+    def action_reset(self):
+        """Reset skipped article to pending state."""
+        self.ensure_one()
+        self.write({
+            "state": "pending",
+            "error_message": False,
+            "last_error_date": False,
+            "retry_count": 0,
+        })
 
     def _fetch_and_extract(self):
         """Queue job: fetch article page and extract content using AI.
@@ -61,8 +106,33 @@ class NewsArticle(models.Model):
         page using Jina Reader API (renders JavaScript, handles PDFs),
         and uses AI to extract structured content.
         """
+        import time
         self.ensure_one()
         _logger.info("Extracting article: %s (%s)", self.title, self.url)
+
+        start_time = time.time()
+        ArticleLog = self.env["news.article.log"]
+
+        # Helper to create log entry
+        def create_log(status, error_message=None):
+            duration = time.time() - start_time
+            ArticleLog.create({
+                "article_id": self.id,
+                "status": status,
+                "duration": duration,
+                "error_message": error_message,
+            })
+
+        # Helper to set error state
+        def set_error(error_msg):
+            self.write({
+                "state": "error",
+                "error_message": error_msg,
+                "last_error_date": fields.Datetime.now(),
+                "retry_count": self.retry_count + 1,
+                "scrape_date": fields.Datetime.now(),
+            })
+            create_log("error", error_message=error_msg)
 
         # Fetch article page via Jina (renders JavaScript, handles PDFs)
         try:
@@ -71,18 +141,12 @@ class NewsArticle(models.Model):
             raise
         except ValueError as e:
             _logger.warning("Fetch error for article %s: %s", self.url, e)
-            self.write({
-                "content": f"[Error: {e}]",
-                "scrape_date": fields.Datetime.now(),
-            })
+            set_error(str(e))
             return
 
         if not content or not content.strip():
             _logger.warning("No content extracted from %s", self.url)
-            self.write({
-                "content": "[Error: No content could be extracted]",
-                "scrape_date": fields.Datetime.now(),
-            })
+            set_error("No content could be extracted")
             return
 
         # AI Stage 2: extract article content from markdown
@@ -112,10 +176,7 @@ class NewsArticle(models.Model):
             raise
         except Exception as e:
             _logger.exception("AI error extracting article %s", self.url)
-            self.write({
-                "content": f"[Error: AI extraction failed: {e}]",
-                "scrape_date": fields.Datetime.now(),
-            })
+            set_error(f"AI extraction failed: {e}")
             return
 
         # Parse AI response
@@ -132,15 +193,15 @@ class NewsArticle(models.Model):
                 self.url,
                 ai_response[:500],
             )
-            self.write({
-                "content": f"[Error: Invalid AI response: {e}]",
-                "scrape_date": fields.Datetime.now(),
-            })
+            set_error(f"Invalid AI response: {e}")
             return
 
-        # Update article with extracted data
+        # Update article with extracted data - success!
         vals = {
             "scrape_date": fields.Datetime.now(),
+            "state": "scraped",
+            "error_message": False,
+            "last_error_date": False,
         }
 
         if article_data.get("title"):
@@ -160,4 +221,5 @@ class NewsArticle(models.Model):
             vals["content"] = article_data["content"]
 
         self.write(vals)
+        create_log("success")
         _logger.info("Successfully extracted article: %s", self.title)

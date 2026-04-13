@@ -1,6 +1,6 @@
 {
     "name": "News Assistant",
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.1.0",
     "category": "Productivity",
     "summary": "Automated news scraping and triage for Swiss social-sector sources",
     "description": """
@@ -16,6 +16,7 @@
         "queue_job",
     ],
     "data": [
+        "security/newsassistant_security.xml",
         "security/ir.model.access.csv",
         "data/news_article_stage_data.xml",
         "data/queue_job_data.xml",
@@ -23,7 +24,9 @@
         "data/ir_config_parameter_data.xml",
         "views/news_article_views.xml",
         "views/news_source_views.xml",
+        "views/pipeline_monitor_views.xml",
         "views/menu.xml",
+        "data/server_actions.xml",
     ],
     "demo": [
         "demo/news_source_demo.xml",

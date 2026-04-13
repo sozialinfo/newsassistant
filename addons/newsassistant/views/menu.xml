@@ -33,4 +33,11 @@
               parent="menu_news_assistant_root"
               action="news_source_action"
               sequence="20"/>
+
+    <menuitem id="menu_pipeline_monitor"
+              name="Pipeline Monitor"
+              parent="menu_news_assistant_root"
+              action="pipeline_monitor_action"
+              groups="newsassistant.newsassistant_group_admin"
+              sequence="30"/>
 </odoo>
