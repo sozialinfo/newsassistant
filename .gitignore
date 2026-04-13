@@ -8,3 +8,4 @@ dist/
 build/
 .opencode/
 .env
+*.pot

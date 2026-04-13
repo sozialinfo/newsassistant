@@ -1,0 +1,681 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* newsassistant
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-04-13 12:49+0000\n"
+"PO-Revision-Date: 2026-04-13 12:49+0000\n"
+"Last-Translator: \n"
+"Language-Team: German\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. module: newsassistant
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_article_view_form
+msgid "<strong>Skipped:</strong>"
+msgstr "<strong>Übersprungen:</strong>"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_article__active
+#: model:ir.model.fields,field_description:newsassistant.field_news_source__active
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_source_view_search
+msgid "Active"
+msgstr "Aktiv"
+
+#. module: newsassistant
+#: model_terms:ir.actions.act_window,help:newsassistant.news_source_action
+msgid "Add your first news source"
+msgstr "Fügen Sie Ihre erste Nachrichtenquelle hinzu"
+
+#. module: newsassistant
+#: model:res.groups,name:newsassistant.newsassistant_group_admin
+msgid "Admin"
+msgstr "Administrator"
+
+#. module: newsassistant
+#: model:ir.model.constraint,message:newsassistant.constraint_news_article_url_unique
+msgid "An article with this URL already exists."
+msgstr "Ein Artikel mit dieser URL existiert bereits."
+
+#. module: newsassistant
+#: model:news.article.stage,name:newsassistant.news_article_stage_archived
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_article_view_search
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_source_view_form
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_source_view_search
+msgid "Archived"
+msgstr "Archiviert"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_log__article_id
+msgid "Article"
+msgstr "Artikel"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_source__article_count
+msgid "Article Count"
+msgstr "Artikelanzahl"
+
+#. module: newsassistant
+#: model:ir.model.fields.selection,name:newsassistant.selection__news_log__category__extraction
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_log_view_search
+msgid "Article Extraction"
+msgstr "Artikelextraktion"
+
+#. module: newsassistant
+#: model:ir.actions.act_window,name:newsassistant.news_article_stage_action
+#: model:ir.ui.menu,name:newsassistant.menu_news_article_stages
+msgid "Article Stages"
+msgstr "Artikelstatus"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_log__article_title
+msgid "Article Title"
+msgstr "Artikeltitel"
+
+#. module: newsassistant
+#: model:ir.actions.act_window,name:newsassistant.news_article_action
+#: model:ir.model.fields,field_description:newsassistant.field_news_source__article_ids
+#: model:ir.ui.menu,name:newsassistant.menu_news_articles
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_source_view_form
+msgid "Articles"
+msgstr "Artikel"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_log__created_article_count
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_log_view_form
+msgid "Articles Created"
+msgstr "Erstellte Artikel"
+
+#. module: newsassistant
+#: model_terms:ir.actions.act_window,help:newsassistant.news_article_action
+msgid ""
+"Articles will appear here after the daily scraping job runs.\n"
+"                You can also trigger a manual scrape from the Sources menu."
+msgstr ""
+"Artikel erscheinen hier nach dem täglichen Abruf.\n"
+"                Sie können auch einen manuellen Abruf über das Quellen-Menü starten."
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_log__category
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_log_view_search
+msgid "Category"
+msgstr "Kategorie"
+
+#. module: newsassistant
+#: model:ir.ui.menu,name:newsassistant.menu_news_configuration
+msgid "Configuration"
+msgstr "Konfiguration"
+
+#. module: newsassistant
+#: model_terms:ir.actions.act_window,help:newsassistant.news_source_action
+msgid "Configure the websites to monitor for news articles."
+msgstr "Konfigurieren Sie die Websites, die auf Nachrichtenartikel überwacht werden sollen."
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_article__content
+msgid "Content"
+msgstr "Inhalt"
+
+#. module: newsassistant
+#: model_terms:ir.actions.act_window,help:newsassistant.news_article_stage_action
+msgid "Create your first article stage"
+msgstr "Erstellen Sie Ihren ersten Artikelstatus"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_log__created_article_ids
+msgid "Created Articles"
+msgstr "Erstellte Artikel"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_article__create_uid
+#: model:ir.model.fields,field_description:newsassistant.field_news_article_stage__create_uid
+#: model:ir.model.fields,field_description:newsassistant.field_news_log__create_uid
+#: model:ir.model.fields,field_description:newsassistant.field_news_log_entry__create_uid
+#: model:ir.model.fields,field_description:newsassistant.field_news_source__create_uid
+msgid "Created by"
+msgstr "Erstellt von"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_article__create_date
+#: model:ir.model.fields,field_description:newsassistant.field_news_article_stage__create_date
+#: model:ir.model.fields,field_description:newsassistant.field_news_log__create_date
+#: model:ir.model.fields,field_description:newsassistant.field_news_log_entry__create_date
+#: model:ir.model.fields,field_description:newsassistant.field_news_source__create_date
+msgid "Created on"
+msgstr "Erstellt am"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_source__is_scraping
+msgid "Currently Scraping"
+msgstr "Wird abgerufen"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_article__date
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_article_view_search
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_log_view_search
+msgid "Date"
+msgstr "Datum"
+
+#. module: newsassistant
+#: model:ir.model.fields.selection,name:newsassistant.selection__news_log_entry__level__debug
+msgid "Debug"
+msgstr "Debug"
+
+#. module: newsassistant
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_log_view_form
+msgid "Detail Entries"
+msgstr "Detaileinträge"
+
+#. module: newsassistant
+#: model:news.article.stage,name:newsassistant.news_article_stage_discarded
+msgid "Discarded"
+msgstr "Verworfen"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_article__display_name
+#: model:ir.model.fields,field_description:newsassistant.field_news_article_stage__display_name
+#: model:ir.model.fields,field_description:newsassistant.field_news_log__display_name
+#: model:ir.model.fields,field_description:newsassistant.field_news_log_entry__display_name
+#: model:ir.model.fields,field_description:newsassistant.field_news_source__display_name
+msgid "Display Name"
+msgstr "Anzeigename"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_log__duration
+#: model:ir.model.fields,field_description:newsassistant.field_news_log_entry__duration
+msgid "Duration (s)"
+msgstr "Dauer (s)"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_log__entry_ids
+msgid "Entries"
+msgstr "Einträge"
+
+#. module: newsassistant
+#: model:ir.model.fields.selection,name:newsassistant.selection__news_article__state__error
+#: model:ir.model.fields.selection,name:newsassistant.selection__news_log__level__error
+#: model:ir.model.fields.selection,name:newsassistant.selection__news_log_entry__level__error
+#: model:ir.model.fields.selection,name:newsassistant.selection__news_source__state__error
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_article_view_search
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_log_view_search
+msgid "Error"
+msgstr "Fehler"
+
+#. module: newsassistant
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_source_view_form
+msgid "Error Details"
+msgstr "Fehlerdetails"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_source__error_message
+msgid "Error Message"
+msgstr "Fehlermeldung"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_article_stage__fold
+msgid "Fold"
+msgstr "Eingeklappt"
+
+#. module: newsassistant
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_article_view_form
+msgid "Full Content"
+msgstr "Vollständiger Inhalt"
+
+#. module: newsassistant
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_article_view_search
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_log_view_search
+msgid "Group By"
+msgstr "Gruppieren nach"
+
+#. module: newsassistant
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_source_view_search
+msgid "Has Errors"
+msgstr "Hat Fehler"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_article__id
+#: model:ir.model.fields,field_description:newsassistant.field_news_article_stage__id
+#: model:ir.model.fields,field_description:newsassistant.field_news_log__id
+#: model:ir.model.fields,field_description:newsassistant.field_news_log_entry__id
+#: model:ir.model.fields,field_description:newsassistant.field_news_source__id
+msgid "ID"
+msgstr "ID"
+
+#. module: newsassistant
+#: model:ir.model.fields.selection,name:newsassistant.selection__news_log_entry__level__info
+msgid "Info"
+msgstr "Info"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_log__job_id
+msgid "Job"
+msgstr "Auftrag"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_article__last_error_date
+msgid "Last Error Date"
+msgstr "Letztes Fehlerdatum"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_source__last_scrape_date
+msgid "Last Scrape Date"
+msgstr "Letzter Abruf"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_article__write_uid
+#: model:ir.model.fields,field_description:newsassistant.field_news_article_stage__write_uid
+#: model:ir.model.fields,field_description:newsassistant.field_news_log__write_uid
+#: model:ir.model.fields,field_description:newsassistant.field_news_log_entry__write_uid
+#: model:ir.model.fields,field_description:newsassistant.field_news_source__write_uid
+msgid "Last Updated by"
+msgstr "Zuletzt aktualisiert von"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_article__write_date
+#: model:ir.model.fields,field_description:newsassistant.field_news_article_stage__write_date
+#: model:ir.model.fields,field_description:newsassistant.field_news_log__write_date
+#: model:ir.model.fields,field_description:newsassistant.field_news_log_entry__write_date
+#: model:ir.model.fields,field_description:newsassistant.field_news_source__write_date
+msgid "Last Updated on"
+msgstr "Zuletzt aktualisiert am"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_log__level
+#: model:ir.model.fields,field_description:newsassistant.field_news_log_entry__level
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_log_view_search
+msgid "Level"
+msgstr "Stufe"
+
+#. module: newsassistant
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_log_view_form
+msgid "Linked Objects"
+msgstr "Verknüpfte Objekte"
+
+#. module: newsassistant
+#: model:ir.model.fields.selection,name:newsassistant.selection__news_log__category__listing
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_log_view_search
+msgid "Listing Scrape"
+msgstr "Listenabruf"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_log_entry__log_id
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_article_view_form
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_source_view_form
+msgid "Log"
+msgstr "Protokoll"
+
+#. module: newsassistant
+#: model:ir.actions.act_window,name:newsassistant.news_log_action
+#: model:ir.model.fields,field_description:newsassistant.field_news_article__log_ids
+#: model:ir.model.fields,field_description:newsassistant.field_news_source__log_ids
+#: model:ir.ui.menu,name:newsassistant.menu_news_logs
+msgid "Logs"
+msgstr "Protokolle"
+
+#. module: newsassistant
+#: model_terms:ir.actions.act_window,help:newsassistant.news_log_action
+msgid "Logs will appear here after scraping jobs run."
+msgstr "Protokolle erscheinen hier nach dem Ausführen von Abrufaufträgen."
+
+#. module: newsassistant
+#: model:ir.actions.server,name:newsassistant.action_article_skip_selected
+msgid "Mark as Skipped"
+msgstr "Als übersprungen markieren"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_log__message
+#: model:ir.model.fields,field_description:newsassistant.field_news_log_entry__message
+msgid "Message"
+msgstr "Nachricht"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_log_entry__metadata_pretty
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_log_entry_view_form
+msgid "Metadata"
+msgstr "Metadaten"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_log_entry__metadata
+msgid "Metadata (JSON)"
+msgstr "Metadaten (JSON)"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_article_stage__name
+#: model:ir.model.fields,field_description:newsassistant.field_news_source__name
+msgid "Name"
+msgstr "Name"
+
+#. module: newsassistant
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_source_view_search
+msgid "Never Scraped"
+msgstr "Nie abgerufen"
+
+#. module: newsassistant
+#: model:news.article.stage,name:newsassistant.news_article_stage_new
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_article_view_search
+msgid "New"
+msgstr "Neu"
+
+#. module: newsassistant
+#: model:ir.model,name:newsassistant.model_news_article
+msgid "News Article"
+msgstr "Artikel"
+
+#. module: newsassistant
+#: model:ir.model,name:newsassistant.model_news_article_stage
+msgid "News Article Stage"
+msgstr "Artikelstatus"
+
+#. module: newsassistant
+#: model:ir.module.category,name:newsassistant.module_category_newsassistant
+#: model:ir.ui.menu,name:newsassistant.menu_news_assistant_root
+msgid "News Assistant"
+msgstr "News Assistent"
+
+#. module: newsassistant
+#: model:ir.actions.server,name:newsassistant.ir_cron_scrape_news_ir_actions_server
+msgid "News Assistant: Scrape All Sources"
+msgstr "News Assistent: Alle Quellen abrufen"
+
+#. module: newsassistant
+#: model:ir.model,name:newsassistant.model_news_log
+msgid "News Log"
+msgstr "Nachrichtenprotokoll"
+
+#. module: newsassistant
+#: model:ir.model,name:newsassistant.model_news_log_entry
+msgid "News Log Entry"
+msgstr "Nachrichtenprotokolleintrag"
+
+#. module: newsassistant
+#: model:ir.model,name:newsassistant.model_news_source
+msgid "News Source"
+msgstr "Nachrichtenquelle"
+
+#. module: newsassistant
+#: model_terms:ir.actions.act_window,help:newsassistant.news_article_action
+msgid "No articles yet"
+msgstr "Noch keine Artikel"
+
+#. module: newsassistant
+#: model_terms:ir.actions.act_window,help:newsassistant.news_log_action
+msgid "No logs yet"
+msgstr "Noch keine Protokolle"
+
+#. module: newsassistant
+#: model:ir.model.fields.selection,name:newsassistant.selection__news_source__state__ok
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_source_view_search
+msgid "OK"
+msgstr "OK"
+
+#. module: newsassistant
+#: model:ir.model.fields.selection,name:newsassistant.selection__news_article__state__pending
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_article_view_search
+msgid "Pending"
+msgstr "Ausstehend"
+
+#. module: newsassistant
+#: model:ir.actions.server,name:newsassistant.action_article_refetch_form
+msgid "Re-fetch"
+msgstr "Erneut abrufen"
+
+#. module: newsassistant
+#: model:ir.actions.server,name:newsassistant.action_article_refetch_selected
+msgid "Re-fetch Selected"
+msgstr "Ausgewählte erneut abrufen"
+
+#. module: newsassistant
+#. odoo-python
+#: code:addons/newsassistant/models/news_article.py:0
+msgid "Already Skipped"
+msgstr "Bereits übersprungen"
+
+#. module: newsassistant
+#. odoo-python
+#: code:addons/newsassistant/models/news_article.py:0
+msgid "Article Reset"
+msgstr "Artikel zurückgesetzt"
+
+#. module: newsassistant
+#. odoo-python
+#: code:addons/newsassistant/models/news_article.py:0
+msgid "Article Skipped"
+msgstr "Artikel übersprungen"
+
+#. module: newsassistant
+#. odoo-python
+#: code:addons/newsassistant/models/news_article.py:0
+msgid "Article marked as skipped and archived."
+msgstr "Artikel als übersprungen markiert und archiviert."
+
+#. module: newsassistant
+#. odoo-python
+#: code:addons/newsassistant/models/news_article.py:0
+msgid "Article reset to pending and unarchived."
+msgstr "Artikel auf ausstehend zurückgesetzt und wiederhergestellt."
+
+#. module: newsassistant
+#. odoo-python
+#: code:addons/newsassistant/models/news_article.py:0
+msgid "Cannot Re-fetch"
+msgstr "Abruf nicht möglich"
+
+#. module: newsassistant
+#. odoo-python
+#: code:addons/newsassistant/models/news_article.py:0
+msgid "Cannot re-fetch skipped articles. Reset first."
+msgstr "Übersprungene Artikel können nicht abgerufen werden. Zuerst zurücksetzen."
+
+#. module: newsassistant
+#. odoo-python
+#: code:addons/newsassistant/models/news_article.py:0
+msgid "Re-fetch Started"
+msgstr "Abruf gestartet"
+
+#. module: newsassistant
+#. odoo-python
+#: code:addons/newsassistant/models/news_article.py:0
+msgid "Re-fetching article in background..."
+msgstr "Artikel wird im Hintergrund abgerufen..."
+
+#. module: newsassistant
+#. odoo-python
+#: code:addons/newsassistant/models/news_article.py:0
+msgid "This article is already skipped."
+msgstr "Dieser Artikel wurde bereits übersprungen."
+
+#. module: newsassistant
+#: model:news.article.stage,name:newsassistant.news_article_stage_relevant
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_article_view_search
+msgid "Relevant"
+msgstr "Relevant"
+
+#. module: newsassistant
+#: model:ir.actions.server,name:newsassistant.action_article_reset_form
+msgid "Reset"
+msgstr "Zurücksetzen"
+
+#. module: newsassistant
+#: model:ir.actions.server,name:newsassistant.action_article_reset_selected
+msgid "Reset to Pending"
+msgstr "Auf ausstehend zurücksetzen"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_article__retry_count
+msgid "Retry Count"
+msgstr "Wiederholungsversuche"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_article__scrape_date
+msgid "Scrape Date"
+msgstr "Abrufdatum"
+
+#. module: newsassistant
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_source_view_form
+msgid "Scrape Now"
+msgstr "Jetzt abrufen"
+
+#. module: newsassistant
+#: model:ir.actions.server,name:newsassistant.action_source_scrape_selected
+msgid "Scrape Selected"
+msgstr "Ausgewählte abrufen"
+
+#. module: newsassistant
+#. odoo-python
+#: code:addons/newsassistant/models/news_source.py:0
+msgid "Scrape Started"
+msgstr "Abruf gestartet"
+
+#. module: newsassistant
+#. odoo-python
+#: code:addons/newsassistant/models/news_source.py:0
+msgid "Scraping source in background..."
+msgstr "Quelle wird im Hintergrund abgerufen..."
+
+#. module: newsassistant
+#: model:ir.model.fields.selection,name:newsassistant.selection__news_article__state__scraped
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_article_view_search
+msgid "Scraped"
+msgstr "Abgerufen"
+
+#. module: newsassistant
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_source_view_list
+msgid "Scraping"
+msgstr "Wird abgerufen"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_article_stage__sequence
+msgid "Sequence"
+msgstr "Reihenfolge"
+
+#. module: newsassistant
+#: model:ir.actions.server,name:newsassistant.action_article_skip_form
+msgid "Skip"
+msgstr "Überspringen"
+
+#. module: newsassistant
+#: model:ir.model.fields.selection,name:newsassistant.selection__news_article__state__skipped
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_article_view_search
+msgid "Skipped"
+msgstr "Übersprungen"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_article__source_id
+#: model:ir.model.fields,field_description:newsassistant.field_news_log__source_id
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_article_view_search
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_log_view_search
+msgid "Source"
+msgstr "Quelle"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_log__source_name
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_source_view_form
+msgid "Source Name"
+msgstr "Quellenname"
+
+#. module: newsassistant
+#: model:ir.actions.act_window,name:newsassistant.news_source_action
+#: model:ir.ui.menu,name:newsassistant.menu_news_sources
+msgid "Sources"
+msgstr "Quellen"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_article__stage_id
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_article_view_search
+msgid "Stage"
+msgstr "Status"
+
+#. module: newsassistant
+#: model_terms:ir.actions.act_window,help:newsassistant.news_article_stage_action
+msgid ""
+"Stages are used to organize articles in the kanban view.\n"
+"                Drag stages to reorder them."
+msgstr ""
+"Status werden verwendet, um Artikel in der Kanban-Ansicht zu organisieren.\n"
+"                Ziehen Sie Status, um sie neu anzuordnen."
+
+#. module: newsassistant
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_source_view_search
+msgid "Stale"
+msgstr "Veraltet"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_article__state
+#: model:ir.model.fields,field_description:newsassistant.field_news_source__state
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_article_view_search
+msgid "State"
+msgstr "Zustand"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_article__status_message
+msgid "Status Message"
+msgstr "Statusmeldung"
+
+#. module: newsassistant
+#: model:ir.model.fields.selection,name:newsassistant.selection__news_log__level__success
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_log_view_search
+msgid "Success"
+msgstr "Erfolg"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_article__summary
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_article_view_form
+msgid "Summary"
+msgstr "Zusammenfassung"
+
+#. module: newsassistant
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_article_view_search
+msgid "This Month"
+msgstr "Diesen Monat"
+
+#. module: newsassistant
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_article_view_search
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_log_view_search
+msgid "This Week"
+msgstr "Diese Woche"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_log__timestamp
+#: model:ir.model.fields,field_description:newsassistant.field_news_log_entry__timestamp
+msgid "Timestamp"
+msgstr "Zeitstempel"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_article__title
+msgid "Title"
+msgstr "Titel"
+
+#. module: newsassistant
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_article_view_search
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_log_view_search
+msgid "Today"
+msgstr "Heute"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_article__url
+#: model:ir.model.fields,field_description:newsassistant.field_news_source__url
+msgid "Url"
+msgstr "URL"
+
+#. module: newsassistant
+#: model:res.groups,name:newsassistant.newsassistant_group_user
+msgid "User"
+msgstr "Benutzer"
+
+#. module: newsassistant
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_log_view_form
+msgid "View Metadata"
+msgstr "Metadaten anzeigen"
+
+#. module: newsassistant
+#: model:ir.model.fields.selection,name:newsassistant.selection__news_log__level__warning
+#: model:ir.model.fields.selection,name:newsassistant.selection__news_log_entry__level__warning
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_log_view_search
+msgid "Warning"
+msgstr "Warnung"

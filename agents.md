@@ -336,3 +336,129 @@ Before marking work complete, verify:
 | HTML cleaner | `news_source.clean_html(raw_html)` |
 | URL normalizer | `news_source.normalize_url(url)` |
 | JSON parser | `news_source.parse_ai_json(text, expect_array=True)` |
+
+## Translations (i18n)
+
+The module supports German (de) and French (fr) translations. Translation files are in `addons/newsassistant/i18n/`.
+
+### Terminology
+
+| English | German | French |
+|---------|--------|--------|
+| Article | Artikel | Article |
+| Stage | Status | Étape |
+| Source | Quelle | Source |
+| Relevant | Relevant | Pertinent |
+| Discarded | Verworfen | Rejeté |
+| Scraped | Abgerufen | Collecté |
+| Pending | Ausstehend | En attente |
+| Skipped | Übersprungen | Ignoré |
+
+### Installing Languages (First Time Setup)
+
+Before translations can be used, the target languages must be installed in Odoo:
+
+```bash
+# Stop Odoo first
+cd /home/debian/projects/newsassistant
+docker compose stop odoo-newsassistant
+
+# Load German and French languages
+docker run --rm --network opencode \
+  -v $(pwd)/addons:/mnt/extra-addons \
+  -v $(pwd)/odoo.conf:/etc/odoo/odoo.conf:ro \
+  -v /home/debian/shared/odoo-src/18.0/oca/web:/mnt/oca/web:ro \
+  -v /home/debian/shared/odoo-src/18.0/oca/queue:/mnt/oca/queue:ro \
+  -e HOST=postgres -e PORT=5432 -e USER=opencode -e PASSWORD= \
+  odoo:18.0 odoo --load-language=de_DE,fr_FR -d newsassistant --stop-after-init
+
+# Update module to load translations from .po files
+docker run --rm --network opencode \
+  -v $(pwd)/addons:/mnt/extra-addons \
+  -v $(pwd)/odoo.conf:/etc/odoo/odoo.conf:ro \
+  -v /home/debian/shared/odoo-src/18.0/oca/web:/mnt/oca/web:ro \
+  -v /home/debian/shared/odoo-src/18.0/oca/queue:/mnt/oca/queue:ro \
+  -e HOST=postgres -e PORT=5432 -e USER=opencode -e PASSWORD= \
+  odoo:18.0 odoo -u newsassistant -d newsassistant --stop-after-init
+
+# Start Odoo again
+docker compose start odoo-newsassistant
+```
+
+### Updating Translations After Code Changes
+
+When translatable strings change (new fields, labels, views, Python `_()` strings):
+
+**1. Stop Odoo and update module:**
+```bash
+cd /home/debian/projects/newsassistant
+docker compose stop odoo-newsassistant
+
+docker run --rm --network opencode \
+  -v $(pwd)/addons:/mnt/extra-addons \
+  -v $(pwd)/odoo.conf:/etc/odoo/odoo.conf:ro \
+  -v /home/debian/shared/odoo-src/18.0/oca/web:/mnt/oca/web:ro \
+  -v /home/debian/shared/odoo-src/18.0/oca/queue:/mnt/oca/queue:ro \
+  -e HOST=postgres -e PORT=5432 -e USER=opencode -e PASSWORD= \
+  odoo:18.0 odoo -u newsassistant -d newsassistant --stop-after-init
+
+docker compose start odoo-newsassistant
+```
+
+**2. Export fresh POT template:**
+```bash
+docker exec odoo-newsassistant odoo \
+  --i18n-export=/tmp/newsassistant.pot \
+  --modules=newsassistant \
+  -d newsassistant \
+  --stop-after-init
+
+docker cp odoo-newsassistant:/tmp/newsassistant.pot /tmp/
+```
+
+**3. Update .po files with new strings:**
+
+Compare the new POT with existing .po files. Add any new `msgid` entries and translate them.
+
+**Important for Python `_()` strings (Odoo 18+):**
+
+Python code translations require the `#. odoo-python` comment marker:
+```po
+#. module: newsassistant
+#. odoo-python
+#: code:addons/newsassistant/models/news_article.py:0
+msgid "Re-fetch Started"
+msgstr "Abruf gestartet"
+```
+
+The POT export includes this marker automatically. When manually adding translations, ensure the `#. odoo-python` line is present - without it, code translations won't load.
+
+Python strings must use `_()` to be translatable:
+```python
+from odoo import _
+# ...
+"title": _("Re-fetch Started"),
+"message": _("Re-fetching article in background..."),
+```
+
+**4. Reload translations:**
+```bash
+cd /home/debian/projects/newsassistant
+docker compose stop odoo-newsassistant
+
+docker run --rm --network opencode \
+  -v $(pwd)/addons:/mnt/extra-addons \
+  -v $(pwd)/odoo.conf:/etc/odoo/odoo.conf:ro \
+  -v /home/debian/shared/odoo-src/18.0/oca/web:/mnt/oca/web:ro \
+  -v /home/debian/shared/odoo-src/18.0/oca/queue:/mnt/oca/queue:ro \
+  -e HOST=postgres -e PORT=5432 -e USER=opencode -e PASSWORD= \
+  odoo:18.0 odoo -u newsassistant -d newsassistant --stop-after-init
+
+docker compose start odoo-newsassistant
+```
+
+**5. Verify in Odoo:**
+
+Switch user language to German/French in Preferences and verify all labels display correctly.
+
+**Note:** The POT file is gitignored (generated on demand). Only the translated .po files are committed.

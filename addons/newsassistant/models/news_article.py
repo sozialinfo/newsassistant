@@ -1,7 +1,7 @@
 import json
 import logging
 
-from odoo import api, fields, models
+from odoo import _, api, fields, models
 
 from odoo.addons.queue_job.exception import RetryableJobError
 
@@ -71,6 +71,17 @@ class NewsArticle(models.Model):
     def action_refetch(self):
         """Button action: manually re-fetch and re-extract article content."""
         self.ensure_one()
+        if self.state == "skipped":
+            return {
+                "type": "ir.actions.client",
+                "tag": "display_notification",
+                "params": {
+                    "title": _("Cannot Re-fetch"),
+                    "message": _("Cannot re-fetch skipped articles. Reset first."),
+                    "type": "warning",
+                    "sticky": False,
+                },
+            }
         self.with_delay(
             channel="root.newsassistant",
             description=f"Manual re-fetch: {self.title[:50]}",
@@ -79,8 +90,8 @@ class NewsArticle(models.Model):
             "type": "ir.actions.client",
             "tag": "display_notification",
             "params": {
-                "title": "Re-fetch Started",
-                "message": f"Re-fetching article in background...",
+                "title": _("Re-fetch Started"),
+                "message": _("Re-fetching article in background..."),
                 "type": "info",
                 "sticky": False,
             },
@@ -89,7 +100,28 @@ class NewsArticle(models.Model):
     def action_skip(self):
         """Mark article as skipped and archive it."""
         self.ensure_one()
+        if self.state == "skipped":
+            return {
+                "type": "ir.actions.client",
+                "tag": "display_notification",
+                "params": {
+                    "title": _("Already Skipped"),
+                    "message": _("This article is already skipped."),
+                    "type": "warning",
+                    "sticky": False,
+                },
+            }
         self.write({"state": "skipped", "active": False})
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("Article Skipped"),
+                "message": _("Article marked as skipped and archived."),
+                "type": "info",
+                "sticky": False,
+            },
+        }
 
     def action_reset(self):
         """Reset skipped article to pending state and unarchive."""
@@ -101,6 +133,16 @@ class NewsArticle(models.Model):
             "retry_count": 0,
             "active": True,
         })
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("Article Reset"),
+                "message": _("Article reset to pending and unarchived."),
+                "type": "info",
+                "sticky": False,
+            },
+        }
 
     def _create_log(self, level, message, duration=None, entries=None, job_id=None):
         """Create a unified log record with optional detail entries.

@@ -5,7 +5,7 @@ from urllib.parse import urljoin, urlparse, urlunparse
 import requests
 from bs4 import BeautifulSoup
 
-from odoo import fields, models
+from odoo import _, fields, models
 
 from odoo.addons.queue_job.exception import RetryableJobError
 
@@ -283,8 +283,8 @@ class NewsSource(models.Model):
             "type": "ir.actions.client",
             "tag": "display_notification",
             "params": {
-                "title": "Scrape Started",
-                "message": f"Scraping {self.name} in background...",
+                "title": _("Scrape Started"),
+                "message": _("Scraping source in background..."),
                 "type": "info",
                 "sticky": False,
             },

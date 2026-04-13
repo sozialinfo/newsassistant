@@ -117,32 +117,7 @@ action = {
         <field name="groups_id" eval="[(4, ref('newsassistant.newsassistant_group_admin'))]"/>
         <field name="state">code</field>
         <field name="code">
-if record.state != 'skipped':
-    record.with_delay(
-        channel="root.newsassistant",
-        description=f"Manual re-fetch: {record.title[:50]}",
-    )._fetch_and_extract()
-    action = {
-        "type": "ir.actions.client",
-        "tag": "display_notification",
-        "params": {
-            "title": "Re-fetch Started",
-            "message": "Re-fetching article in background...",
-            "type": "info",
-            "sticky": False,
-        },
-    }
-else:
-    action = {
-        "type": "ir.actions.client",
-        "tag": "display_notification",
-        "params": {
-            "title": "Cannot Re-fetch",
-            "message": "Cannot re-fetch skipped articles. Reset first.",
-            "type": "warning",
-            "sticky": False,
-        },
-    }
+action = record.action_refetch()
         </field>
     </record>
 
@@ -155,29 +130,7 @@ else:
         <field name="groups_id" eval="[(4, ref('newsassistant.newsassistant_group_admin'))]"/>
         <field name="state">code</field>
         <field name="code">
-if record.state != 'skipped':
-    record.write({"state": "skipped", "active": False})
-    action = {
-        "type": "ir.actions.client",
-        "tag": "display_notification",
-        "params": {
-            "title": "Article Skipped",
-            "message": "Article marked as skipped and archived.",
-            "type": "info",
-            "sticky": False,
-        },
-    }
-else:
-    action = {
-        "type": "ir.actions.client",
-        "tag": "display_notification",
-        "params": {
-            "title": "Already Skipped",
-            "message": "This article is already skipped.",
-            "type": "warning",
-            "sticky": False,
-        },
-    }
+action = record.action_skip()
         </field>
     </record>
 
@@ -190,23 +143,7 @@ else:
         <field name="groups_id" eval="[(4, ref('newsassistant.newsassistant_group_admin'))]"/>
         <field name="state">code</field>
         <field name="code">
-record.write({
-    "state": "pending",
-    "status_message": False,
-    "last_error_date": False,
-    "retry_count": 0,
-    "active": True,
-})
-action = {
-    "type": "ir.actions.client",
-    "tag": "display_notification",
-    "params": {
-        "title": "Article Reset",
-        "message": "Article reset to pending and unarchived.",
-        "type": "info",
-        "sticky": False,
-    },
-}
+action = record.action_reset()
         </field>
     </record>
 </odoo>
