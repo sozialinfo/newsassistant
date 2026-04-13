@@ -35,12 +35,12 @@
               action="news_source_action"
               sequence="20"/>
 
-    <menuitem id="menu_pipeline_monitor"
-              name="Pipeline Monitor"
+    <menuitem id="menu_news_logs"
+              name="Logs"
               parent="menu_news_assistant_root"
-              action="pipeline_monitor_action"
+              action="news_log_action"
               groups="newsassistant.newsassistant_group_admin"
-              sequence="30"/>
+              sequence="40"/>
 
     <!-- Configuration Menu (admin only) -->
     <menuitem id="menu_news_configuration"

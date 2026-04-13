@@ -2,8 +2,7 @@ id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_news_source_user,news.source.user,model_news_source,newsassistant.newsassistant_group_user,1,1,1,1
 access_news_article_user,news.article.user,model_news_article,newsassistant.newsassistant_group_user,1,1,1,1
 access_news_article_stage_user,news.article.stage.user,model_news_article_stage,newsassistant.newsassistant_group_user,1,1,1,1
-access_news_source_log_admin,news.source.log.admin,model_news_source_log,newsassistant.newsassistant_group_admin,1,0,0,0
-access_news_source_log_system,news.source.log.system,model_news_source_log,base.group_system,1,1,1,1
-access_news_article_log_admin,news.article.log.admin,model_news_article_log,newsassistant.newsassistant_group_admin,1,0,0,0
-access_news_article_log_system,news.article.log.system,model_news_article_log,base.group_system,1,1,1,1
-access_pipeline_monitor_admin,news.pipeline.monitor.admin,model_news_pipeline_monitor,newsassistant.newsassistant_group_admin,1,1,1,1
+access_news_log_admin,news.log.admin,model_news_log,newsassistant.newsassistant_group_admin,1,0,0,0
+access_news_log_system,news.log.system,model_news_log,base.group_system,1,1,1,1
+access_news_log_entry_admin,news.log.entry.admin,model_news_log_entry,newsassistant.newsassistant_group_admin,1,0,0,0
+access_news_log_entry_system,news.log.entry.system,model_news_log_entry,base.group_system,1,1,1,1

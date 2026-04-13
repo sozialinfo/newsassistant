@@ -8,6 +8,8 @@
             <list>
                 <field name="name"/>
                 <field name="url" widget="url"/>
+                <field name="is_scraping" widget="boolean" string="Scraping"
+                       decoration-info="is_scraping"/>
                 <field name="state" widget="badge"
                        decoration-success="state == 'ok'"
                        decoration-danger="state == 'error'"/>
@@ -61,25 +63,25 @@
                     <group string="Error Details" invisible="state != 'error'">
                         <field name="error_message" nolabel="1" colspan="2"/>
                     </group>
-                    <!-- Scrape History section (admin only) -->
-                    <group string="Scrape History"
-                           groups="newsassistant.newsassistant_group_admin">
-                        <field name="log_ids" nolabel="1" readonly="1">
-                            <list limit="10">
-                                <field name="timestamp"/>
-                                <field name="status" widget="badge"
-                                       decoration-success="status == 'success'"
-                                       decoration-danger="status == 'error'"/>
-                                <field name="articles_found"/>
-                                <field name="duration"/>
-                                <field name="error_message"/>
-                                <button name="action_view_job" type="object"
-                                        string="View Full Log" icon="fa-external-link"
-                                        invisible="not job_id"/>
-                                <field name="job_id" column_invisible="True"/>
-                            </list>
-                        </field>
-                    </group>
+                    <!-- Log tab (admin only) -->
+                    <notebook groups="newsassistant.newsassistant_group_admin">
+                        <page string="Log">
+                            <field name="log_ids" nolabel="1" readonly="1">
+                                <list limit="20">
+                                    <field name="timestamp"/>
+                                    <field name="level" widget="badge"
+                                           decoration-success="level == 'success'"
+                                           decoration-warning="level == 'warning'"
+                                           decoration-danger="level == 'error'"/>
+                                    <field name="category"/>
+                                    <field name="article_id" widget="many2one_link"/>
+                                    <field name="message"/>
+                                    <field name="duration" widget="float_time"/>
+                                    <field name="job_id" widget="many2one_link" optional="hide"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
                 </sheet>
             </form>
         </field>

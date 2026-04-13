@@ -87,7 +87,7 @@
                         <page string="Full Content">
                             <field name="content" nolabel="1" readonly="1"/>
                         </page>
-                        <page string="History" groups="newsassistant.newsassistant_group_admin">
+                        <page string="Log" groups="newsassistant.newsassistant_group_admin">
                             <!-- Extraction Status -->
                             <group>
                                 <group>
@@ -102,26 +102,19 @@
                                     <field name="last_error_date"/>
                                 </group>
                             </group>
-                            <group string="Error Details" invisible="state not in ('error', 'skipped')">
-                                <field name="error_message" nolabel="1" colspan="2"/>
-                            </group>
-                            <!-- Extraction History -->
-                            <group string="Extraction History">
-                                <field name="log_ids" nolabel="1" readonly="1">
-                                    <list limit="10">
-                                        <field name="timestamp"/>
-                                        <field name="status" widget="badge"
-                                               decoration-success="status == 'success'"
-                                               decoration-danger="status == 'error'"/>
-                                        <field name="duration"/>
-                                        <field name="error_message"/>
-                                        <button name="action_view_job" type="object"
-                                                string="View Full Log" icon="fa-external-link"
-                                                invisible="not job_id"/>
-                                        <field name="job_id" column_invisible="True"/>
-                                    </list>
-                                </field>
-                            </group>
+                            <!-- Log entries -->
+                            <field name="log_ids" nolabel="1" readonly="1">
+                                <list limit="20">
+                                    <field name="timestamp"/>
+                                    <field name="level" widget="badge"
+                                           decoration-success="level == 'success'"
+                                           decoration-warning="level == 'warning'"
+                                           decoration-danger="level == 'error'"/>
+                                    <field name="message"/>
+                                    <field name="duration" widget="float_time"/>
+                                    <field name="job_id" widget="many2one_link" optional="hide"/>
+                                </list>
+                            </field>
                         </page>
                     </notebook>
                 </sheet>

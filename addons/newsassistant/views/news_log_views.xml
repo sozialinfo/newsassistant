@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Log List View -->
+    <record id="news_log_view_list" model="ir.ui.view">
+        <field name="name">news.log.list</field>
+        <field name="model">news.log</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="timestamp"/>
+                <field name="level" widget="badge"
+                       decoration-success="level == 'success'"
+                       decoration-warning="level == 'warning'"
+                       decoration-danger="level == 'error'"/>
+                <field name="category"/>
+                <field name="source_id" widget="many2one_link"/>
+                <field name="article_id" widget="many2one_link"/>
+                <field name="message"/>
+                <field name="duration" widget="float_time"/>
+                <field name="job_id" widget="many2one_link" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Log Form View -->
+    <record id="news_log_view_form" model="ir.ui.view">
+        <field name="name">news.log.form</field>
+        <field name="model">news.log</field>
+        <field name="arch" type="xml">
+            <form create="0" edit="0">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_created_articles" type="object"
+                                class="oe_stat_button" icon="fa-newspaper-o"
+                                invisible="created_article_count == 0">
+                            <field name="created_article_count" widget="statinfo" string="Articles Created"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="message" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="timestamp"/>
+                            <field name="level" widget="badge"
+                                   decoration-success="level == 'success'"
+                                   decoration-warning="level == 'warning'"
+                                   decoration-danger="level == 'error'"/>
+                            <field name="category"/>
+                            <field name="duration" widget="float_time"/>
+                        </group>
+                        <group string="Linked Objects">
+                            <field name="source_id" widget="many2one_link"/>
+                            <field name="article_id" widget="many2one_link"/>
+                            <field name="job_id" widget="many2one_link"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Detail Entries">
+                            <field name="entry_ids" nolabel="1" readonly="1">
+                                <list>
+                                    <field name="timestamp"/>
+                                    <field name="level" widget="badge"
+                                           decoration-muted="level == 'debug'"
+                                           decoration-info="level == 'info'"
+                                           decoration-warning="level == 'warning'"
+                                           decoration-danger="level == 'error'"/>
+                                    <field name="message"/>
+                                    <field name="duration" widget="float_time"/>
+                                    <button name="action_view_metadata" type="object"
+                                            string="View Metadata" icon="fa-code"
+                                            invisible="not metadata"/>
+                                    <field name="metadata" column_invisible="True"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Log Search View -->
+    <record id="news_log_view_search" model="ir.ui.view">
+        <field name="name">news.log.search</field>
+        <field name="model">news.log</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="message"/>
+                <field name="source_id"/>
+                <field name="article_id"/>
+                <separator/>
+                <filter name="filter_success" string="Success"
+                        domain="[('level', '=', 'success')]"/>
+                <filter name="filter_warning" string="Warning"
+                        domain="[('level', '=', 'warning')]"/>
+                <filter name="filter_error" string="Error"
+                        domain="[('level', '=', 'error')]"/>
+                <separator/>
+                <filter name="filter_listing" string="Listing Scrape"
+                        domain="[('category', '=', 'listing')]"/>
+                <filter name="filter_extraction" string="Article Extraction"
+                        domain="[('category', '=', 'extraction')]"/>
+                <separator/>
+                <filter name="filter_today" string="Today"
+                        domain="[('timestamp', '&gt;=', (context_today()).strftime('%%Y-%%m-%%d'))]"/>
+                <filter name="filter_week" string="This Week"
+                        domain="[('timestamp', '&gt;=', (context_today() - datetime.timedelta(days=7)).strftime('%%Y-%%m-%%d'))]"/>
+                <separator/>
+                <group expand="0" string="Group By">
+                    <filter name="group_source" string="Source"
+                            context="{'group_by': 'source_id'}"/>
+                    <filter name="group_level" string="Level"
+                            context="{'group_by': 'level'}"/>
+                    <filter name="group_category" string="Category"
+                            context="{'group_by': 'category'}"/>
+                    <filter name="group_date" string="Date"
+                            context="{'group_by': 'timestamp:day'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Log Entry Form View (for metadata popup) -->
+    <record id="news_log_entry_view_form" model="ir.ui.view">
+        <field name="name">news.log.entry.form</field>
+        <field name="model">news.log.entry</field>
+        <field name="arch" type="xml">
+            <form create="0" edit="0">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="timestamp"/>
+                            <field name="level" widget="badge"/>
+                            <field name="message"/>
+                            <field name="duration" widget="float_time"/>
+                        </group>
+                    </group>
+                    <group string="Metadata" invisible="not metadata">
+                        <field name="metadata_pretty" nolabel="1" widget="text"
+                               readonly="1" style="font-family: monospace;"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Log Action -->
+    <record id="news_log_action" model="ir.actions.act_window">
+        <field name="name">Logs</field>
+        <field name="path">logs</field>
+        <field name="res_model">news.log</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="news_log_view_search"/>
+        <field name="context">{'search_default_filter_today': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No logs yet
+            </p>
+            <p>
+                Logs will appear here after scraping jobs run.
+            </p>
+        </field>
+    </record>
+
+</odoo>

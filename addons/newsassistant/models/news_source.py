@@ -240,7 +240,33 @@ class NewsSource(models.Model):
     error_message = fields.Text(readonly=True)
     article_count = fields.Integer(compute="_compute_article_count", string="Article Count")
     article_ids = fields.One2many("news.article", "source_id", string="Articles")
-    log_ids = fields.One2many("news.source.log", "source_id", string="Scrape Logs")
+    log_ids = fields.One2many("news.log", "source_id", string="Logs")
+
+    # Computed field for scraping indicator
+    is_scraping = fields.Boolean(
+        compute="_compute_is_scraping",
+        string="Currently Scraping",
+    )
+
+    def _compute_is_scraping(self):
+        """Check if this source has any running scrape jobs."""
+        if not self.ids:
+            return
+
+        # Use SQL to check for running jobs since 'records' is a serialized field
+        self.env.cr.execute("""
+            SELECT DISTINCT records->>'res_id' AS source_id
+            FROM queue_job
+            WHERE state = 'started'
+              AND channel = 'root.newsassistant'
+              AND model_name = 'news.source'
+              AND records->>'res_id' IN %s
+        """, [tuple(str(id) for id in self.ids)])
+
+        scraping_ids = {int(row[0]) for row in self.env.cr.fetchall() if row[0]}
+
+        for source in self:
+            source.is_scraping = source.id in scraping_ids
 
     def _compute_article_count(self):
         for source in self:
@@ -293,29 +319,39 @@ class NewsSource(models.Model):
             user_content: The user message content (typically cleaned HTML).
 
         Returns:
-            The parsed content string from the AI response.
+            dict with keys:
+                - content: The parsed content string from the AI response
+                - usage: Token usage dict with prompt_tokens, completion_tokens, total_tokens
+                - request: Original request details for logging
+                - duration_ms: Response time in milliseconds
+                - status_code: HTTP status code
 
         Raises:
             RetryableJobError: On transient API errors (rate limit, timeout, 5xx).
             ValueError: On malformed AI response.
         """
+        import time
+
         api_key = self._get_ai_api_key()
         product_id = self._get_ai_product_id()
         url = f"https://api.infomaniak.com/2/ai/{product_id}/openai/v1/chat/completions"
 
+        model = "qwen3"
+        temperature = 0.1
         payload = {
-            "model": "qwen3",
+            "model": model,
             "messages": [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_content},
             ],
-            "temperature": 0.1,
+            "temperature": temperature,
         }
         headers = {
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
         }
 
+        start_time = time.time()
         try:
             response = requests.post(
                 url, json=payload, headers=headers, timeout=AI_TIMEOUT
@@ -330,6 +366,7 @@ class NewsSource(models.Model):
                 seconds=300,
                 ignore_retry=False,
             )
+        duration_ms = int((time.time() - start_time) * 1000)
 
         if response.status_code in TRANSIENT_HTTP_CODES:
             raise RetryableJobError(
@@ -349,7 +386,28 @@ class NewsSource(models.Model):
         except (KeyError, IndexError) as e:
             raise ValueError(f"Unexpected AI response structure: {e}")
 
-        return content
+        # Extract usage information if available
+        usage = data.get("usage", {})
+
+        return {
+            "content": content,
+            "usage": {
+                "prompt_tokens": usage.get("prompt_tokens", 0),
+                "completion_tokens": usage.get("completion_tokens", 0),
+                "total_tokens": usage.get("total_tokens", 0),
+            },
+            "request": {
+                "model": model,
+                "temperature": temperature,
+                "system_prompt": system_prompt,
+                "user_content": user_content,
+            },
+            "response": {
+                "content": content,
+                "status_code": response.status_code,
+            },
+            "duration_ms": duration_ms,
+        }
 
     # -------------------------------------------------------------------------
     # Scraping Pipeline
@@ -364,6 +422,56 @@ class NewsSource(models.Model):
                 description=f"Scrape listing: {source.name}",
             )._scrape_listing()
 
+    def _create_log(self, level, category, message, duration=None, entries=None, article_id=None, job_id=None, created_article_ids=None):
+        """Create a unified log record with optional detail entries.
+
+        Args:
+            level: 'success', 'warning', or 'error'
+            category: 'listing' or 'extraction'
+            message: Summary message
+            duration: Total duration in seconds (optional)
+            entries: List of entry dicts with keys: level, message, duration, metadata (optional)
+            article_id: Related article ID (optional)
+            job_id: Related queue job ID (optional)
+            created_article_ids: List of article IDs created by this job (optional)
+
+        Returns:
+            The created news.log record
+        """
+        Log = self.env["news.log"]
+        LogEntry = self.env["news.log.entry"]
+
+        log_vals = {
+            "timestamp": fields.Datetime.now(),
+            "level": level,
+            "category": category,
+            "message": message,
+            "duration": duration,
+            "source_id": self.id,
+            "article_id": article_id,
+            "job_id": job_id,
+        }
+        if created_article_ids:
+            log_vals["created_article_ids"] = [(6, 0, created_article_ids)]
+
+        log = Log.create(log_vals)
+
+        if entries:
+            for entry_data in entries:
+                metadata = entry_data.get("metadata")
+                if metadata and not isinstance(metadata, str):
+                    metadata = json.dumps(metadata, ensure_ascii=False)
+                LogEntry.create({
+                    "log_id": log.id,
+                    "timestamp": entry_data.get("timestamp", fields.Datetime.now()),
+                    "level": entry_data.get("level", "info"),
+                    "message": entry_data.get("message", ""),
+                    "duration": entry_data.get("duration"),
+                    "metadata": metadata,
+                })
+
+        return log
+
     def _scrape_listing(self):
         """Queue job: fetch the listing page and discover article URLs.
 
@@ -376,30 +484,59 @@ class NewsSource(models.Model):
         _logger.info("Scraping listing for source: %s (%s)", self.name, self.url)
 
         start_time = time.time()
-        SourceLog = self.env["news.source.log"]
+        log_entries = []
 
-        # Helper to create log entry
-        def create_log(status, articles_found=0, error_message=None):
-            duration = time.time() - start_time
-            SourceLog.create({
-                "source_id": self.id,
-                "status": status,
+        # Try to get current job ID from context
+        job_id = self.env.context.get("job_uuid")
+        if job_id:
+            job = self.env["queue.job"].search([("uuid", "=", job_id)], limit=1)
+            job_id = job.id if job else None
+
+        # Helper to add log entry
+        def add_entry(level, message, duration=None, metadata=None):
+            log_entries.append({
+                "timestamp": fields.Datetime.now(),
+                "level": level,
+                "message": message,
                 "duration": duration,
-                "articles_found": articles_found,
-                "error_message": error_message,
+                "metadata": metadata,
             })
 
+        add_entry("info", f"Starting listing scrape for {self.name}", metadata={"url": self.url})
+
         # Fetch listing page via Jina (renders JavaScript)
+        jina_start = time.time()
         try:
             content = fetch_page(self.url)
+            jina_duration = time.time() - jina_start
+            add_entry(
+                "info",
+                f"Jina fetch complete ({len(content)} chars)",
+                duration=jina_duration,
+                metadata={"url": self.url, "content_length": len(content)},
+            )
         except RetryableJobError:
             raise
         except ValueError as e:
+            jina_duration = time.time() - jina_start
+            add_entry(
+                "error",
+                f"Jina fetch failed: {e}",
+                duration=jina_duration,
+                metadata={"url": self.url, "error": str(e)},
+            )
             self.write({
                 "state": "error",
                 "error_message": str(e),
             })
-            create_log("error", error_message=str(e))
+            self._create_log(
+                level="error",
+                category="listing",
+                message=f"Fetch failed: {e}",
+                duration=time.time() - start_time,
+                entries=log_entries,
+                job_id=job_id,
+            )
             _logger.warning("Fetch error for source %s: %s", self.name, e)
             return
 
@@ -417,17 +554,39 @@ class NewsSource(models.Model):
             "No markdown formatting, no explanation, no code fences."
         )
 
+        add_entry("info", "Calling LLM for article extraction")
         try:
-            ai_response = self._call_infomaniak_ai(system_prompt, content)
+            ai_result = self._call_infomaniak_ai(system_prompt, content)
+            ai_response = ai_result["content"]
+            # Log LLM interaction with full metadata
+            add_entry(
+                "info",
+                f"LLM response received ({ai_result['usage']['total_tokens']} tokens)",
+                duration=ai_result["duration_ms"] / 1000,
+                metadata={
+                    "request": ai_result["request"],
+                    "response": ai_result["response"],
+                    "usage": ai_result["usage"],
+                    "timing": {"duration_ms": ai_result["duration_ms"]},
+                },
+            )
         except RetryableJobError:
             raise
         except Exception as e:
             error_msg = f"AI extraction error: {e}"
+            add_entry("error", error_msg)
             self.write({
                 "state": "error",
                 "error_message": error_msg,
             })
-            create_log("error", error_message=error_msg)
+            self._create_log(
+                level="error",
+                category="listing",
+                message=error_msg,
+                duration=time.time() - start_time,
+                entries=log_entries,
+                job_id=job_id,
+            )
             _logger.exception("AI error for source %s", self.name)
             return
 
@@ -436,13 +595,28 @@ class NewsSource(models.Model):
             articles_data = parse_ai_json(ai_response, expect_array=True)
             if not isinstance(articles_data, list):
                 raise ValueError("Expected a JSON array")
+            # Extract URLs for metadata
+            discovered_urls = [item.get("url", "") for item in articles_data if item.get("url")]
+            add_entry(
+                "info",
+                f"Parsed {len(articles_data)} article links from response",
+                metadata={"discovered_urls": discovered_urls},
+            )
         except (json.JSONDecodeError, ValueError) as e:
             error_msg = f"Invalid AI response (not valid JSON): {e}"
+            add_entry("error", error_msg, metadata={"error": str(e), "raw_response_preview": ai_response[:500]})
             self.write({
                 "state": "error",
                 "error_message": error_msg,
             })
-            create_log("error", error_message=error_msg)
+            self._create_log(
+                level="error",
+                category="listing",
+                message=error_msg,
+                duration=time.time() - start_time,
+                entries=log_entries,
+                job_id=job_id,
+            )
             _logger.warning(
                 "Malformed AI response for source %s: %s",
                 self.name,
@@ -453,6 +627,7 @@ class NewsSource(models.Model):
         # Process discovered articles
         Article = self.env["news.article"]
         new_count = 0
+        created_article_ids = []
 
         for item in articles_data:
             title = item.get("title", "").strip()
@@ -507,6 +682,7 @@ class NewsSource(models.Model):
                 "source_id": self.id,
                 "url": normalized,
             })
+            created_article_ids.append(article.id)
             article.with_delay(
                 channel="root.newsassistant",
                 description=f"Extract article: {title[:50]}",
@@ -514,12 +690,34 @@ class NewsSource(models.Model):
             new_count += 1
 
         # Update source state
+        total_duration = time.time() - start_time
         self.write({
             "state": "ok",
             "error_message": False,
             "last_scrape_date": fields.Datetime.now(),
         })
-        create_log("success", articles_found=new_count)
+
+        # Collect created article URLs for metadata
+        created_urls = []
+        if created_article_ids:
+            created_articles = Article.browse(created_article_ids)
+            created_urls = [a.url for a in created_articles]
+
+        add_entry(
+            "info",
+            f"Listing scrape complete: {new_count} new articles created",
+            metadata={"created_urls": created_urls} if created_urls else None,
+        )
+
+        self._create_log(
+            level="success",
+            category="listing",
+            message=f"Found {len(articles_data)} articles, {new_count} new",
+            duration=total_duration,
+            entries=log_entries,
+            job_id=job_id,
+            created_article_ids=created_article_ids,
+        )
         _logger.info(
             "Source %s: discovered %d articles, %d new",
             self.name,

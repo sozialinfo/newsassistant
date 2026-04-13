@@ -1,6 +1,6 @@
 {
     "name": "News Assistant",
-    "version": "18.0.1.1.0",
+    "version": "18.0.2.0.0",
     "category": "Productivity",
     "summary": "Automated news scraping and triage for Swiss social-sector sources",
     "description": """
@@ -25,7 +25,7 @@
         "views/news_article_views.xml",
         "views/news_source_views.xml",
         "views/news_article_stage_views.xml",
-        "views/pipeline_monitor_views.xml",
+        "views/news_log_views.xml",
         "views/menu.xml",
         "data/server_actions.xml",
     ],

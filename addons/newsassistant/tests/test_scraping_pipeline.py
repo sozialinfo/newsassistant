@@ -52,6 +52,18 @@ def _make_mock_response(status_code=200, text="", json_data=None, content_type="
     return response
 
 
+def _make_ai_response(content):
+    """Create a mock AI API response with usage data."""
+    return {
+        "choices": [{"message": {"content": content}}],
+        "usage": {
+            "prompt_tokens": 100,
+            "completion_tokens": 50,
+            "total_tokens": 150,
+        },
+    }
+
+
 @tagged("post_install", "-at_install")
 class TestScrapingPipelineStage1(TransactionCase):
     @classmethod
@@ -67,9 +79,7 @@ class TestScrapingPipelineStage1(TransactionCase):
     def test_stage1_discovers_articles(self, mock_fetch, mock_post):
         """Test that Stage 1 discovers article URLs from listing page."""
         mock_fetch.return_value = LISTING_MARKDOWN
-        ai_response_data = {
-            "choices": [{"message": {"content": AI_LISTING_RESPONSE}}],
-        }
+        ai_response_data = _make_ai_response(AI_LISTING_RESPONSE)
         mock_post.return_value = _make_mock_response(200, json_data=ai_response_data)
 
         # Use trap_jobs so article jobs are trapped, not executed
@@ -104,9 +114,7 @@ class TestScrapingPipelineStage1(TransactionCase):
         })
 
         mock_fetch.return_value = LISTING_MARKDOWN
-        ai_response_data = {
-            "choices": [{"message": {"content": AI_LISTING_RESPONSE}}],
-        }
+        ai_response_data = _make_ai_response(AI_LISTING_RESPONSE)
         mock_post.return_value = _make_mock_response(200, json_data=ai_response_data)
 
         with trap_jobs() as trap:
@@ -148,9 +156,7 @@ class TestScrapingPipelineStage1(TransactionCase):
     def test_stage1_malformed_ai_response(self, mock_fetch, mock_post):
         """Test that malformed AI JSON sets source to error state."""
         mock_fetch.return_value = LISTING_MARKDOWN
-        ai_response_data = {
-            "choices": [{"message": {"content": "This is not JSON"}}],
-        }
+        ai_response_data = _make_ai_response("This is not JSON")
         mock_post.return_value = _make_mock_response(200, json_data=ai_response_data)
 
         self.source._scrape_listing()
@@ -192,9 +198,7 @@ class TestScrapingPipelineStage2(TransactionCase):
     def test_stage2_extracts_content(self, mock_fetch, mock_post):
         """Test that Stage 2 extracts article content correctly."""
         mock_fetch.return_value = ARTICLE_MARKDOWN
-        ai_response_data = {
-            "choices": [{"message": {"content": AI_ARTICLE_RESPONSE}}],
-        }
+        ai_response_data = _make_ai_response(AI_ARTICLE_RESPONSE)
         mock_post.return_value = _make_mock_response(200, json_data=ai_response_data)
 
         self.article._fetch_and_extract()
@@ -229,9 +233,7 @@ class TestScrapingPipelineStage2(TransactionCase):
     def test_stage2_malformed_ai_response(self, mock_fetch, mock_post):
         """Test that malformed AI response sets error state."""
         mock_fetch.return_value = ARTICLE_MARKDOWN
-        ai_response_data = {
-            "choices": [{"message": {"content": "not valid json"}}],
-        }
+        ai_response_data = _make_ai_response("not valid json")
         mock_post.return_value = _make_mock_response(200, json_data=ai_response_data)
 
         self.article._fetch_and_extract()
@@ -246,9 +248,7 @@ class TestScrapingPipelineStage2(TransactionCase):
         """Test that markdown code fences in AI response are stripped."""
         mock_fetch.return_value = ARTICLE_MARKDOWN
         fenced_response = f"```json\n{AI_ARTICLE_RESPONSE}\n```"
-        ai_response_data = {
-            "choices": [{"message": {"content": fenced_response}}],
-        }
+        ai_response_data = _make_ai_response(fenced_response)
         mock_post.return_value = _make_mock_response(200, json_data=ai_response_data)
 
         self.article._fetch_and_extract()
