@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Add Newsfeed Settings to Configuration menu -->
+    <menuitem id="menu_newsfeed_settings"
+              name="Newsfeed Settings"
+              parent="newsassistant.menu_news_configuration"
+              action="action_newsfeed_settings"
+              sequence="20"/>
+</odoo>

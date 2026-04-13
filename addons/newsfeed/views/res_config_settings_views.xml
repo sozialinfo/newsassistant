@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Settings form view -->
+    <record id="res_config_settings_view_form_newsfeed" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.newsfeed</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="Newsfeed" string="Newsfeed" name="newsfeed" logo="/newsfeed/static/description/icon.png">
+                    <block title="Content Strategy" name="newsfeed_content_strategy_setting">
+                        <setting string="Relevance Criteria" help="Define what makes articles relevant, uncertain, or discardable. The AI will use this to classify each article.">
+                            <div class="content-group">
+                                <div class="mt8 text-muted small">
+                                    <p><strong>Example prompt:</strong></p>
+                                    <pre class="bg-light p-2 rounded" style="white-space: pre-wrap; font-size: 0.85em;">You are curating a newsfeed for Swiss social sector professionals.
+
+HIGHLY RELEVANT (auto-publish):
+- Policy changes affecting social institutions in Switzerland
+- Research findings on disability, integration, poverty, or social work
+- Funding announcements for social projects
+- Legal changes impacting NGOs or social services
+
+MAYBE RELEVANT (needs human review):
+- General political news that might affect the social sector
+- Events and conferences in the social field
+- News from neighboring countries with Swiss implications
+
+NOT RELEVANT (discard):
+- Entertainment, sports, lifestyle news
+- News from other countries without Swiss connection
+- Commercial press releases unrelated to social sector
+- Duplicate or very similar content to recent articles</pre>
+                                </div>
+                                <div class="mt16">
+                                    <label class="o_form_label" for="newsfeed_content_strategy">Your Content Strategy</label>
+                                    <field name="newsfeed_content_strategy" widget="text" class="o_text_overflow" style="min-height: 200px;"/>
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
+                    <block title="Teaser Generation" name="newsfeed_teaser_setting">
+                        <setting string="Teaser Style" help="Define how teasers should be written for relevant articles.">
+                            <div class="content-group">
+                                <div class="mt8 text-muted small">
+                                    <p><strong>Example prompt:</strong></p>
+                                    <pre class="bg-light p-2 rounded" style="white-space: pre-wrap; font-size: 0.85em;">Write a teaser for this news article following these guidelines:
+
+- Length: 2-3 sentences (max 280 characters)
+- Tone: Professional but accessible, informative
+- Structure: Start with the key news, then why it matters
+- Language: Use the same language as the original article
+- Style: Neutral, factual, no clickbait or sensationalism
+- Goal: Help readers quickly decide if they want to read the full article</pre>
+                                </div>
+                                <div class="mt16">
+                                    <label class="o_form_label" for="newsfeed_teaser_prompt">Your Teaser Prompt</label>
+                                    <field name="newsfeed_teaser_prompt" widget="text" class="o_text_overflow" style="min-height: 150px;"/>
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
+                    <block title="Publishing" name="newsfeed_publishing_setting">
+                        <setting string="Target Blog" help="Select which blog to publish curated articles to. Create a blog first if you don't have one.">
+                            <div class="content-group">
+                                <div class="mt16">
+                                    <field name="newsfeed_blog_id" options="{'no_create': True}"/>
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Action to open settings directly to Newsfeed section -->
+    <record id="action_newsfeed_settings" model="ir.actions.act_window">
+        <field name="name">Newsfeed Settings</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="target">inline</field>
+        <field name="context">{'module': 'newsfeed', 'bin_size': False}</field>
+    </record>
+</odoo>

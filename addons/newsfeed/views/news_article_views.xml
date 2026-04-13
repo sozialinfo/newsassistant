@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Extend article form view to show digest fields -->
+    <record id="news_article_view_form_newsfeed" model="ir.ui.view">
+        <field name="name">news.article.form.newsfeed</field>
+        <field name="model">news.article</field>
+        <field name="inherit_id" ref="newsassistant.news_article_view_form"/>
+        <field name="arch" type="xml">
+            <!-- Add Digest Now button in header -->
+            <xpath expr="//header/field[@name='stage_id']" position="before">
+                <button name="action_digest_now" type="object"
+                        string="Digest Now" class="btn-secondary"
+                        invisible="state != 'scraped'"
+                        title="Process this article through the digest pipeline"/>
+            </xpath>
+
+            <!-- Add smart button box for blog post -->
+            <xpath expr="//sheet/div[hasclass('oe_title')]" position="before">
+                <div class="oe_button_box" name="button_box">
+                    <button name="action_view_blog_post" type="object"
+                            class="oe_stat_button" icon="fa-rss"
+                            invisible="blog_post_count == 0">
+                        <field name="blog_post_count" widget="statinfo" string="Blog Post"/>
+                    </button>
+                </div>
+            </xpath>
+
+            <!-- Add digest state after scrape_date -->
+            <xpath expr="//field[@name='scrape_date']" position="after">
+                <field name="digest_state" widget="badge"
+                       decoration-muted="digest_state == 'pending'"
+                       decoration-success="digest_state == 'processed'"/>
+            </xpath>
+
+            <!-- Add teaser tab after the summary field's page -->
+            <xpath expr="//notebook/page[field[@name='summary']]" position="after">
+                <page name="teaser" invisible="not teaser">
+                    <field name="teaser" nolabel="1" readonly="1"/>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Server action for batch digest from list view -->
+    <record id="action_digest_selected_articles" model="ir.actions.server">
+        <field name="name">Digest Selected Articles</field>
+        <field name="model_id" ref="newsassistant.model_news_article"/>
+        <field name="binding_model_id" ref="newsassistant.model_news_article"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">
+if records:
+    action = records.action_digest_selected()
+        </field>
+    </record>
+
+    <!-- Extend article list view to show digest state -->
+    <record id="news_article_view_list_newsfeed" model="ir.ui.view">
+        <field name="name">news.article.list.newsfeed</field>
+        <field name="model">news.article</field>
+        <field name="inherit_id" ref="newsassistant.news_article_view_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='stage_id']" position="after">
+                <field name="digest_state" widget="badge" optional="show"
+                       decoration-muted="digest_state == 'pending'"
+                       decoration-success="digest_state == 'processed'"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Extend search view with digest filters -->
+    <record id="news_article_view_search_newsfeed" model="ir.ui.view">
+        <field name="name">news.article.search.newsfeed</field>
+        <field name="model">news.article</field>
+        <field name="inherit_id" ref="newsassistant.news_article_view_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='filter_state_skipped']" position="after">
+                <separator/>
+                <filter name="filter_digest_pending" string="Digest Pending"
+                        domain="[('digest_state', '=', 'pending')]"/>
+                <filter name="filter_digest_processed" string="Digest Processed"
+                        domain="[('digest_state', '=', 'processed')]"/>
+            </xpath>
+            <xpath expr="//filter[@name='group_state']" position="after">
+                <filter name="group_digest_state" string="Digest State"
+                        context="{'group_by': 'digest_state'}"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

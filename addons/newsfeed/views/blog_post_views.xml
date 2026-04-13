@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Extend blog post form view to show source article link -->
+    <record id="blog_post_view_form_newsfeed" model="ir.ui.view">
+        <field name="name">blog.post.form.newsfeed</field>
+        <field name="model">blog.post</field>
+        <field name="inherit_id" ref="website_blog.view_blog_post_form"/>
+        <field name="arch" type="xml">
+            <!-- Add source article field to the form -->
+            <xpath expr="//field[@name='blog_id']" position="after">
+                <field name="news_article_id" readonly="1"
+                       invisible="not news_article_id"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

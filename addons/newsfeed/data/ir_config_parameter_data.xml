@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Content strategy prompt for relevance evaluation -->
+        <!-- Must be configured by user before digest will process articles -->
+        <record id="config_param_content_strategy" model="ir.config_parameter">
+            <field name="key">newsfeed.content_strategy</field>
+            <field name="value"></field>
+        </record>
+
+        <!-- Teaser generation prompt -->
+        <!-- Must be configured by user before teasers will be generated -->
+        <record id="config_param_teaser_prompt" model="ir.config_parameter">
+            <field name="key">newsfeed.teaser_prompt</field>
+            <field name="value"></field>
+        </record>
+
+        <!-- Target blog ID for publishing -->
+        <!-- Must be configured by user to enable blog post creation -->
+        <record id="config_param_blog_id" model="ir.config_parameter">
+            <field name="key">newsfeed.blog_id</field>
+            <field name="value"></field>
+        </record>
+    </data>
+</odoo>
