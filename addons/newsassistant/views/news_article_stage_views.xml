@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Stage List View -->
+    <record id="news_article_stage_view_list" model="ir.ui.view">
+        <field name="name">news.article.stage.list</field>
+        <field name="model">news.article.stage</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="fold"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Stage Form View -->
+    <record id="news_article_stage_view_form" model="ir.ui.view">
+        <field name="name">news.article.stage.form</field>
+        <field name="model">news.article.stage</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="sequence"/>
+                        <field name="fold"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Stage Action -->
+    <record id="news_article_stage_action" model="ir.actions.act_window">
+        <field name="name">Article Stages</field>
+        <field name="path">article-stages</field>
+        <field name="res_model">news.article.stage</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first article stage
+            </p>
+            <p>
+                Stages are used to organize articles in the kanban view.
+                Drag stages to reorder them.
+            </p>
+        </field>
+    </record>
+</odoo>

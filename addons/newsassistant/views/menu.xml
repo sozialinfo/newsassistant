@@ -3,6 +3,7 @@
     <!-- Source Action (defined here since source views reference article action) -->
     <record id="news_source_action" model="ir.actions.act_window">
         <field name="name">Sources</field>
+        <field name="path">sources</field>
         <field name="res_model">news.source</field>
         <field name="view_mode">list,form</field>
         <field name="search_view_id" ref="news_source_view_search"/>
@@ -40,4 +41,17 @@
               action="pipeline_monitor_action"
               groups="newsassistant.newsassistant_group_admin"
               sequence="30"/>
+
+    <!-- Configuration Menu (admin only) -->
+    <menuitem id="menu_news_configuration"
+              name="Configuration"
+              parent="menu_news_assistant_root"
+              groups="newsassistant.newsassistant_group_admin"
+              sequence="100"/>
+
+    <menuitem id="menu_news_article_stages"
+              name="Article Stages"
+              parent="menu_news_configuration"
+              action="news_article_stage_action"
+              sequence="10"/>
 </odoo>

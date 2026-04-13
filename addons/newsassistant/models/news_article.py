@@ -17,6 +17,7 @@ _logger = logging.getLogger(__name__)
 class NewsArticle(models.Model):
     _name = "news.article"
     _description = "News Article"
+    _rec_name = "title"
     _order = "scrape_date desc, date desc, id desc"
 
     title = fields.Char(required=True)

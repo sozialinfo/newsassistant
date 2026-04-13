@@ -171,6 +171,7 @@
     <!-- Action -->
     <record id="news_article_action" model="ir.actions.act_window">
         <field name="name">Articles</field>
+        <field name="path">articles</field>
         <field name="res_model">news.article</field>
         <field name="view_mode">kanban,list,form</field>
         <field name="search_view_id" ref="news_article_view_search"/>

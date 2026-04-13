@@ -24,6 +24,7 @@
         "data/ir_config_parameter_data.xml",
         "views/news_article_views.xml",
         "views/news_source_views.xml",
+        "views/news_article_stage_views.xml",
         "views/pipeline_monitor_views.xml",
         "views/menu.xml",
         "data/server_actions.xml",
