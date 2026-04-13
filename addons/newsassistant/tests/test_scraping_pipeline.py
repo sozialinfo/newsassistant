@@ -217,7 +217,7 @@ class TestScrapingPipelineStage2(TransactionCase):
         self.article._fetch_and_extract()
 
         self.assertEqual(self.article.state, "error")
-        self.assertIn("404", self.article.error_message)
+        self.assertIn("404", self.article.status_message)
         self.assertTrue(self.article.scrape_date)
 
     @patch("odoo.addons.newsassistant.models.news_article.fetch_page")
@@ -239,7 +239,7 @@ class TestScrapingPipelineStage2(TransactionCase):
         self.article._fetch_and_extract()
 
         self.assertEqual(self.article.state, "error")
-        self.assertIn("Invalid AI response", self.article.error_message)
+        self.assertIn("Invalid AI response", self.article.status_message)
         self.assertTrue(self.article.scrape_date)
 
     @patch("odoo.addons.newsassistant.models.news_source.requests.post")
@@ -264,5 +264,5 @@ class TestScrapingPipelineStage2(TransactionCase):
         self.article._fetch_and_extract()
 
         self.assertEqual(self.article.state, "error")
-        self.assertIn("JINA_API_KEY", self.article.error_message)
+        self.assertIn("JINA_API_KEY", self.article.status_message)
         self.assertTrue(self.article.scrape_date)

@@ -35,6 +35,7 @@
                        decoration-success="state == 'scraped'"
                        decoration-danger="state == 'error'"
                        decoration-warning="state == 'skipped'"/>
+                <field name="status_message" optional="hide"/>
                 <field name="stage_id"/>
                 <field name="scrape_date"/>
             </list>
@@ -48,23 +49,15 @@
         <field name="arch" type="xml">
             <form>
                 <header>
-                    <button name="action_refetch" type="object"
-                            string="Re-fetch" icon="fa-refresh"
-                            confirm="This will overwrite the current content. Continue?"
-                            groups="newsassistant.newsassistant_group_admin"
-                            invisible="state == 'skipped'"/>
-                    <button name="action_skip" type="object"
-                            string="Skip" icon="fa-ban"
-                            groups="newsassistant.newsassistant_group_admin"
-                            invisible="state == 'skipped'"/>
-                    <button name="action_reset" type="object"
-                            string="Reset" icon="fa-undo"
-                            groups="newsassistant.newsassistant_group_admin"
-                            invisible="state != 'skipped'"/>
                     <field name="stage_id" widget="statusbar"
                            options="{'clickable': '1'}"/>
                 </header>
                 <sheet>
+                    <!-- Skipped article banner -->
+                    <div class="alert alert-warning" role="alert"
+                         invisible="state != 'skipped'">
+                        <strong>Skipped:</strong> <field name="status_message" nolabel="1" readonly="1"/>
+                    </div>
                     <div class="oe_title">
                         <h1>
                             <field name="title"/>
@@ -101,6 +94,9 @@
                                 <group>
                                     <field name="last_error_date"/>
                                 </group>
+                            </group>
+                            <group invisible="not status_message">
+                                <field name="status_message" readonly="1"/>
                             </group>
                             <!-- Log entries -->
                             <field name="log_ids" nolabel="1" readonly="1">
@@ -144,6 +140,9 @@
                         domain="[('state', '=', 'error')]"/>
                 <filter name="filter_state_skipped" string="Skipped"
                         domain="[('state', '=', 'skipped')]"/>
+                <separator/>
+                <filter name="filter_archived" string="Archived"
+                        domain="[('active', '=', False)]"/>
                 <separator/>
                 <filter name="filter_today" string="Today"
                         domain="[('date', '=', (context_today()).strftime('%%Y-%%m-%%d'))]"/>

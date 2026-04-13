@@ -33,6 +33,7 @@ class NewsArticle(models.Model):
         group_expand="_read_group_stage_ids",
     )
     scrape_date = fields.Datetime(readonly=True)
+    active = fields.Boolean(default=True)
 
     # Extraction state tracking
     state = fields.Selection(
@@ -46,7 +47,7 @@ class NewsArticle(models.Model):
         readonly=True,
         index=True,
     )
-    error_message = fields.Text(readonly=True)
+    status_message = fields.Text(readonly=True)
     retry_count = fields.Integer(default=0, readonly=True)
     last_error_date = fields.Datetime(readonly=True)
     log_ids = fields.One2many("news.log", "article_id", string="Logs")
@@ -86,18 +87,19 @@ class NewsArticle(models.Model):
         }
 
     def action_skip(self):
-        """Mark article as skipped (don't retry)."""
+        """Mark article as skipped and archive it."""
         self.ensure_one()
-        self.write({"state": "skipped"})
+        self.write({"state": "skipped", "active": False})
 
     def action_reset(self):
-        """Reset skipped article to pending state."""
+        """Reset skipped article to pending state and unarchive."""
         self.ensure_one()
         self.write({
             "state": "pending",
-            "error_message": False,
+            "status_message": False,
             "last_error_date": False,
             "retry_count": 0,
+            "active": True,
         })
 
     def _create_log(self, level, message, duration=None, entries=None, job_id=None):
@@ -177,7 +179,7 @@ class NewsArticle(models.Model):
         def set_error(error_msg):
             self.write({
                 "state": "error",
-                "error_message": error_msg,
+                "status_message": error_msg,
                 "last_error_date": fields.Datetime.now(),
                 "retry_count": self.retry_count + 1,
                 "scrape_date": fields.Datetime.now(),
@@ -311,8 +313,9 @@ class NewsArticle(models.Model):
             )
             self.write({
                 "state": "skipped",
-                "error_message": f"Not an article: {reason}",
+                "status_message": f"Not an article: {reason}",
                 "scrape_date": fields.Datetime.now(),
+                "active": False,
             })
             total_duration = time.time() - start_time
             self._create_log(
@@ -341,7 +344,7 @@ class NewsArticle(models.Model):
         vals = {
             "scrape_date": fields.Datetime.now(),
             "state": "scraped",
-            "error_message": False,
+            "status_message": False,
             "last_error_date": False,
         }
 

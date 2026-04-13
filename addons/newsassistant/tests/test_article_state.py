@@ -44,7 +44,7 @@ class TestArticleState(TransactionCase):
         })
         self.assertEqual(article.state, "pending")
         self.assertEqual(article.retry_count, 0)
-        self.assertFalse(article.error_message)
+        self.assertFalse(article.status_message)
         self.assertFalse(article.last_error_date)
 
     @patch("odoo.addons.newsassistant.models.news_source.requests.post")
@@ -65,7 +65,7 @@ class TestArticleState(TransactionCase):
         article._fetch_and_extract()
 
         self.assertEqual(article.state, "scraped")
-        self.assertFalse(article.error_message)
+        self.assertFalse(article.status_message)
         self.assertFalse(article.last_error_date)
 
     @patch("odoo.addons.newsassistant.models.news_article.fetch_page")
@@ -83,7 +83,7 @@ class TestArticleState(TransactionCase):
 
         self.assertEqual(article.state, "error")
         self.assertEqual(article.retry_count, 1)
-        self.assertIn("404", article.error_message)
+        self.assertIn("404", article.status_message)
         self.assertTrue(article.last_error_date)
 
     @patch("odoo.addons.newsassistant.models.news_article.fetch_page")
@@ -116,7 +116,7 @@ class TestArticleState(TransactionCase):
             "url": "https://example.com/test",
             "stage_id": self.stage_new.id,
             "state": "error",
-            "error_message": "Previous error",
+            "status_message": "Previous error",
             "retry_count": 3,
         })
 
@@ -128,46 +128,49 @@ class TestArticleState(TransactionCase):
         article._fetch_and_extract()
 
         self.assertEqual(article.state, "scraped")
-        self.assertFalse(article.error_message)
+        self.assertFalse(article.status_message)
         self.assertFalse(article.last_error_date)
         # retry_count is preserved
         self.assertEqual(article.retry_count, 3)
 
     def test_action_skip(self):
-        """action_skip should set state to 'skipped'."""
+        """action_skip should set state to 'skipped' and archive."""
         article = self.env["news.article"].create({
             "title": "Test Article",
             "source_id": self.source.id,
             "url": "https://example.com/test",
             "stage_id": self.stage_new.id,
             "state": "error",
-            "error_message": "Some error",
+            "status_message": "Some error",
             "retry_count": 2,
         })
 
         article.action_skip()
 
         self.assertEqual(article.state, "skipped")
+        self.assertFalse(article.active)  # Should be archived
         # Error fields preserved
-        self.assertEqual(article.error_message, "Some error")
+        self.assertEqual(article.status_message, "Some error")
         self.assertEqual(article.retry_count, 2)
 
     def test_action_reset(self):
-        """action_reset should reset to 'pending' and clear error fields."""
+        """action_reset should reset to 'pending', clear error fields, and unarchive."""
         article = self.env["news.article"].create({
             "title": "Test Article",
             "source_id": self.source.id,
             "url": "https://example.com/test",
             "stage_id": self.stage_new.id,
             "state": "skipped",
-            "error_message": "Some error",
+            "status_message": "Some error",
             "retry_count": 5,
+            "active": False,
         })
 
         article.action_reset()
 
         self.assertEqual(article.state, "pending")
-        self.assertFalse(article.error_message)
+        self.assertTrue(article.active)  # Should be unarchived
+        self.assertFalse(article.status_message)
         self.assertFalse(article.last_error_date)
         self.assertEqual(article.retry_count, 0)
 
@@ -197,9 +200,9 @@ class TestScrapeHistory(TransactionCase):
         with trap_jobs():
             self.source._scrape_listing()
 
-        logs = self.env["news.source.log"].search([("source_id", "=", self.source.id)])
+        logs = self.env["news.log"].search([("source_id", "=", self.source.id), ("category", "=", "listing")])
         self.assertEqual(len(logs), 1)
-        self.assertEqual(logs.status, "success")
+        self.assertEqual(logs.level, "success")
         self.assertTrue(logs.duration >= 0)
 
     @patch("odoo.addons.newsassistant.models.news_source.fetch_page")
@@ -209,10 +212,10 @@ class TestScrapeHistory(TransactionCase):
 
         self.source._scrape_listing()
 
-        logs = self.env["news.source.log"].search([("source_id", "=", self.source.id)])
+        logs = self.env["news.log"].search([("source_id", "=", self.source.id), ("category", "=", "listing")])
         self.assertEqual(len(logs), 1)
-        self.assertEqual(logs.status, "error")
-        self.assertIn("Fetch error", logs.error_message)
+        self.assertEqual(logs.level, "error")
+        self.assertIn("Fetch error", logs.message)
 
     @patch("odoo.addons.newsassistant.models.news_source.requests.post")
     @patch("odoo.addons.newsassistant.models.news_article.fetch_page")
@@ -232,9 +235,9 @@ class TestScrapeHistory(TransactionCase):
 
         article._fetch_and_extract()
 
-        logs = self.env["news.article.log"].search([("article_id", "=", article.id)])
+        logs = self.env["news.log"].search([("article_id", "=", article.id), ("category", "=", "extraction")])
         self.assertEqual(len(logs), 1)
-        self.assertEqual(logs.status, "success")
+        self.assertEqual(logs.level, "success")
         self.assertTrue(logs.duration >= 0)
 
     @patch("odoo.addons.newsassistant.models.news_article.fetch_page")
@@ -251,7 +254,7 @@ class TestScrapeHistory(TransactionCase):
 
         article._fetch_and_extract()
 
-        logs = self.env["news.article.log"].search([("article_id", "=", article.id)])
+        logs = self.env["news.log"].search([("article_id", "=", article.id), ("category", "=", "extraction")])
         self.assertEqual(len(logs), 1)
-        self.assertEqual(logs.status, "error")
-        self.assertIn("Fetch error", logs.error_message)
+        self.assertEqual(logs.level, "error")
+        self.assertIn("Fetch error", logs.message)

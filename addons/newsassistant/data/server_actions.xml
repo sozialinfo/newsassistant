@@ -56,7 +56,7 @@ action = {
         </field>
     </record>
 
-    <!-- Article: Mark as Skipped -->
+    <!-- Article: Mark as Skipped (list) -->
     <record id="action_article_skip_selected" model="ir.actions.server">
         <field name="name">Mark as Skipped</field>
         <field name="model_id" ref="model_news_article"/>
@@ -65,13 +65,13 @@ action = {
         <field name="groups_id" eval="[(4, ref('newsassistant.newsassistant_group_admin'))]"/>
         <field name="state">code</field>
         <field name="code">
-records.write({"state": "skipped"})
+records.filtered(lambda a: a.state != 'skipped').write({"state": "skipped", "active": False})
 action = {
     "type": "ir.actions.client",
     "tag": "display_notification",
     "params": {
         "title": "Articles Skipped",
-        "message": f"{len(records)} article(s) marked as skipped.",
+        "message": f"{len(records)} article(s) marked as skipped and archived.",
         "type": "info",
         "sticky": False,
     },
@@ -79,7 +79,7 @@ action = {
         </field>
     </record>
 
-    <!-- Article: Reset to Pending -->
+    <!-- Article: Reset to Pending (list) -->
     <record id="action_article_reset_selected" model="ir.actions.server">
         <field name="name">Reset to Pending</field>
         <field name="model_id" ref="model_news_article"/>
@@ -90,16 +90,119 @@ action = {
         <field name="code">
 records.write({
     "state": "pending",
-    "error_message": False,
+    "status_message": False,
     "last_error_date": False,
     "retry_count": 0,
+    "active": True,
 })
 action = {
     "type": "ir.actions.client",
     "tag": "display_notification",
     "params": {
         "title": "Articles Reset",
-        "message": f"{len(records)} article(s) reset to pending.",
+        "message": f"{len(records)} article(s) reset to pending and unarchived.",
+        "type": "info",
+        "sticky": False,
+    },
+}
+        </field>
+    </record>
+
+    <!-- Article: Re-fetch (form view) -->
+    <record id="action_article_refetch_form" model="ir.actions.server">
+        <field name="name">Re-fetch</field>
+        <field name="model_id" ref="model_news_article"/>
+        <field name="binding_model_id" ref="model_news_article"/>
+        <field name="binding_view_types">form</field>
+        <field name="groups_id" eval="[(4, ref('newsassistant.newsassistant_group_admin'))]"/>
+        <field name="state">code</field>
+        <field name="code">
+if record.state != 'skipped':
+    record.with_delay(
+        channel="root.newsassistant",
+        description=f"Manual re-fetch: {record.title[:50]}",
+    )._fetch_and_extract()
+    action = {
+        "type": "ir.actions.client",
+        "tag": "display_notification",
+        "params": {
+            "title": "Re-fetch Started",
+            "message": "Re-fetching article in background...",
+            "type": "info",
+            "sticky": False,
+        },
+    }
+else:
+    action = {
+        "type": "ir.actions.client",
+        "tag": "display_notification",
+        "params": {
+            "title": "Cannot Re-fetch",
+            "message": "Cannot re-fetch skipped articles. Reset first.",
+            "type": "warning",
+            "sticky": False,
+        },
+    }
+        </field>
+    </record>
+
+    <!-- Article: Skip (form view) -->
+    <record id="action_article_skip_form" model="ir.actions.server">
+        <field name="name">Skip</field>
+        <field name="model_id" ref="model_news_article"/>
+        <field name="binding_model_id" ref="model_news_article"/>
+        <field name="binding_view_types">form</field>
+        <field name="groups_id" eval="[(4, ref('newsassistant.newsassistant_group_admin'))]"/>
+        <field name="state">code</field>
+        <field name="code">
+if record.state != 'skipped':
+    record.write({"state": "skipped", "active": False})
+    action = {
+        "type": "ir.actions.client",
+        "tag": "display_notification",
+        "params": {
+            "title": "Article Skipped",
+            "message": "Article marked as skipped and archived.",
+            "type": "info",
+            "sticky": False,
+        },
+    }
+else:
+    action = {
+        "type": "ir.actions.client",
+        "tag": "display_notification",
+        "params": {
+            "title": "Already Skipped",
+            "message": "This article is already skipped.",
+            "type": "warning",
+            "sticky": False,
+        },
+    }
+        </field>
+    </record>
+
+    <!-- Article: Reset (form view) -->
+    <record id="action_article_reset_form" model="ir.actions.server">
+        <field name="name">Reset</field>
+        <field name="model_id" ref="model_news_article"/>
+        <field name="binding_model_id" ref="model_news_article"/>
+        <field name="binding_view_types">form</field>
+        <field name="groups_id" eval="[(4, ref('newsassistant.newsassistant_group_admin'))]"/>
+        <field name="state">code</field>
+        <field name="code">
+record.write({
+    "state": "pending",
+    "status_message": False,
+    "last_error_date": False,
+    "retry_count": 0,
+    "active": True,
+})
+action = {
+    "type": "ir.actions.client",
+    "tag": "display_notification",
+    "params": {
+        "title": "Article Reset",
+        "message": "Article reset to pending and unarchived.",
         "type": "info",
         "sticky": False,
     },

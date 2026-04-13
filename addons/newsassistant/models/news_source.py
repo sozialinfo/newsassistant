@@ -678,8 +678,10 @@ class NewsSource(models.Model):
                 )
                 continue
 
-            # Check for duplicates
-            existing = Article.search([("url", "=", normalized)], limit=1)
+            # Check for duplicates (including archived articles)
+            existing = Article.with_context(active_test=False).search(
+                [("url", "=", normalized)], limit=1
+            )
             if existing:
                 continue
 
