@@ -319,7 +319,7 @@ class NewsArticle(models.Model):
             })
             total_duration = time.time() - start_time
             self._create_log(
-                level="warning",
+                level="info",
                 message=f"Skipped (not an article): {self.title[:50]}",
                 duration=total_duration,
                 entries=log_entries,

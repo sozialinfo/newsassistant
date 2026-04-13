@@ -69,7 +69,7 @@ For each new (non-duplicate) article URL, the system SHALL fetch the article pag
 - **THEN** article `state` SHALL be `skipped`
 - **THEN** `error_message` SHALL be set to "Not an article: {reason from AI}"
 - **THEN** `scrape_date` SHALL be set to current timestamp
-- **THEN** a `news.log` record SHALL be created with level `warning`
+- **THEN** a `news.log` record SHALL be created with level `info`
 
 #### Scenario: Article with no discernible date
 

@@ -45,5 +45,5 @@ When validation determines content is NOT an article, the system SHALL mark the 
 #### Scenario: Non-article creates log entry
 
 - **WHEN** an article is marked as skipped due to validation
-- **THEN** a `news.log` record SHALL be created with level `warning` and category `extraction`
+- **THEN** a `news.log` record SHALL be created with level `info` and category `extraction`
 - **THEN** the log message SHALL indicate the URL was not an article
