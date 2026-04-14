@@ -54,7 +54,12 @@ class TestQueueJobs(TransactionCase):
         """Test that _scrape_listing creates fetch_and_extract jobs for new articles."""
         listing_response = MagicMock()
         listing_response.status_code = 200
-        listing_response.text = "<html><body><p>News</p></body></html>"
+        listing_response.json.return_value = {
+            "data": {
+                "content": "# News\n[Art 1](https://example1.com/art/1)\n[Art 2](https://example1.com/art/2)",
+                "images": {},
+            },
+        }
 
         ai_data = json.dumps([
             {"title": "Art 1", "url": "https://example1.com/art/1"},
@@ -96,7 +101,12 @@ class TestQueueJobs(TransactionCase):
         """Test that AI API 429 raises RetryableJobError."""
         listing_response = MagicMock()
         listing_response.status_code = 200
-        listing_response.text = "<html><body>Content</body></html>"
+        listing_response.json.return_value = {
+            "data": {
+                "content": "# News page content",
+                "images": {},
+            },
+        }
 
         ai_response = MagicMock()
         ai_response.status_code = 429

@@ -9,6 +9,7 @@ from .news_source import (
     fetch_page,
     normalize_url,
     parse_ai_json,
+    select_header_image,
 )
 
 _logger = logging.getLogger(__name__)
@@ -34,6 +35,17 @@ class NewsArticle(models.Model):
     )
     scrape_date = fields.Datetime(readonly=True)
     active = fields.Boolean(default=True)
+
+    # Header image extracted from article
+    header_image = fields.Binary(
+        string="Header Image",
+        readonly=True,
+        help="Header image extracted from the article, suitable for blog covers",
+    )
+    header_image_filename = fields.Char(
+        string="Header Image Filename",
+        readonly=True,
+    )
 
     # Extraction state tracking
     state = fields.Selection(
@@ -243,14 +255,15 @@ class NewsArticle(models.Model):
 
         # Fetch article page via Jina (renders JavaScript, handles PDFs)
         jina_start = time.time()
+        images_dict = {}
         try:
-            content = fetch_page(self.url)
+            content, images_dict = fetch_page(self.url)
             jina_duration = time.time() - jina_start
             add_entry(
                 "info",
-                f"Jina fetch complete ({len(content)} chars)",
+                f"Jina fetch complete ({len(content)} chars, {len(images_dict)} images)",
                 duration=jina_duration,
-                metadata={"url": self.url, "content_length": len(content)},
+                metadata={"url": self.url, "content_length": len(content), "image_count": len(images_dict)},
             )
         except RetryableJobError:
             raise
@@ -405,6 +418,33 @@ class NewsArticle(models.Model):
             vals["summary"] = article_data["summary"]
         if article_data.get("content"):
             vals["content"] = article_data["content"]
+
+        # Select header image from article images
+        if images_dict:
+            import base64
+            add_entry(
+                "info",
+                f"Attempting to select header image from {len(images_dict)} candidates",
+            )
+            image_data, filename = select_header_image(images_dict, base_url=self.url)
+            if image_data:
+                vals["header_image"] = base64.b64encode(image_data).decode("utf-8")
+                vals["header_image_filename"] = filename
+                add_entry(
+                    "info",
+                    f"Header image selected: {filename}",
+                    metadata={"filename": filename, "size_bytes": len(image_data)},
+                )
+            else:
+                add_entry(
+                    "info",
+                    "No suitable header image found in article",
+                )
+        else:
+            add_entry(
+                "info",
+                "No images available from article fetch",
+            )
 
         self.write(vals)
 

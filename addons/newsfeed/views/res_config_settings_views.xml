@@ -69,6 +69,18 @@ NOT RELEVANT (discard):
                             </div>
                         </setting>
                     </block>
+                    <block title="Header Images" name="newsfeed_header_images_setting">
+                        <setting string="Pixabay API Key" help="When articles don't have suitable header images, Pixabay can provide fallback images. Get a free API key at pixabay.com.">
+                            <div class="content-group">
+                                <div class="mt16">
+                                    <field name="newsfeed_pixabay_api_key" password="True"/>
+                                </div>
+                                <div class="mt8 text-muted small">
+                                    <p>Get your free API key at <a href="https://pixabay.com/api/docs/" target="_blank">pixabay.com/api/docs</a></p>
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
                 </app>
             </xpath>
         </field>

@@ -75,14 +75,17 @@ def clean_html(raw_html):
 def fetch_page(url):
     """Fetch a page using the Jina Reader API.
 
-    Jina renders JavaScript and returns clean markdown content.
+    Jina renders JavaScript and returns clean markdown content along with
+    images found on the page.
     Requires JINA_API_KEY environment variable.
 
     Args:
         url: The URL to fetch.
 
     Returns:
-        Markdown content from the page (truncated to MAX_CLEAN_HTML_LENGTH).
+        Tuple of (content, images_dict):
+            - content: Markdown content from the page (truncated to MAX_CLEAN_HTML_LENGTH)
+            - images_dict: Dictionary of {label: image_url} for images on the page
 
     Raises:
         ValueError: If JINA_API_KEY is not set or on permanent API errors.
@@ -100,7 +103,8 @@ def fetch_page(url):
             timeout=HTTP_TIMEOUT * 2,  # 60 seconds - Jina may take longer
             headers={
                 "Authorization": f"Bearer {jina_key}",
-                "Accept": "text/plain",
+                "Accept": "application/json",
+                "X-With-Images-Summary": "all",
             },
         )
     except requests.exceptions.Timeout:
@@ -128,11 +132,148 @@ def fetch_page(url):
             f"Jina API error {response.status_code}: {response.text[:200]}"
         )
 
-    content = response.text
+    # Parse JSON response
+    try:
+        data = response.json()
+        jina_data = data.get("data", {})
+        content = jina_data.get("content", "")
+        images_dict = jina_data.get("images", {})
+    except (ValueError, KeyError) as e:
+        raise ValueError(f"Failed to parse Jina JSON response: {e}")
+
     if len(content) > MAX_CLEAN_HTML_LENGTH:
         content = content[:MAX_CLEAN_HTML_LENGTH]
 
-    return content
+    return content, images_dict
+
+
+# Image validation constants
+MIN_IMAGE_WIDTH = 1000
+MIN_IMAGE_HEIGHT = 400
+SKIP_URL_PATTERNS = ('.svg', 'logo', 'icon', 'footer', 'avatar', 'sprite', 'button')
+ACCEPTED_IMAGE_TYPES = ('image/jpeg', 'image/png', 'image/webp')
+
+
+def should_skip_image_url(url):
+    """Check if an image URL should be skipped based on patterns.
+
+    Skips likely non-content images like logos, icons, SVGs, etc.
+
+    Args:
+        url: The image URL to check.
+
+    Returns:
+        True if the URL should be skipped, False otherwise.
+    """
+    url_lower = url.lower()
+    return any(pattern in url_lower for pattern in SKIP_URL_PATTERNS)
+
+
+def validate_and_download_image(url, base_url=None, timeout=15):
+    """Download an image and validate it for use as a header image.
+
+    Validates:
+    - Format: JPEG, PNG, or WebP
+    - Dimensions: minimum 1000x400 pixels
+    - Orientation: landscape (width > height)
+
+    Args:
+        url: The image URL to download.
+        base_url: Optional base URL for resolving relative URLs.
+        timeout: Request timeout in seconds.
+
+    Returns:
+        Tuple of (image_data, filename) if valid, or (None, None) if invalid.
+    """
+    from io import BytesIO
+    from PIL import Image
+    from urllib.parse import urlparse
+
+    # Resolve relative URLs
+    if base_url and not url.startswith('http'):
+        url = urljoin(base_url, url)
+
+    try:
+        headers = {'User-Agent': USER_AGENT}
+        response = requests.get(url, headers=headers, timeout=timeout, allow_redirects=True)
+
+        if response.status_code != 200:
+            _logger.debug("Image fetch failed: HTTP %s for %s", response.status_code, url)
+            return None, None
+
+        content_type = response.headers.get('Content-Type', '').lower()
+        if not any(t in content_type for t in ACCEPTED_IMAGE_TYPES):
+            _logger.debug("Image rejected: unsupported format %s for %s", content_type, url)
+            return None, None
+
+        # Parse image to check dimensions
+        img = Image.open(BytesIO(response.content))
+        width, height = img.size
+
+        # Check landscape orientation
+        if width <= height:
+            _logger.debug("Image rejected: not landscape (%dx%d) for %s", width, height, url)
+            return None, None
+
+        # Check minimum dimensions
+        if width < MIN_IMAGE_WIDTH or height < MIN_IMAGE_HEIGHT:
+            _logger.debug("Image rejected: too small (%dx%d) for %s", width, height, url)
+            return None, None
+
+        # Extract filename from URL
+        parsed_url = urlparse(url)
+        filename = parsed_url.path.split('/')[-1] or 'header_image.jpg'
+        # Clean up filename (remove query params that might be in it)
+        if '?' in filename:
+            filename = filename.split('?')[0]
+
+        _logger.debug("Image accepted: %dx%d from %s", width, height, url)
+        return response.content, filename
+
+    except requests.exceptions.Timeout:
+        _logger.debug("Image fetch timeout for %s", url)
+        return None, None
+    except requests.exceptions.RequestException as e:
+        _logger.debug("Image fetch error for %s: %s", url, e)
+        return None, None
+    except Exception as e:
+        _logger.debug("Image validation error for %s: %s", url, e)
+        return None, None
+
+
+def select_header_image(images_dict, base_url=None):
+    """Select the first suitable header image from a dictionary of images.
+
+    Iterates through images, skips non-content URLs, validates each candidate,
+    and returns the first valid image.
+
+    Args:
+        images_dict: Dictionary of {label: url} from Jina response.
+        base_url: Optional base URL for resolving relative URLs.
+
+    Returns:
+        Tuple of (image_data, filename) if found, or (None, None) if no suitable image.
+    """
+    if not images_dict:
+        return None, None
+
+    for label, url in images_dict.items():
+        if not url:
+            continue
+
+        # Skip likely non-content images
+        if should_skip_image_url(url):
+            _logger.debug("Skipping image by URL pattern: %s", url[:80])
+            continue
+
+        # Try to download and validate
+        image_data, filename = validate_and_download_image(url, base_url)
+        if image_data:
+            _logger.info("Selected header image: %s (%s)", filename, label)
+            return image_data, filename
+
+    _logger.debug("No suitable header image found in %d candidates", len(images_dict))
+    return None, None
 
 
 def parse_ai_json(raw_text, expect_array=True):
@@ -507,7 +648,7 @@ class NewsSource(models.Model):
         # Fetch listing page via Jina (renders JavaScript)
         jina_start = time.time()
         try:
-            content = fetch_page(self.url)
+            content, _ = fetch_page(self.url)  # Ignore images for listing page
             jina_duration = time.time() - jina_start
             add_entry(
                 "info",

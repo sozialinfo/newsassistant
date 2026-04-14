@@ -151,6 +151,132 @@ class NewsArticle(models.Model):
             )
         return blog
 
+    def _get_pixabay_api_key(self):
+        """Get the Pixabay API key from system parameters.
+
+        Returns:
+            str: The API key, or None if not configured.
+        """
+        api_key = self.env["ir.config_parameter"].sudo().get_param(
+            "newsfeed.pixabay_api_key", default=""
+        )
+        return api_key.strip() if api_key else None
+
+    def _search_pixabay(self, query):
+        """Search Pixabay for images matching the query.
+
+        Args:
+            query: Search query (typically article title).
+
+        Returns:
+            list: List of image results from Pixabay API, or empty list on failure.
+
+        Raises:
+            RetryableJobError: On rate limit or transient errors.
+        """
+        api_key = self._get_pixabay_api_key()
+        if not api_key:
+            _logger.debug("Pixabay API key not configured")
+            return []
+
+        # Prepare search query - use first ~50 chars for better results
+        search_query = query[:50].strip()
+        if not search_query:
+            return []
+
+        url = "https://pixabay.com/api/"
+        params = {
+            "key": api_key,
+            "q": search_query,
+            "image_type": "photo",
+            "orientation": "horizontal",
+            "min_width": 1000,
+            "min_height": 400,
+            "safesearch": "true",
+            "per_page": 5,
+        }
+
+        try:
+            response = requests.get(url, params=params, timeout=15)
+        except requests.exceptions.Timeout:
+            raise RetryableJobError(
+                "Pixabay API timeout",
+                seconds=300,
+                ignore_retry=False,
+            )
+        except requests.exceptions.ConnectionError as e:
+            raise RetryableJobError(
+                f"Pixabay API connection error: {e}",
+                seconds=300,
+                ignore_retry=False,
+            )
+
+        if response.status_code == 429:
+            raise RetryableJobError(
+                "Pixabay API rate limit exceeded",
+                seconds=600,
+                ignore_retry=False,
+            )
+
+        if response.status_code in TRANSIENT_HTTP_CODES:
+            raise RetryableJobError(
+                f"Pixabay API returned {response.status_code}",
+                seconds=300,
+                ignore_retry=False,
+            )
+
+        if response.status_code != 200:
+            _logger.warning(
+                "Pixabay API error %d: %s",
+                response.status_code,
+                response.text[:200],
+            )
+            return []
+
+        try:
+            data = response.json()
+            return data.get("hits", [])
+        except (ValueError, KeyError) as e:
+            _logger.warning("Failed to parse Pixabay response: %s", e)
+            return []
+
+    def _download_pixabay_image(self, hit):
+        """Download an image from Pixabay search result.
+
+        Args:
+            hit: A single result from Pixabay API hits.
+
+        Returns:
+            tuple: (image_data, filename) or (None, None) on failure.
+        """
+        # Prefer largeImageURL for blog headers
+        image_url = hit.get("largeImageURL") or hit.get("webformatURL")
+        if not image_url:
+            return None, None
+
+        try:
+            response = requests.get(
+                image_url,
+                timeout=15,
+                headers={"User-Agent": "NewsAssistant/1.0"},
+            )
+            if response.status_code != 200:
+                _logger.debug(
+                    "Pixabay image download failed: HTTP %s",
+                    response.status_code,
+                )
+                return None, None
+
+            # Generate filename from Pixabay image ID
+            pixabay_id = hit.get("id", "pixabay")
+            filename = f"pixabay_{pixabay_id}.jpg"
+
+            return response.content, filename
+
+        except requests.exceptions.RequestException as e:
+            _logger.debug("Pixabay image download error: %s", e)
+            return None, None
+
     # -------------------------------------------------------------------------
     # Manual Trigger Actions
     # -------------------------------------------------------------------------
@@ -686,6 +812,97 @@ class NewsArticle(models.Model):
             _logger.exception("Teaser generation error for %s", self.url)
             return None
 
+    def _create_header_image_attachment(self, image_data, filename, blog_post):
+        """Create an ir.attachment for the blog post header image.
+
+        Args:
+            image_data: Binary image content.
+            filename: Original filename of the image.
+            blog_post: The blog.post record to attach the image to.
+
+        Returns:
+            ir.attachment: The created attachment record.
+        """
+        import base64
+        import mimetypes
+
+        # Determine mimetype from filename
+        mimetype, _ = mimetypes.guess_type(filename)
+        if not mimetype:
+            mimetype = "image/jpeg"  # Default fallback
+
+        attachment = self.env["ir.attachment"].create({
+            "name": filename,
+            "datas": base64.b64encode(image_data).decode("utf-8"),
+            "res_model": "blog.post",
+            "res_id": blog_post.id,
+            "mimetype": mimetype,
+        })
+        return attachment
+
+    def _set_blog_cover_properties(self, blog_post, attachment):
+        """Set the blog post's cover_properties to use the header image.
+
+        Args:
+            blog_post: The blog.post record.
+            attachment: The ir.attachment with the header image.
+        """
+        cover_properties = json.dumps({
+            "background-image": f"url(/web/image/{attachment.id})",
+            "background_color_class": "o_cc3",
+            "opacity": "0.4",
+            "resize_class": "o_half_screen_height",
+        })
+        blog_post.write({"cover_properties": cover_properties})
+
+    def _get_header_image_for_blog(self, add_entry):
+        """Get header image for blog post: article image or Pixabay fallback.
+
+        Args:
+            add_entry: Logging callback function.
+
+        Returns:
+            tuple: (image_data, filename, source) where source is 'article', 'pixabay', or None
+        """
+        import base64
+
+        # Try article's extracted header image first
+        if self.header_image:
+            image_data = base64.b64decode(self.header_image)
+            filename = self.header_image_filename or "header_image.jpg"
+            add_entry(
+                "info",
+                f"Header image: from article ({filename})",
+            )
+            return image_data, filename, "article"
+
+        # Try Pixabay fallback
+        add_entry("info", "No article header image, trying Pixabay fallback")
+        try:
+            hits = self._search_pixabay(self.title)
+            if hits:
+                for hit in hits:
+                    image_data, filename = self._download_pixabay_image(hit)
+                    if image_data:
+                        add_entry(
+                            "info",
+                            f"Header image: from Pixabay ({filename})",
+                            metadata={"pixabay_id": hit.get("id")},
+                        )
+                        return image_data, filename, "pixabay"
+        except RetryableJobError:
+            raise
+        except Exception as e:
+            _logger.warning("Pixabay search failed: %s", e)
+            add_entry("warning", f"Pixabay search failed: {e}")
+
+        # No image available
+        add_entry(
+            "warning",
+            "Header image: none (no suitable image found)",
+        )
+        return None, None, None
+
     def _create_blog_post(self, teaser, log_entries, add_entry):
         """Create blog post with teaser and source link.
 
@@ -737,6 +954,20 @@ class NewsArticle(models.Model):
                 metadata={"post_id": post.id, "blog_id": blog.id},
             )
             _logger.info("Created blog post %d for article %s", post.id, self.title)
+
+            # Add header image to blog post
+            image_data, filename, source = self._get_header_image_for_blog(add_entry)
+            if image_data:
+                attachment = self._create_header_image_attachment(
+                    image_data, filename, post
+                )
+                self._set_blog_cover_properties(post, attachment)
+                add_entry(
+                    "info",
+                    f"Blog post header image attached ({source})",
+                    metadata={"attachment_id": attachment.id},
+                )
+
             return post
 
         except Exception as e:

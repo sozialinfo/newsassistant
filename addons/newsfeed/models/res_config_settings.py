@@ -19,6 +19,11 @@ class ResConfigSettings(models.TransientModel):
         string="Target Blog",
         help="Blog where curated articles will be published.",
     )
+    newsfeed_pixabay_api_key = fields.Char(
+        string="Pixabay API Key",
+        help="API key for Pixabay image service. Used as fallback when "
+             "articles don't have suitable header images.",
+    )
 
     @api.model
     def get_values(self):
@@ -40,6 +45,10 @@ class ResConfigSettings(models.TransientModel):
                     res["newsfeed_blog_id"] = blog_id
             except (ValueError, TypeError):
                 pass
+        
+        res["newsfeed_pixabay_api_key"] = ICP.get_param(
+            "newsfeed.pixabay_api_key", default=""
+        )
         return res
 
     def set_values(self):
@@ -57,4 +66,8 @@ class ResConfigSettings(models.TransientModel):
         ICP.set_param(
             "newsfeed.blog_id",
             str(self.newsfeed_blog_id.id) if self.newsfeed_blog_id else "",
+        )
+        ICP.set_param(
+            "newsfeed.pixabay_api_key",
+            self.newsfeed_pixabay_api_key or "",
         )

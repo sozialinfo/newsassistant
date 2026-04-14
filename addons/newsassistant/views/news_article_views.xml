@@ -8,6 +8,13 @@
             <kanban default_group_by="stage_id" class="o_kanban_small_column">
                 <templates>
                     <t t-name="card">
+                        <t t-if="record.header_image.raw_value">
+                            <div class="mb-2" style="width:100%;aspect-ratio:1/1;overflow:hidden;border-radius:4px;">
+                                <field name="header_image" widget="image"
+                                       style="width:100%;height:100%;object-fit:cover;"
+                                       options="{'size': [200, 200]}"/>
+                            </div>
+                        </t>
                         <div class="text-muted small mb-1">
                             <field name="source_id"/>
                             <t t-if="record.date.raw_value"> — <field name="date"/></t>
@@ -71,6 +78,9 @@
                         </group>
                         <group>
                             <field name="scrape_date"/>
+                            <field name="header_image" widget="image"
+                                   invisible="not header_image"
+                                   options="{'size': [300, 0]}"/>
                         </group>
                     </group>
                     <notebook>

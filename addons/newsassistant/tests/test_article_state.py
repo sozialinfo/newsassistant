@@ -57,7 +57,7 @@ class TestArticleState(TransactionCase):
             "url": "https://example.com/test",
             "stage_id": self.stage_new.id,
         })
-        mock_fetch.return_value = "# Article content"
+        mock_fetch.return_value = ("# Article content", {})
         mock_post.return_value = _make_mock_response(200, json_data={
             "choices": [{"message": {"content": AI_ARTICLE_RESPONSE}}],
         })
@@ -120,7 +120,7 @@ class TestArticleState(TransactionCase):
             "retry_count": 3,
         })
 
-        mock_fetch.return_value = "# Article content"
+        mock_fetch.return_value = ("# Article content", {})
         mock_post.return_value = _make_mock_response(200, json_data={
             "choices": [{"message": {"content": AI_ARTICLE_RESPONSE}}],
         })
@@ -192,7 +192,7 @@ class TestScrapeHistory(TransactionCase):
         """Source scrape should create log entry on success."""
         from odoo.addons.queue_job.tests.common import trap_jobs
 
-        mock_fetch.return_value = "# Empty page"
+        mock_fetch.return_value = ("# Empty page", {})
         mock_post.return_value = _make_mock_response(200, json_data={
             "choices": [{"message": {"content": "[]"}}],
         })
@@ -228,7 +228,7 @@ class TestScrapeHistory(TransactionCase):
             "stage_id": self.stage_new.id,
         })
 
-        mock_fetch.return_value = "# Article content"
+        mock_fetch.return_value = ("# Article content", {})
         mock_post.return_value = _make_mock_response(200, json_data={
             "choices": [{"message": {"content": AI_ARTICLE_RESPONSE}}],
         })

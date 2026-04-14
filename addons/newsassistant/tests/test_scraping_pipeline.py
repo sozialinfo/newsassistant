@@ -78,7 +78,7 @@ class TestScrapingPipelineStage1(TransactionCase):
     @patch("odoo.addons.newsassistant.models.news_source.fetch_page")
     def test_stage1_discovers_articles(self, mock_fetch, mock_post):
         """Test that Stage 1 discovers article URLs from listing page."""
-        mock_fetch.return_value = LISTING_MARKDOWN
+        mock_fetch.return_value = (LISTING_MARKDOWN, {})
         ai_response_data = _make_ai_response(AI_LISTING_RESPONSE)
         mock_post.return_value = _make_mock_response(200, json_data=ai_response_data)
 
@@ -113,7 +113,7 @@ class TestScrapingPipelineStage1(TransactionCase):
             "stage_id": stage.id,
         })
 
-        mock_fetch.return_value = LISTING_MARKDOWN
+        mock_fetch.return_value = (LISTING_MARKDOWN, {})
         ai_response_data = _make_ai_response(AI_LISTING_RESPONSE)
         mock_post.return_value = _make_mock_response(200, json_data=ai_response_data)
 
@@ -155,7 +155,7 @@ class TestScrapingPipelineStage1(TransactionCase):
     @patch("odoo.addons.newsassistant.models.news_source.fetch_page")
     def test_stage1_malformed_ai_response(self, mock_fetch, mock_post):
         """Test that malformed AI JSON sets source to error state."""
-        mock_fetch.return_value = LISTING_MARKDOWN
+        mock_fetch.return_value = (LISTING_MARKDOWN, {})
         ai_response_data = _make_ai_response("This is not JSON")
         mock_post.return_value = _make_mock_response(200, json_data=ai_response_data)
 
@@ -197,7 +197,7 @@ class TestScrapingPipelineStage2(TransactionCase):
     @patch("odoo.addons.newsassistant.models.news_article.fetch_page")
     def test_stage2_extracts_content(self, mock_fetch, mock_post):
         """Test that Stage 2 extracts article content correctly."""
-        mock_fetch.return_value = ARTICLE_MARKDOWN
+        mock_fetch.return_value = (ARTICLE_MARKDOWN, {})
         ai_response_data = _make_ai_response(AI_ARTICLE_RESPONSE)
         mock_post.return_value = _make_mock_response(200, json_data=ai_response_data)
 
@@ -232,7 +232,7 @@ class TestScrapingPipelineStage2(TransactionCase):
     @patch("odoo.addons.newsassistant.models.news_article.fetch_page")
     def test_stage2_malformed_ai_response(self, mock_fetch, mock_post):
         """Test that malformed AI response sets error state."""
-        mock_fetch.return_value = ARTICLE_MARKDOWN
+        mock_fetch.return_value = (ARTICLE_MARKDOWN, {})
         ai_response_data = _make_ai_response("not valid json")
         mock_post.return_value = _make_mock_response(200, json_data=ai_response_data)
 
@@ -246,7 +246,7 @@ class TestScrapingPipelineStage2(TransactionCase):
     @patch("odoo.addons.newsassistant.models.news_article.fetch_page")
     def test_stage2_ai_returns_markdown_fences(self, mock_fetch, mock_post):
         """Test that markdown code fences in AI response are stripped."""
-        mock_fetch.return_value = ARTICLE_MARKDOWN
+        mock_fetch.return_value = (ARTICLE_MARKDOWN, {})
         fenced_response = f"```json\n{AI_ARTICLE_RESPONSE}\n```"
         ai_response_data = _make_ai_response(fenced_response)
         mock_post.return_value = _make_mock_response(200, json_data=ai_response_data)
