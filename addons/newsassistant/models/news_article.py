@@ -39,12 +39,10 @@ class NewsArticle(models.Model):
     # Header image extracted from article
     header_image = fields.Binary(
         string="Header Image",
-        readonly=True,
         help="Header image extracted from the article, suitable for blog covers",
     )
     header_image_filename = fields.Char(
         string="Header Image Filename",
-        readonly=True,
     )
 
     # Extraction state tracking
