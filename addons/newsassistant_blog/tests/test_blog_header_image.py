@@ -61,7 +61,7 @@ class TestBlogPostHeaderImage(TransactionCase):
         })
         # Set the blog_id in config
         cls.env["ir.config_parameter"].sudo().set_param(
-            "newsfeed.blog_id", str(cls.blog.id)
+            "newsassistant_blog.blog_id", str(cls.blog.id)
         )
 
     def _create_scraped_article(self, title="Test Article", with_header_image=False):
@@ -149,7 +149,7 @@ class TestBlogPostHeaderImage(TransactionCase):
         """Test that blog post uses Pixabay image when article has no header."""
         # Set Pixabay API key
         self.env["ir.config_parameter"].sudo().set_param(
-            "newsfeed.pixabay_api_key", "test-api-key"
+            "newsassistant_blog.pixabay_api_key", "test-api-key"
         )
 
         article = self._create_scraped_article(with_header_image=False)
@@ -172,7 +172,7 @@ class TestBlogPostHeaderImage(TransactionCase):
         def add_entry(level, message, **kwargs):
             log_entries.append({"level": level, "message": message, **kwargs})
 
-        with patch("odoo.addons.newsfeed.models.news_article.requests.get") as mock_get:
+        with patch("odoo.addons.newsassistant_blog.models.news_article.requests.get") as mock_get:
             def mock_get_side_effect(url, **kwargs):
                 if "pixabay.com/api" in url:
                     return _make_mock_response(200, json_data=pixabay_response)
@@ -205,7 +205,7 @@ class TestBlogPostHeaderImage(TransactionCase):
     def test_blog_post_created_without_image(self):
         """Test that blog post is created successfully even without any image."""
         # No Pixabay API key
-        self.env["ir.config_parameter"].sudo().set_param("newsfeed.pixabay_api_key", "")
+        self.env["ir.config_parameter"].sudo().set_param("newsassistant_blog.pixabay_api_key", "")
 
         article = self._create_scraped_article(with_header_image=False)
 

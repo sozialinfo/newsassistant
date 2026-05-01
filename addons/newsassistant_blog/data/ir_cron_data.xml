@@ -3,7 +3,7 @@
     <data noupdate="1">
         <!-- Daily digest cron job -->
         <record id="ir_cron_digest_all" model="ir.cron">
-            <field name="name">Newsfeed: Process Digest</field>
+            <field name="name">Newsassistant Blog: Process Digest</field>
             <field name="model_id" ref="newsassistant.model_news_article"/>
             <field name="state">code</field>
             <field name="code">model._cron_digest_all_impl()</field>

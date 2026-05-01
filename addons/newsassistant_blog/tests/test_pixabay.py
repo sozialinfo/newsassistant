@@ -51,7 +51,7 @@ class TestPixabayFallback(TransactionCase):
         })
         # Set the blog_id in config
         cls.env["ir.config_parameter"].sudo().set_param(
-            "newsfeed.blog_id", str(cls.blog.id)
+            "newsassistant_blog.blog_id", str(cls.blog.id)
         )
 
     def _create_scraped_article(self, title="Test Article", with_header_image=False):
@@ -74,11 +74,11 @@ class TestPixabayFallback(TransactionCase):
     def test_pixabay_not_called_when_api_key_missing(self):
         """Test that Pixabay is not called when API key is not configured."""
         # Ensure no API key is set
-        self.env["ir.config_parameter"].sudo().set_param("newsfeed.pixabay_api_key", "")
+        self.env["ir.config_parameter"].sudo().set_param("newsassistant_blog.pixabay_api_key", "")
 
         article = self._create_scraped_article()
 
-        with patch("odoo.addons.newsfeed.models.news_article.requests.get") as mock_get:
+        with patch("odoo.addons.newsassistant_blog.models.news_article.requests.get") as mock_get:
             # Call the internal method that uses Pixabay
             result = article._search_pixabay("test query")
 
@@ -91,7 +91,7 @@ class TestPixabayFallback(TransactionCase):
         """Test Pixabay search when API key is configured."""
         # Set a test API key
         self.env["ir.config_parameter"].sudo().set_param(
-            "newsfeed.pixabay_api_key", "test-api-key-12345"
+            "newsassistant_blog.pixabay_api_key", "test-api-key-12345"
         )
 
         article = self._create_scraped_article()
@@ -110,7 +110,7 @@ class TestPixabayFallback(TransactionCase):
             "totalHits": 1,
         }
 
-        with patch("odoo.addons.newsfeed.models.news_article.requests.get") as mock_get:
+        with patch("odoo.addons.newsassistant_blog.models.news_article.requests.get") as mock_get:
             mock_get.return_value = _make_mock_response(
                 200, json_data=pixabay_response
             )
@@ -134,12 +134,12 @@ class TestPixabayFallback(TransactionCase):
     def test_pixabay_rate_limit_raises_retryable_error(self):
         """Test that Pixabay rate limit (429) raises RetryableJobError."""
         self.env["ir.config_parameter"].sudo().set_param(
-            "newsfeed.pixabay_api_key", "test-api-key"
+            "newsassistant_blog.pixabay_api_key", "test-api-key"
         )
 
         article = self._create_scraped_article()
 
-        with patch("odoo.addons.newsfeed.models.news_article.requests.get") as mock_get:
+        with patch("odoo.addons.newsassistant_blog.models.news_article.requests.get") as mock_get:
             mock_get.return_value = _make_mock_response(429, text="Rate limit exceeded")
 
             with self.assertRaises(RetryableJobError) as context:
@@ -152,12 +152,12 @@ class TestPixabayFallback(TransactionCase):
         import requests
 
         self.env["ir.config_parameter"].sudo().set_param(
-            "newsfeed.pixabay_api_key", "test-api-key"
+            "newsassistant_blog.pixabay_api_key", "test-api-key"
         )
 
         article = self._create_scraped_article()
 
-        with patch("odoo.addons.newsfeed.models.news_article.requests.get") as mock_get:
+        with patch("odoo.addons.newsassistant_blog.models.news_article.requests.get") as mock_get:
             mock_get.side_effect = requests.exceptions.Timeout("Connection timed out")
 
             with self.assertRaises(RetryableJobError) as context:
@@ -168,12 +168,12 @@ class TestPixabayFallback(TransactionCase):
     def test_pixabay_other_errors_return_empty_list(self):
         """Test that non-transient Pixabay errors return empty list (no exception)."""
         self.env["ir.config_parameter"].sudo().set_param(
-            "newsfeed.pixabay_api_key", "test-api-key"
+            "newsassistant_blog.pixabay_api_key", "test-api-key"
         )
 
         article = self._create_scraped_article()
 
-        with patch("odoo.addons.newsfeed.models.news_article.requests.get") as mock_get:
+        with patch("odoo.addons.newsassistant_blog.models.news_article.requests.get") as mock_get:
             # Use 400 Bad Request - a non-transient error that should return empty list
             mock_get.return_value = _make_mock_response(400, text="Bad Request")
 
@@ -184,7 +184,7 @@ class TestPixabayFallback(TransactionCase):
     def test_download_pixabay_image_success(self):
         """Test successful download of Pixabay image."""
         self.env["ir.config_parameter"].sudo().set_param(
-            "newsfeed.pixabay_api_key", "test-api-key"
+            "newsassistant_blog.pixabay_api_key", "test-api-key"
         )
 
         article = self._create_scraped_article()
@@ -196,7 +196,7 @@ class TestPixabayFallback(TransactionCase):
             "webformatURL": "https://pixabay.com/get/12345_640.jpg",
         }
 
-        with patch("odoo.addons.newsfeed.models.news_article.requests.get") as mock_get:
+        with patch("odoo.addons.newsassistant_blog.models.news_article.requests.get") as mock_get:
             mock_get.return_value = _make_mock_response(
                 200, content=test_image, content_type="image/jpeg"
             )
@@ -215,7 +215,7 @@ class TestPixabayFallback(TransactionCase):
             "largeImageURL": "https://pixabay.com/get/12345_1280.jpg",
         }
 
-        with patch("odoo.addons.newsfeed.models.news_article.requests.get") as mock_get:
+        with patch("odoo.addons.newsassistant_blog.models.news_article.requests.get") as mock_get:
             mock_get.return_value = _make_mock_response(404)
 
             image_data, filename = article._download_pixabay_image(hit)
@@ -233,7 +233,7 @@ class TestPixabayFallback(TransactionCase):
         def add_entry(level, message, **kwargs):
             log_entries.append({"level": level, "message": message})
 
-        with patch("odoo.addons.newsfeed.models.news_article.requests.get") as mock_get:
+        with patch("odoo.addons.newsassistant_blog.models.news_article.requests.get") as mock_get:
             image_data, filename, source = article._get_header_image_for_blog(add_entry)
 
             # Should not call Pixabay when article has image
@@ -249,7 +249,7 @@ class TestPixabayFallback(TransactionCase):
     def test_get_header_image_falls_back_to_pixabay(self):
         """Test that _get_header_image_for_blog falls back to Pixabay."""
         self.env["ir.config_parameter"].sudo().set_param(
-            "newsfeed.pixabay_api_key", "test-api-key"
+            "newsassistant_blog.pixabay_api_key", "test-api-key"
         )
 
         # Create article WITHOUT header image
@@ -273,7 +273,7 @@ class TestPixabayFallback(TransactionCase):
         def add_entry(level, message, **kwargs):
             log_entries.append({"level": level, "message": message})
 
-        with patch("odoo.addons.newsfeed.models.news_article.requests.get") as mock_get:
+        with patch("odoo.addons.newsassistant_blog.models.news_article.requests.get") as mock_get:
             def mock_get_side_effect(url, **kwargs):
                 if "pixabay.com/api" in url:
                     return _make_mock_response(200, json_data=pixabay_response)
@@ -296,7 +296,7 @@ class TestPixabayFallback(TransactionCase):
     def test_get_header_image_returns_none_when_no_image_available(self):
         """Test _get_header_image_for_blog returns None when no image is available."""
         # No API key = no Pixabay fallback
-        self.env["ir.config_parameter"].sudo().set_param("newsfeed.pixabay_api_key", "")
+        self.env["ir.config_parameter"].sudo().set_param("newsassistant_blog.pixabay_api_key", "")
 
         # Article without header image
         article = self._create_scraped_article(with_header_image=False)
@@ -317,7 +317,7 @@ class TestPixabayFallback(TransactionCase):
 
     def test_pixabay_warning_logged_when_api_key_missing(self):
         """Test that a warning is logged when Pixabay API key is not configured."""
-        self.env["ir.config_parameter"].sudo().set_param("newsfeed.pixabay_api_key", "")
+        self.env["ir.config_parameter"].sudo().set_param("newsassistant_blog.pixabay_api_key", "")
 
         article = self._create_scraped_article(with_header_image=False)
 
@@ -341,7 +341,7 @@ class TestPixabayApiKeyConfiguration(TransactionCase):
 
     def test_get_pixabay_api_key_when_not_set(self):
         """Test _get_pixabay_api_key returns None when not configured."""
-        self.env["ir.config_parameter"].sudo().set_param("newsfeed.pixabay_api_key", "")
+        self.env["ir.config_parameter"].sudo().set_param("newsassistant_blog.pixabay_api_key", "")
 
         article = self.env["news.article"].create({
             "title": "Test",
@@ -359,7 +359,7 @@ class TestPixabayApiKeyConfiguration(TransactionCase):
     def test_get_pixabay_api_key_when_set(self):
         """Test _get_pixabay_api_key returns the configured key."""
         self.env["ir.config_parameter"].sudo().set_param(
-            "newsfeed.pixabay_api_key", "my-secret-api-key"
+            "newsassistant_blog.pixabay_api_key", "my-secret-api-key"
         )
 
         article = self.env["news.article"].create({
@@ -378,7 +378,7 @@ class TestPixabayApiKeyConfiguration(TransactionCase):
     def test_get_pixabay_api_key_strips_whitespace(self):
         """Test _get_pixabay_api_key strips whitespace from the key."""
         self.env["ir.config_parameter"].sudo().set_param(
-            "newsfeed.pixabay_api_key", "  my-api-key  "
+            "newsassistant_blog.pixabay_api_key", "  my-api-key  "
         )
 
         article = self.env["news.article"].create({

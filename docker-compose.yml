@@ -3,7 +3,7 @@ networks:
     external: true
 
 services:
-  odoo-newsassistant:
+  odoo:
     image: odoo:18.0
     container_name: odoo-newsassistant
     restart: unless-stopped

@@ -6,10 +6,10 @@ The system SHALL provide a configuration option for the Pixabay API key in Setti
 #### Scenario: API key configured via Settings UI
 - **WHEN** an administrator navigates to Settings
 - **THEN** a "Pixabay API Key" field SHALL be available in the Newsfeed section
-- **THEN** the value SHALL be stored as system parameter `newsfeed.pixabay_api_key`
+- **THEN** the value SHALL be stored as system parameter `newsassistant_blog.pixabay_api_key`
 
 #### Scenario: API key not configured
-- **WHEN** `newsfeed.pixabay_api_key` is empty or not set
+- **WHEN** `newsassistant_blog.pixabay_api_key` is empty or not set
 - **THEN** Pixabay fallback SHALL be skipped
 - **THEN** a warning SHALL be logged indicating the missing API key
 

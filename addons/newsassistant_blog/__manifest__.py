@@ -1,10 +1,10 @@
 {
-    "name": "Newsfeed",
+    "name": "Newsassistant Blog",
     "version": "18.0.1.0.0",
     "category": "Website",
     "summary": "AI-powered news curation and blog publishing",
     "description": """
-        Newsfeed automates article triage using AI evaluation against a
+        Newsassistant Blog automates article triage using AI evaluation against a
         user-defined content strategy. Relevant articles get AI-generated
         teasers and are automatically published to the Odoo blog.
 

@@ -16,7 +16,7 @@ The system SHALL generate teasers using a separate LLM call with the teaser prom
 
 #### Scenario: Teaser generated with configured prompt
 - **WHEN** the system generates a teaser for a relevant article
-- **THEN** the system SHALL use the prompt from `newsfeed.teaser_prompt` system parameter
+- **THEN** the system SHALL use the prompt from `newsassistant_blog.teaser_prompt` system parameter
 - **THEN** the system SHALL pass the article title, summary, and content to the LLM
 
 #### Scenario: Teaser generation uses higher temperature

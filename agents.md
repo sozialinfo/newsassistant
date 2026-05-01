@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-News Assistant is an Odoo 18 addon that automatically scrapes ~60 Swiss social-sector websites (NGOs, government bodies, research institutions), extracts clean article content using AI, and presents articles in a kanban board for manual triage.
+News Assistant is an Odoo 18 addon system that automatically scrapes news sources, extracts clean article content using AI, and presents articles in a kanban board for manual triage. The **Newsassistant Blog** extension addon adds AI-powered relevance triage and automatic blog publishing.
 
 **Key insight**: The AI (Infomaniak AI Services) acts as a universal HTML-to-structured-data parser, eliminating the need for per-source CSS selector configurations. This makes the system resilient to website redesigns.
 
@@ -21,32 +21,57 @@ News Assistant is an Odoo 18 addon that automatically scrapes ~60 Swiss social-s
 - **Sources List**: News Assistant → Sources (manage scraped websites)
 - **Queue Jobs**: Settings → Technical → Queue → Jobs (monitor background jobs)
 - **Scheduled Actions**: Settings → Technical → Automation → Scheduled Actions
+- **Blog Settings**: Settings → News Assistant → Blog Settings (content strategy, teaser prompt, target blog, Pixabay key)
+- **Blog Posts**: Website → Blog (published articles)
 
 ## Architecture
 
+### Full Pipeline (Scrape → Triage → Publish)
+
 ```
-ir.cron (daily at 6:00 AM)
-    └─▶ _cron_scrape_all()
+ir.cron (daily — scrape)
+    └─▶ news.source._cron_scrape_all()
             ├─▶ source_1.with_delay()._scrape_listing()     [Stage 1: discover URLs]
             │       ├─▶ article_A.with_delay()._fetch_and_extract()  [Stage 2: extract]
             │       └─▶ article_B.with_delay()._fetch_and_extract()
-            ├─▶ source_2.with_delay()._scrape_listing()
-            │       └─▶ article_C.with_delay()._fetch_and_extract()
             └─▶ ...
+
+ir.cron (daily — digest)
+    └─▶ news.article._cron_digest_all_impl()
+            ├─▶ article_A.with_delay()._digest_article()    [Stage 3: triage + publish]
+            └─▶ article_B.with_delay()._digest_article()
 ```
 
-### Two-Stage Pipeline
+### Three-Stage Pipeline
 
-| Stage | Method | Input | Output |
-|-------|--------|-------|--------|
-| **Stage 1** | `news.source._scrape_listing()` | Listing page URL | JSON array of `{title, url}` |
-| **Stage 2** | `news.article._fetch_and_extract()` | Article URL | JSON object `{title, date, summary, content}` |
+| Stage | Addon | Method | Input | Output |
+|-------|-------|--------|-------|--------|
+| **Stage 1** | newsassistant | `news.source._scrape_listing()` | Listing page URL | JSON array of `{title, url}` |
+| **Stage 2** | newsassistant | `news.article._fetch_and_extract()` | Article URL | JSON object `{title, date, summary, content}` |
+| **Stage 3** | newsassistant_blog | `news.article._digest_article()` | Scraped article | Relevance decision + optional blog post |
 
-### Content Processing Flow
+### Stage 3 Detail (Digest Pipeline)
 
-1. **Fetch** → HTTP GET with 30s timeout
+```
+_digest_article()
+    ├─▶ _evaluate_relevance()   → "relevant" / "uncertain" / "discard"
+    │       └─▶ _call_ai()      (temperature=0.1)
+    ├─▶ [if discard]   → move to Discarded stage
+    ├─▶ [if uncertain] → leave in New stage for human review
+    └─▶ [if relevant]  → _handle_relevant()
+            ├─▶ move to Relevant stage
+            ├─▶ _generate_teaser()      → _call_ai() (temperature=0.7)
+            └─▶ _create_blog_post()
+                    └─▶ _get_header_image_for_blog()
+                            ├─▶ article.header_image (if present)
+                            └─▶ _search_pixabay() + _download_pixabay_image() (fallback)
+```
+
+### Content Processing Flow (Stages 1 & 2)
+
+1. **Fetch** → `fetch_page()` via Jina Reader API (returns markdown + images dict)
 2. **Pre-clean** → BeautifulSoup strips nav/footer/script/style tags + removes attributes
-3. **AI Extract** → Send cleaned HTML to Infomaniak AI, parse JSON response
+3. **AI Extract** → Send cleaned content to Infomaniak AI, parse JSON response
 4. **Store** → Write to Odoo database
 
 ### Fallback Mechanisms
@@ -54,6 +79,7 @@ ir.cron (daily at 6:00 AM)
 - **HTTP 403 (bot protection)** → Automatic fallback to Jina Reader API
 - **PDF documents** → Text extracted via `pdfminer`, then sent to AI
 - **Transient errors** → `RetryableJobError` with escalating retry (5min → 15min → 1hr)
+- **Missing header image** → Pixabay API search using article title as query
 
 ## Codebase Map
 
@@ -64,34 +90,59 @@ newsassistant/
 ├── odoo.conf                 # Odoo config (queue_job channels, workers)
 ├── .env                      # API keys (INFOMANIAK_AI_API_KEY, JINA_API_KEY)
 ├── news_source.csv           # Source URLs for import
-└── addons/newsassistant/     # THE ADDON
-    ├── __manifest__.py       # Dependencies: base, queue_job
-    ├── README.md             # User-facing documentation
-    ├── agents.md             # Addon-level coding standards & DoD
-    ├── models/
-    │   ├── news_source.py    # Source model + AI service + HTML cleaner + Stage 1
-    │   ├── news_article.py   # Article model + Stage 2 extraction + Jina fallback
-    │   └── news_article_stage.py  # Kanban stages (New, Relevant, Archived, Discarded)
-    ├── views/
-    │   ├── news_source_views.xml   # Source list/form views
-    │   ├── news_article_views.xml  # Article kanban/form views
-    │   └── menu.xml                # Menu structure
-    ├── data/
-    │   ├── news_article_stage_data.xml   # Default kanban stages
-    │   ├── queue_job_data.xml            # Queue channel config
-    │   ├── ir_cron_data.xml              # Daily scrape cron
-    │   └── ir_config_parameter_data.xml  # Default product ID
-    ├── demo/
-    │   └── news_source_demo.xml    # Sample sources for testing
-    ├── security/
-    │   └── ir.model.access.csv     # Access rights
-    └── tests/
-        ├── test_news_source.py       # Source model tests
-        ├── test_html_cleaner.py      # HTML pre-cleaning tests
-        ├── test_url_normalization.py # URL dedup logic tests
-        ├── test_scraping_pipeline.py # End-to-end pipeline tests (mocked)
-        ├── test_queue_jobs.py        # Job creation tests with trap_jobs()
-        └── test_kanban.py            # Stage workflow tests
+└── addons/
+    ├── newsassistant/        # Core addon v18.0.2.1.0 — scraping & triage kanban
+    │   ├── __manifest__.py       # Dependencies: base, queue_job
+    │   ├── README.md             # User-facing documentation
+    │   ├── agents.md             # Addon-level coding standards & DoD
+    │   ├── models/
+    │   │   ├── news_source.py    # Source model + AI service + HTML cleaner + Stage 1
+    │   │   ├── news_article.py   # Article model + Stage 2 extraction
+    │   │   ├── news_article_stage.py  # Kanban stages
+    │   │   ├── news_log.py       # Unified operation log
+    │   │   └── news_log_entry.py # Detail entries per log (LLM request/response metadata)
+    │   ├── views/
+    │   │   ├── news_source_views.xml   # Source list/form views
+    │   │   ├── news_article_views.xml  # Article kanban/form views
+    │   │   └── menu.xml                # Menu structure
+    │   ├── data/
+    │   │   ├── news_article_stage_data.xml   # Default kanban stages
+    │   │   ├── queue_job_data.xml            # Queue channel config
+    │   │   ├── ir_cron_data.xml              # Daily scrape cron
+    │   │   └── ir_config_parameter_data.xml  # Default product ID
+    │   ├── demo/
+    │   │   └── news_source_demo.xml    # Sample sources for testing
+    │   ├── security/
+    │   │   └── ir.model.access.csv     # Access rights
+    │   └── tests/
+    │       ├── test_news_source.py       # Source model tests
+    │       ├── test_html_cleaner.py      # HTML pre-cleaning tests
+    │       ├── test_url_normalization.py # URL dedup logic tests
+    │       ├── test_scraping_pipeline.py # End-to-end pipeline tests (mocked)
+    │       ├── test_queue_jobs.py        # Job creation tests with trap_jobs()
+    │       ├── test_kanban.py            # Stage workflow tests
+    │       ├── test_article_state.py     # Article state machine tests
+    │       └── test_header_image.py      # Header image selection tests
+    └── newsassistant_blog/   # Extension addon v18.0.1.0.0 — digest & blog publishing
+        ├── __manifest__.py       # Dependencies: newsassistant, website_blog
+        ├── models/
+        │   ├── news_article.py   # Extends news.article: digest pipeline + Pixabay
+        │   ├── blog_post.py      # Extends blog.post: adds news_article_id backlink
+        │   ├── news_log.py       # Extends news.log: adds "digest" category
+        │   └── res_config_settings.py  # Blog settings (strategy, blog, Pixabay key)
+        ├── views/
+        │   ├── news_article_views.xml      # Digest state + teaser in article views
+        │   ├── blog_post_views.xml         # Source article link in blog post views
+        │   ├── res_config_settings_views.xml  # Blog settings UI
+        │   └── menu.xml                    # Additional menu items
+        ├── data/
+        │   ├── ir_config_parameter_data.xml  # Default prompts
+        │   └── ir_cron_data.xml              # Daily digest cron
+        ├── security/
+        │   └── ir.model.access.csv
+        └── tests/
+            ├── test_blog_header_image.py   # Blog header image logic tests
+            └── test_pixabay.py             # Pixabay API integration tests
 ```
 
 ## Key Technologies
@@ -103,7 +154,7 @@ Swiss-hosted, OpenAI-compatible AI API. Data stays in Switzerland (GDPR/FADP com
 | Item | Value |
 |------|-------|
 | Endpoint | `https://api.infomaniak.com/2/ai/{product_id}/openai/v1/chat/completions` |
-| Default Product ID | `103794` (stored in `ir.config_parameter`) |
+| Default Product ID | `103794` (stored in `ir.config_parameter` as `newsassistant.infomaniak_product_id`) |
 | Model | `qwen3` (Qwen3-VL-235B, 262K context window) |
 | Auth | Bearer token via `INFOMANIAK_AI_API_KEY` env var |
 | Timeout | 120 seconds |
@@ -116,7 +167,7 @@ payload = {
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": cleaned_html},
     ],
-    "temperature": 0.1,
+    "temperature": 0.1,  # 0.7 for teaser generation
 }
 ```
 
@@ -124,16 +175,22 @@ payload = {
 
 ### Jina Reader API
 
-Headless browser service that bypasses bot protection (Cloudflare, etc.) and returns clean content.
+Headless browser service that bypasses bot protection (Cloudflare, etc.) and returns clean content + image metadata. The **primary** fetch mechanism for all page fetching.
 
 | Item | Value |
 |------|-------|
 | Endpoint | `https://r.jina.ai/{target_url}` |
 | Auth | Bearer token via `JINA_API_KEY` env var |
 | Timeout | 60 seconds (longer due to browser rendering) |
-| Output | Plain text (with `Accept: text/plain` header) |
+| Output | JSON with `data.content` (markdown) and `data.images` (dict) |
+| Header | `X-With-Images-Summary: all` (to receive image metadata) |
 
-**When used**: Automatic fallback when direct HTTP fetch returns 403.
+**`fetch_page(url)` signature** (module-level function in `news_source.py`):
+```python
+content, images_dict = fetch_page(url)
+# content: cleaned markdown string (truncated to 30000 chars)
+# images_dict: {caption: url, ...} from Jina's image extraction
+```
 
 ### OCA queue_job
 
@@ -164,17 +221,30 @@ record.with_delay(
 )._method_name()
 ```
 
+### Pixabay API
+
+Image search service used as fallback when articles lack a suitable header image.
+
+| Item | Value |
+|------|-------|
+| Endpoint | `https://pixabay.com/api/` |
+| Auth | API key via Settings UI → stored as `newsassistant_blog.pixabay_api_key` in `ir.config_parameter` |
+| Timeout | 15 seconds |
+| Filters | `image_type=photo`, `orientation=horizontal`, `min_width=1000`, `min_height=400` |
+
 ## Environment Variables
 
 Required in `.env` file (loaded via docker-compose):
 
 | Variable | Required | Purpose |
 |----------|----------|---------|
-| `INFOMANIAK_AI_API_KEY` | Yes | AI extraction API key |
-| `JINA_API_KEY` | No | Fallback for bot-protected sites |
+| `INFOMANIAK_AI_API_KEY` | Yes | AI extraction API key (Stages 1, 2, 3) |
+| `JINA_API_KEY` | Yes | Jina Reader API for page fetching |
 | `POSTGRES_PASSWORD` | Yes | Database connection |
 
-**Verify they're set**:
+**Pixabay API key** is configured via the Odoo Settings UI (not an env var), stored as `ir.config_parameter` key `newsassistant_blog.pixabay_api_key`.
+
+**Verify env vars are set**:
 ```bash
 docker exec odoo-newsassistant env | grep -E "(INFOMANIAK|JINA)"
 ```
@@ -187,16 +257,43 @@ docker exec odoo-newsassistant env | grep -E "(INFOMANIAK|JINA)"
 # Run all newsassistant tests
 docker exec odoo-newsassistant odoo --test-tags newsassistant --stop-after-init -d newsassistant
 
+# Run all newsassistant_blog tests
+docker exec odoo-newsassistant odoo --test-tags newsassistant_blog --stop-after-init -d newsassistant
+
 # Run specific test class
 docker exec odoo-newsassistant odoo --test-tags newsassistant.test_scraping_pipeline --stop-after-init -d newsassistant
 ```
 
-### Restarting After Code Changes
+### Upgrading After Code Changes
+
+After any code change (models, views, data files), always upgrade the affected module(s) so Odoo applies schema migrations and reloads views:
 
 ```bash
 cd /home/debian/projects/newsassistant
-docker compose restart odoo-newsassistant
+docker compose stop odoo-newsassistant
+
+# Upgrade newsassistant
+docker run --rm --network opencode \
+  -v $(pwd)/addons:/mnt/extra-addons \
+  -v $(pwd)/odoo.conf:/etc/odoo/odoo.conf:ro \
+  -v /home/debian/shared/odoo-src/18.0/oca/web:/mnt/oca/web:ro \
+  -v /home/debian/shared/odoo-src/18.0/oca/queue:/mnt/oca/queue:ro \
+  -e HOST=postgres -e PORT=5432 -e USER=opencode -e PASSWORD= \
+  odoo:18.0 odoo -u newsassistant -d newsassistant --stop-after-init
+
+# Or upgrade the blog extension (also upgrades its dependency newsassistant)
+docker run --rm --network opencode \
+  -v $(pwd)/addons:/mnt/extra-addons \
+  -v $(pwd)/odoo.conf:/etc/odoo/odoo.conf:ro \
+  -v /home/debian/shared/odoo-src/18.0/oca/web:/mnt/oca/web:ro \
+  -v /home/debian/shared/odoo-src/18.0/oca/queue:/mnt/oca/queue:ro \
+  -e HOST=postgres -e PORT=5432 -e USER=opencode -e PASSWORD= \
+  odoo:18.0 odoo -u newsassistant_blog -d newsassistant --stop-after-init
+
+docker compose start odoo-newsassistant
 ```
+
+A plain restart (`docker compose restart`) is **not sufficient** — it reloads Python files but does not apply new fields, updated views, or data file changes.
 
 ### Viewing Logs
 
@@ -213,6 +310,17 @@ Or via shell:
 # In Odoo shell
 source = env['news.source'].browse(1)
 source._scrape_listing()  # Runs synchronously (no queue)
+```
+
+### Manually Trigger Digest
+
+From Odoo UI: Article form → "Digest Now" button, or list view → Action → "Digest Selected"
+
+Or via shell:
+```python
+# In Odoo shell
+article = env['news.article'].browse(1)
+article._digest_article()  # Runs synchronously (no queue)
 ```
 
 ### Testing Queue Jobs with trap_jobs()
@@ -243,17 +351,25 @@ def _make_mock_response(status_code=200, text="", json_data=None):
         response.json.return_value = json_data
     return response
 
-# Mock HTTP GET
-@patch("odoo.addons.newsassistant.models.news_source.requests.get")
-def test_something(self, mock_get):
-    mock_get.return_value = _make_mock_response(200, "<html>...</html>")
+# Mock fetch_page (Jina — returns tuple)
+@patch("odoo.addons.newsassistant.models.news_source.fetch_page")
+def test_something(self, mock_fetch):
+    mock_fetch.return_value = ("<html>...</html>", {})
 
-# Mock AI API (POST)
+# Mock AI API (POST) — newsassistant addon
 @patch("odoo.addons.newsassistant.models.news_source.requests.post")
 def test_ai(self, mock_post):
     mock_post.return_value = _make_mock_response(
         200,
         json_data={"choices": [{"message": {"content": '{"title": "Test"}'}}]}
+    )
+
+# Mock AI API (POST) — newsassistant_blog addon
+@patch("odoo.addons.newsassistant_blog.models.news_article.requests.post")
+def test_digest_ai(self, mock_post):
+    mock_post.return_value = _make_mock_response(
+        200,
+        json_data={"choices": [{"message": {"content": '{"decision": "relevant", "reasoning": "Test"}'}}]}
     )
 ```
 
@@ -297,6 +413,20 @@ environment:
 2. Queue Jobs view: Are Stage 2 jobs pending/failed?
 3. Article records exist but have error in `content` field?
 
+### Articles not being digested / blog posts not created
+
+**Check**:
+1. Settings → News Assistant → Blog Settings: Is Content Strategy configured?
+2. Settings → News Assistant → Blog Settings: Is Target Blog set?
+3. Queue Jobs view: Are Stage 3 digest jobs pending/failed?
+4. News → Logs: Check digest log entries for error messages.
+
+### Pixabay images not appearing on blog posts
+
+**Check**:
+1. Settings → News Assistant → Blog Settings: Is Pixabay API Key set?
+2. Article `header_image` field — if populated, Pixabay is not used (article image takes priority).
+
 ### Tests fail with "queue_job not found"
 
 **Cause**: Test running without OCA queue addons in path
@@ -305,37 +435,64 @@ environment:
 
 ## Data Models
 
+### newsassistant addon
+
 | Model | Key Fields | Purpose |
 |-------|------------|---------|
 | `news.source` | `name`, `url`, `active`, `state`, `error_message`, `last_scrape_date` | Website to scrape |
-| `news.article` | `title`, `url` (unique, indexed), `source_id`, `date`, `summary`, `content`, `stage_id` | Extracted article |
+| `news.article` | `title`, `url` (unique, indexed), `source_id`, `date`, `summary`, `content`, `stage_id`, `state` (pending/scraped/error/skipped), `header_image`, `header_image_filename` | Extracted article |
 | `news.article.stage` | `name`, `sequence`, `fold` | Kanban column (New, Relevant, Archived, Discarded) |
+| `news.log` | `timestamp`, `level`, `category` (listing/extraction/digest), `message`, `duration`, `source_id`, `article_id`, `job_id`, `created_article_ids` | Operation log summary |
+| `news.log.entry` | `log_id`, `timestamp`, `level`, `message`, `duration`, `metadata` (JSON) | Detail step within a log; stores LLM request/response data |
+
+### newsassistant_blog addon (extends above)
+
+| Model | Added Fields | Purpose |
+|-------|-------------|---------|
+| `news.article` (extended) | `digest_state` (pending/processed), `teaser`, `blog_post_ids` (O2M), `blog_post_count` | Digest pipeline state and teaser text |
+| `blog.post` (extended) | `news_article_id` (M2O → news.article, unique) | Backlink to source article |
+| `news.log` (extended) | `category` += `"digest"` | Enables digest log records |
+| `res.config.settings` (extended) | `newsfeed_content_strategy`, `newsfeed_teaser_prompt`, `newsfeed_blog_id`, `newsfeed_pixabay_api_key` | Blog configuration UI |
 
 ## Definition of Done
 
 Before marking work complete, verify:
 
+- [ ] Module upgraded after code changes (`odoo -u <module> -d newsassistant --stop-after-init`)
 - [ ] Code follows Odoo 18 conventions (see `addons/newsassistant/agents.md`)
 - [ ] All external calls mocked in tests — no real HTTP/AI requests
-- [ ] Tests pass: `odoo --test-tags newsassistant --stop-after-init`
+- [ ] Tests pass: `odoo --test-tags newsassistant --stop-after-init` and `odoo --test-tags newsassistant_blog --stop-after-init`
 - [ ] Queue jobs use `channel="root.newsassistant"` and have `description`
 - [ ] Transient errors raise `RetryableJobError`, permanent errors are logged
 - [ ] README.md updated if user-facing behavior changed
+- [ ] agents.md updated
 
 ## Quick Reference
 
 | Task | Command/Location |
 |------|-----------------|
-| Run tests | `docker exec odoo-newsassistant odoo --test-tags newsassistant --stop-after-init -d newsassistant` |
+| Run newsassistant tests | `docker exec odoo-newsassistant odoo --test-tags newsassistant --stop-after-init -d newsassistant` |
+| Run newsassistant_blog tests | `docker exec odoo-newsassistant odoo --test-tags newsassistant_blog --stop-after-init -d newsassistant` |
 | View logs | `docker logs -f odoo-newsassistant` |
-| Restart | `docker compose restart odoo-newsassistant` |
+| Restart (view/Python-only) | `docker compose restart odoo-newsassistant` |
+| Upgrade after model/view changes | `docker compose stop && docker run ... odoo -u newsassistant -d newsassistant --stop-after-init && docker compose start` |
 | Source model | `addons/newsassistant/models/news_source.py` |
-| Article model | `addons/newsassistant/models/news_article.py` |
-| AI call | `news.source._call_infomaniak_ai(system_prompt, content)` |
-| Jina fallback | `news.article._fetch_via_jina()` |
+| Article model (scrape) | `addons/newsassistant/models/news_article.py` |
+| Article model (digest) | `addons/newsassistant_blog/models/news_article.py` |
+| Blog post model | `addons/newsassistant_blog/models/blog_post.py` |
+| Settings model | `addons/newsassistant_blog/models/res_config_settings.py` |
+| AI call (scraping) | `news.source._call_infomaniak_ai(system_prompt, content)` |
+| AI call (digest) | `news.article._call_ai(system_prompt, content, temperature=0.1)` |
+| Page fetch | `fetch_page(url)` → `(content, images_dict)` in `news_source.py` |
 | HTML cleaner | `news_source.clean_html(raw_html)` |
 | URL normalizer | `news_source.normalize_url(url)` |
-| JSON parser | `news_source.parse_ai_json(text, expect_array=True)` |
+| JSON parser (scraping) | `news_source.parse_ai_json(text, expect_array=True)` |
+| JSON parser (digest) | `news.article._parse_ai_json(raw_text)` |
+| Digest pipeline entry | `news.article._cron_digest_all_impl()` |
+| Evaluate relevance | `news.article._evaluate_relevance(content_strategy, ...)` |
+| Generate teaser | `news.article._generate_teaser(log_entries, add_entry)` |
+| Create blog post | `news.article._create_blog_post(teaser, ...)` |
+| Pixabay search | `news.article._search_pixabay(query)` |
 
 ## Translations (i18n)
 
@@ -353,6 +510,8 @@ The module supports German (de) and French (fr) translations. Translation files 
 | Scraped | Abgerufen | Collecté |
 | Pending | Ausstehend | En attente |
 | Skipped | Übersprungen | Ignoré |
+| Digest | Digest | Digest |
+| Teaser | Teaser | Accroche |
 
 ### Installing Languages (First Time Setup)
 

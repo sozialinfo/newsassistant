@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!-- Settings form view -->
-    <record id="res_config_settings_view_form_newsfeed" model="ir.ui.view">
-        <field name="name">res.config.settings.view.form.inherit.newsfeed</field>
+    <record id="res_config_settings_view_form_newsassistant_blog" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.newsassistant_blog</field>
         <field name="model">res.config.settings</field>
         <field name="inherit_id" ref="base.res_config_settings_view_form"/>
         <field name="arch" type="xml">
             <xpath expr="//form" position="inside">
-                <app data-string="Newsfeed" string="Newsfeed" name="newsfeed" logo="/newsfeed/static/description/icon.png">
+                <app data-string="Newsassistant Blog" string="Newsassistant Blog" name="newsassistant_blog" logo="/newsassistant_blog/static/description/icon.png">
                     <block title="Content Strategy" name="newsfeed_content_strategy_setting">
                         <setting string="Relevance Criteria" help="Define what makes articles relevant, uncertain, or discardable. The AI will use this to classify each article.">
                             <div class="content-group">
@@ -86,12 +86,12 @@ NOT RELEVANT (discard):
         </field>
     </record>
 
-    <!-- Action to open settings directly to Newsfeed section -->
-    <record id="action_newsfeed_settings" model="ir.actions.act_window">
-        <field name="name">Newsfeed Settings</field>
+    <!-- Action to open settings directly to Newsassistant Blog section -->
+    <record id="action_newsassistant_blog_settings" model="ir.actions.act_window">
+        <field name="name">Blog Settings</field>
         <field name="res_model">res.config.settings</field>
         <field name="view_mode">form</field>
         <field name="target">inline</field>
-        <field name="context">{'module': 'newsfeed', 'bin_size': False}</field>
+        <field name="context">{'module': 'newsassistant_blog', 'bin_size': False}</field>
     </record>
 </odoo>

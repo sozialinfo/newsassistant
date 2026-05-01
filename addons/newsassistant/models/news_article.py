@@ -405,8 +405,10 @@ class NewsArticle(models.Model):
             vals["title"] = article_data["title"]
         if article_data.get("date"):
             try:
+                from datetime import datetime
+                datetime.strptime(article_data["date"], "%Y-%m-%d")
                 vals["date"] = article_data["date"]
-            except Exception:
+            except (ValueError, TypeError):
                 _logger.warning(
                     "Invalid date format from AI for article %s: %s",
                     self.url,

@@ -35,6 +35,11 @@ class NewsArticle(models.Model):
         readonly=True,
         help="AI-generated teaser for blog publishing",
     )
+    blog_reasoning = fields.Text(
+        string="Reasoning",
+        readonly=True,
+        help="AI reasoning for why this article is relevant for the blog",
+    )
 
     # Reverse link to blog post
     blog_post_ids = fields.One2many(
@@ -44,7 +49,7 @@ class NewsArticle(models.Model):
     )
     blog_post_count = fields.Integer(
         compute="_compute_blog_post_count",
-        string="Blog Posts",
+        string="Blog Post Count",
     )
 
     def _compute_blog_post_count(self):
@@ -88,12 +93,12 @@ class NewsArticle(models.Model):
             UserError: If the parameter is not configured.
         """
         strategy = self.env["ir.config_parameter"].sudo().get_param(
-            "newsfeed.content_strategy", default=""
+            "newsassistant_blog.content_strategy", default=""
         )
         if not strategy or not strategy.strip():
             raise UserError(
-                _("Newsfeed content strategy is not configured. "
-                  "Please set the 'newsfeed.content_strategy' system parameter.")
+                _("Newsassistant Blog content strategy is not configured. "
+                  "Please set the 'newsassistant_blog.content_strategy' system parameter.")
             )
         return strategy.strip()
 
@@ -107,12 +112,12 @@ class NewsArticle(models.Model):
             UserError: If the parameter is not configured.
         """
         prompt = self.env["ir.config_parameter"].sudo().get_param(
-            "newsfeed.teaser_prompt", default=""
+            "newsassistant_blog.teaser_prompt", default=""
         )
         if not prompt or not prompt.strip():
             raise UserError(
-                _("Newsfeed teaser prompt is not configured. "
-                  "Please set the 'newsfeed.teaser_prompt' system parameter.")
+                _("Newsassistant Blog teaser prompt is not configured. "
+                  "Please set the 'newsassistant_blog.teaser_prompt' system parameter.")
             )
         return prompt.strip()
 
@@ -126,19 +131,19 @@ class NewsArticle(models.Model):
             UserError: If the parameter is not configured or blog doesn't exist.
         """
         blog_id_str = self.env["ir.config_parameter"].sudo().get_param(
-            "newsfeed.blog_id", default=""
+            "newsassistant_blog.blog_id", default=""
         )
         if not blog_id_str or not blog_id_str.strip():
             raise UserError(
-                _("Newsfeed target blog is not configured. "
-                  "Please set the 'newsfeed.blog_id' system parameter.")
+                _("Newsassistant Blog target blog is not configured. "
+                  "Please set the 'newsassistant_blog.blog_id' system parameter.")
             )
 
         try:
             blog_id = int(blog_id_str.strip())
         except ValueError:
             raise UserError(
-                _("Invalid newsfeed.blog_id value: '%s'. Must be a valid blog ID.")
+                _("Invalid newsassistant_blog.blog_id value: '%s'. Must be a valid blog ID.")
                 % blog_id_str
             )
 
@@ -146,7 +151,7 @@ class NewsArticle(models.Model):
         if not blog:
             raise UserError(
                 _("Target blog with ID %d does not exist. "
-                  "Please update the 'newsfeed.blog_id' system parameter.")
+                  "Please update the 'newsassistant_blog.blog_id' system parameter.")
                 % blog_id
             )
         return blog
@@ -158,7 +163,7 @@ class NewsArticle(models.Model):
             str: The API key, or None if not configured.
         """
         api_key = self.env["ir.config_parameter"].sudo().get_param(
-            "newsfeed.pixabay_api_key", default=""
+            "newsassistant_blog.pixabay_api_key", default=""
         )
         return api_key.strip() if api_key else None
 
@@ -623,7 +628,7 @@ class NewsArticle(models.Model):
             "Based on the above content strategy, evaluate the following article.\n"
             "Return a JSON object with exactly these fields:\n"
             '- "decision": one of "relevant", "uncertain", or "discard"\n'
-            '- "reasoning": brief explanation (1-2 sentences)\n\n'
+            '- "reasoning": brief explanation (1-2 sentences) written in the same language as the article\n\n'
             "Return ONLY valid JSON, no markdown, no explanation outside the JSON."
         )
 
@@ -727,7 +732,7 @@ class NewsArticle(models.Model):
             raise_if_not_found=False,
         )
         if relevant_stage:
-            self.write({"stage_id": relevant_stage.id})
+            self.write({"stage_id": relevant_stage.id, "blog_reasoning": reasoning})
             add_entry("info", f"Moved to Relevant stage: {reasoning}")
         else:
             add_entry("warning", "Relevant stage not found")

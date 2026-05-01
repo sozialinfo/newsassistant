@@ -49,14 +49,14 @@ The system SHALL NOT create duplicate blog posts for the same article. Before cr
 - **THEN** the existing blog post SHALL remain unchanged
 
 ### Requirement: Target blog configuration
-The system SHALL publish blog posts to the blog specified by the `newsfeed.blog_id` system parameter. If not configured, blog post creation SHALL fail gracefully.
+The system SHALL publish blog posts to the blog specified by the `newsassistant_blog.blog_id` system parameter. If not configured, blog post creation SHALL fail gracefully.
 
 #### Scenario: Blog post created in configured blog
-- **WHEN** `newsfeed.blog_id` is set to blog ID 3
+- **WHEN** `newsassistant_blog.blog_id` is set to blog ID 3
 - **THEN** new blog posts SHALL be created with `blog_id = 3`
 
 #### Scenario: Missing blog configuration
-- **WHEN** `newsfeed.blog_id` is not set or invalid
+- **WHEN** `newsassistant_blog.blog_id` is not set or invalid
 - **THEN** blog post creation SHALL be skipped
 - **THEN** an error SHALL be logged
 - **THEN** the article SHALL still be marked as relevant in the kanban

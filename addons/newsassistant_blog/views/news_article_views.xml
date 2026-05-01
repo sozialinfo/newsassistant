@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!-- Extend article form view to show digest fields -->
-    <record id="news_article_view_form_newsfeed" model="ir.ui.view">
-        <field name="name">news.article.form.newsfeed</field>
+    <record id="news_article_view_form_newsassistant_blog" model="ir.ui.view">
+        <field name="name">news.article.form.newsassistant_blog</field>
         <field name="model">news.article</field>
         <field name="inherit_id" ref="newsassistant.news_article_view_form"/>
         <field name="arch" type="xml">
@@ -19,23 +19,25 @@
                 <div class="oe_button_box" name="button_box">
                     <button name="action_view_blog_post" type="object"
                             class="oe_stat_button" icon="fa-rss"
-                            invisible="blog_post_count == 0">
-                        <field name="blog_post_count" widget="statinfo" string="Blog Post"/>
-                    </button>
+                            invisible="blog_post_count == 0"
+                            string="Blog Post"/>
                 </div>
             </xpath>
 
-            <!-- Add digest state after scrape_date -->
-            <xpath expr="//field[@name='scrape_date']" position="after">
-                <field name="digest_state" widget="badge"
-                       decoration-muted="digest_state == 'pending'"
-                       decoration-success="digest_state == 'processed'"/>
-            </xpath>
-
-            <!-- Add teaser tab after the summary field's page -->
-            <xpath expr="//notebook/page[field[@name='summary']]" position="after">
-                <page name="teaser" invisible="not teaser">
-                    <field name="teaser" nolabel="1" readonly="1"/>
+            <!-- Add Blog tab before the Log tab (after Full Content page) -->
+            <xpath expr="//notebook/page[field[@name='content']]" position="after">
+                <page string="Blog" name="blog" invisible="not teaser">
+                    <group>
+                        <field name="digest_state" widget="badge"
+                               decoration-muted="digest_state == 'pending'"
+                               decoration-success="digest_state == 'processed'"/>
+                    </group>
+                    <group invisible="not blog_reasoning" string="Reasoning">
+                        <field name="blog_reasoning" nolabel="1" readonly="1"/>
+                    </group>
+                    <group string="Teaser">
+                        <field name="teaser" nolabel="1" readonly="1"/>
+                    </group>
                 </page>
             </xpath>
         </field>
@@ -55,8 +57,8 @@ if records:
     </record>
 
     <!-- Extend article list view to show digest state -->
-    <record id="news_article_view_list_newsfeed" model="ir.ui.view">
-        <field name="name">news.article.list.newsfeed</field>
+    <record id="news_article_view_list_newsassistant_blog" model="ir.ui.view">
+        <field name="name">news.article.list.newsassistant_blog</field>
         <field name="model">news.article</field>
         <field name="inherit_id" ref="newsassistant.news_article_view_list"/>
         <field name="arch" type="xml">
@@ -69,8 +71,8 @@ if records:
     </record>
 
     <!-- Extend search view with digest filters -->
-    <record id="news_article_view_search_newsfeed" model="ir.ui.view">
-        <field name="name">news.article.search.newsfeed</field>
+    <record id="news_article_view_search_newsassistant_blog" model="ir.ui.view">
+        <field name="name">news.article.search.newsassistant_blog</field>
         <field name="model">news.article</field>
         <field name="inherit_id" ref="newsassistant.news_article_view_search"/>
         <field name="arch" type="xml">
