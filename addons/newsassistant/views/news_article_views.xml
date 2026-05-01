@@ -7,20 +7,20 @@
         <field name="arch" type="xml">
             <kanban default_group_by="stage_id" class="o_kanban_small_column">
                 <templates>
-                    <t t-name="card" class="flex-row">
-                        <main class="flex-grow-1">
-                            <div class="text-muted small mb-1">
-                                <field name="source_id"/>
-                                <t t-if="record.date.raw_value"> — <field name="date"/></t>
-                            </div>
-                            <div class="fw-bold">
-                                <field name="title"/>
-                            </div>
-                        </main>
-                        <aside t-if="record.header_image.raw_value" class="ms-2">
+                    <t t-name="card">
+                        <!-- Top row: image left, source/date right, both top-aligned -->
+                        <div class="d-flex align-items-start gap-2 mb-2">
                             <field name="header_image" widget="image"
-                                   options="{'size': [64, 64], 'img_class': 'rounded'}"/>
-                        </aside>
+                                   style="width:48px;height:48px;object-fit:cover;flex-shrink:0;border-radius:4px;"/>
+                            <div>
+                                <div><field name="source_id"/></div>
+                                <div><field name="date"/></div>
+                            </div>
+                        </div>
+                        <!-- Bottom row: title full width, bold -->
+                        <div class="fw-bold">
+                            <field name="title"/>
+                        </div>
                     </t>
                 </templates>
             </kanban>
