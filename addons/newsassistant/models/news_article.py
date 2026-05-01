@@ -68,10 +68,15 @@ class NewsArticle(models.Model):
 
     @api.model
     def _default_stage_id(self):
-        """Return the 'New' stage as default."""
-        return self.env.ref(
-            "newsassistant.news_article_stage_new", raise_if_not_found=False
+        """Return the configured default stage, falling back to 'New' by name."""
+        param = self.env["ir.config_parameter"].sudo().get_param(
+            "newsassistant.new_article_stage_id"
         )
+        if param:
+            stage = self.env["news.article.stage"].browse(int(param))
+            if stage.exists():
+                return stage
+        return self.env["news.article.stage"].search([("name", "=", "New")], limit=1)
 
     @api.model
     def _read_group_stage_ids(self, stages, domain):

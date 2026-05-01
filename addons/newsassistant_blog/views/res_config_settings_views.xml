@@ -69,6 +69,23 @@ NOT RELEVANT (discard):
                             </div>
                         </setting>
                     </block>
+                    <block title="Pipeline Stages" name="newsfeed_pipeline_stages_setting">
+                        <setting string="Shortlist Stage"
+                                 help="Stage assigned to articles that need human review before publishing.">
+                            <field name="newsassistant_blog_shortlist_stage_id"
+                                   options="{'no_create': True}"/>
+                        </setting>
+                        <setting string="Published Stage"
+                                 help="Stage assigned to articles that have been auto-published to the blog.">
+                            <field name="newsassistant_blog_published_stage_id"
+                                   options="{'no_create': True}"/>
+                        </setting>
+                        <setting string="Discard Stage"
+                                 help="Stage assigned to articles that the pipeline has discarded as not relevant.">
+                            <field name="newsassistant_blog_discard_stage_id"
+                                   options="{'no_create': True}"/>
+                        </setting>
+                    </block>
                     <block title="Header Images" name="newsfeed_header_images_setting">
                         <setting string="Pixabay API Key" help="When articles don't have suitable header images, Pixabay can provide fallback images. Get a free API key at pixabay.com.">
                             <div class="content-group">

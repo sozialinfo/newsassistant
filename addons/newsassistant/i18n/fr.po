@@ -44,7 +44,6 @@ msgid "An article with this URL already exists."
 msgstr "Un article avec cette URL existe déjà."
 
 #. module: newsassistant
-#: model:news.article.stage,name:newsassistant.news_article_stage_archived
 #: model_terms:ir.ui.view,arch_db:newsassistant.news_article_view_search
 #: model_terms:ir.ui.view,arch_db:newsassistant.news_source_view_form
 #: model_terms:ir.ui.view,arch_db:newsassistant.news_source_view_search
@@ -216,6 +215,12 @@ msgstr "Détails de l'erreur"
 #: model:ir.model.fields,field_description:newsassistant.field_news_source__error_message
 msgid "Error Message"
 msgstr "Message d'erreur"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_res_config_settings__newsassistant_new_article_stage_id
+#: model_terms:ir.ui.view,arch_db:newsassistant.res_config_settings_view_form_newsassistant
+msgid "Default Stage for New Articles"
+msgstr "Étape par défaut pour les nouveaux articles"
 
 #. module: newsassistant
 #: model:ir.model.fields,field_description:newsassistant.field_news_article_stage__fold
@@ -491,10 +496,15 @@ msgid "This article is already skipped."
 msgstr "Cet article est déjà ignoré."
 
 #. module: newsassistant
-#: model:news.article.stage,name:newsassistant.news_article_stage_relevant
+#: model:news.article.stage,name:newsassistant.news_article_stage_shortlist
 #: model_terms:ir.ui.view,arch_db:newsassistant.news_article_view_search
-msgid "Relevant"
-msgstr "Pertinent"
+msgid "Shortlist"
+msgstr "Sélection"
+
+#. module: newsassistant
+#: model:news.article.stage,name:newsassistant.news_article_stage_published
+msgid "Published"
+msgstr "Publié"
 
 #. module: newsassistant
 #: model:ir.actions.server,name:newsassistant.action_article_reset_form

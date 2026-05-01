@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Example prompts pre-filled in settings (override the empty defaults from data/) -->
+        <record id="newsassistant_blog.config_param_content_strategy" model="ir.config_parameter">
+            <field name="value">You are curating a newsfeed for Swiss social sector professionals.
+
+HIGHLY RELEVANT (auto-publish):
+- Policy changes affecting social institutions in Switzerland
+- Research findings on disability, integration, poverty, or social work
+- Funding announcements for social projects
+- Legal changes impacting NGOs or social services
+
+MAYBE RELEVANT (needs human review):
+- General political news that might affect the social sector
+- Events and conferences in the social field
+- News from neighboring countries with Swiss implications
+
+NOT RELEVANT (discard):
+- Entertainment, sports, lifestyle news
+- News from other countries without Swiss connection
+- Commercial press releases unrelated to social sector
+- Duplicate or very similar content to recent articles</field>
+        </record>
+
+        <record id="newsassistant_blog.config_param_teaser_prompt" model="ir.config_parameter">
+            <field name="value">Write a teaser for this news article following these guidelines:
+
+- Length: 2-3 sentences (max 280 characters)
+- Tone: Professional but accessible, informative
+- Structure: Start with the key news, then why it matters
+- Language: Use the same language as the original article
+- Style: Neutral, factual, no clickbait or sensationalism
+- Goal: Help readers quickly decide if they want to read the full article</field>
+        </record>
+
+        <!-- Demo articles spread across all stages -->
+
+        <!-- New stage: recently scraped, not yet processed -->
+        <record id="demo_article_new_1" model="news.article">
+            <field name="title">Neue Richtlinien für Sozialhilfe: SKOS veröffentlicht aktualisierte Empfehlungen</field>
+            <field name="source_id" ref="newsassistant.demo_source_skos"/>
+            <field name="url">https://skos.ch/aktuell/neue-richtlinien-sozialhilfe-2024</field>
+            <field name="stage_id" ref="newsassistant.news_article_stage_new"/>
+            <field name="state">scraped</field>
+            <field name="digest_state">pending</field>
+            <field name="summary">Die SKOS hat ihre Empfehlungen zur Sozialhilfe aktualisiert und neue Richtlinien für Fachpersonen veröffentlicht.</field>
+        </record>
+
+        <record id="demo_article_new_2" model="news.article">
+            <field name="title">Procap lanciert neues Projekt zur beruflichen Integration</field>
+            <field name="source_id" ref="newsassistant.demo_source_procap"/>
+            <field name="url">https://www.procap.ch/news-archiv/berufliche-integration-projekt-2024</field>
+            <field name="stage_id" ref="newsassistant.news_article_stage_new"/>
+            <field name="state">scraped</field>
+            <field name="digest_state">pending</field>
+            <field name="summary">Procap startet ein neues Pilotprojekt zur Förderung der beruflichen Integration von Menschen mit Behinderungen.</field>
+        </record>
+
+        <record id="demo_article_new_3" model="news.article">
+            <field name="title">Infodrog: Neue Erkenntnisse zur Suchtprävention bei Jugendlichen</field>
+            <field name="source_id" ref="newsassistant.demo_source_infodrog"/>
+            <field name="url">https://www.infodrog.ch/de/news/suchtpraevention-jugendliche-2024.html</field>
+            <field name="stage_id" ref="newsassistant.news_article_stage_new"/>
+            <field name="state">scraped</field>
+            <field name="digest_state">pending</field>
+            <field name="summary">Neue Studienergebnisse zeigen verbesserte Ansätze zur Suchtprävention bei Jugendlichen in der Schweiz.</field>
+        </record>
+
+        <!-- Shortlist stage: flagged for human review -->
+        <record id="demo_article_shortlist_1" model="news.article">
+            <field name="title">Caritas Schweiz fordert Massnahmen gegen wachsende Altersarmut</field>
+            <field name="source_id" ref="newsassistant.demo_source_caritas"/>
+            <field name="url">https://www.caritas.ch/de/entdecken/altersarmut-massnahmen-2024</field>
+            <field name="stage_id" ref="newsassistant.news_article_stage_shortlist"/>
+            <field name="state">scraped</field>
+            <field name="digest_state">processed</field>
+            <field name="summary">Caritas Schweiz veröffentlicht einen Bericht über die zunehmende Altersarmut und fordert politische Massnahmen.</field>
+            <field name="blog_reasoning">Directly relevant: addresses poverty affecting a vulnerable group in Switzerland, calls for policy action.</field>
+        </record>
+
+        <record id="demo_article_shortlist_2" model="news.article">
+            <field name="title">Inclusion Handicap: Bundesrat soll UN-Behindertenrechtskonvention besser umsetzen</field>
+            <field name="source_id" ref="newsassistant.demo_source_inclusion_handicap"/>
+            <field name="url">https://www.inclusion-handicap.ch/de/aktuelles/un-behindertenrechtskonvention-2024.html</field>
+            <field name="stage_id" ref="newsassistant.news_article_stage_shortlist"/>
+            <field name="state">scraped</field>
+            <field name="digest_state">processed</field>
+            <field name="summary">Inclusion Handicap kritisiert die unzureichende Umsetzung der UN-Behindertenrechtskonvention durch den Bundesrat.</field>
+            <field name="blog_reasoning">Highly relevant: legal rights for disabled people in Switzerland, directly impacts social sector professionals.</field>
+        </record>
+
+        <!-- Published stage: auto-published to blog -->
+        <record id="demo_article_published_1" model="news.article">
+            <field name="title">HEKS startet Integrationsprogramm für geflüchtete Familien</field>
+            <field name="source_id" ref="newsassistant.demo_source_heks"/>
+            <field name="url">https://www.heks.ch/medien/integrationsprogramm-gefluechtete-2024</field>
+            <field name="stage_id" ref="newsassistant.news_article_stage_published"/>
+            <field name="state">scraped</field>
+            <field name="digest_state">processed</field>
+            <field name="summary">HEKS lanciert ein neues Integrationsprogramm für geflüchtete Familien in der Schweiz.</field>
+            <field name="teaser">HEKS startet ein umfassendes Integrationsprogramm für geflüchtete Familien. Das Programm bietet Sprachkurse, Berufsberatung und soziale Begleitung – ein wichtiger Schritt zur nachhaltigen Integration.</field>
+            <field name="blog_reasoning">Highly relevant: integration program for refugees, directly relevant to Swiss social sector.</field>
+        </record>
+
+        <record id="demo_article_published_2" model="news.article">
+            <field name="title">Gesundheitsförderung Schweiz: Neue Kampagne für psychische Gesundheit am Arbeitsplatz</field>
+            <field name="source_id" ref="newsassistant.demo_source_gesundheitsfoerderung"/>
+            <field name="url">https://gesundheitsfoerderung.ch/aktuell/news/psychische-gesundheit-arbeitsplatz-2024</field>
+            <field name="stage_id" ref="newsassistant.news_article_stage_published"/>
+            <field name="state">scraped</field>
+            <field name="digest_state">processed</field>
+            <field name="summary">Eine neue nationale Kampagne fördert die psychische Gesundheit von Arbeitnehmenden in der Schweiz.</field>
+            <field name="teaser">Gesundheitsförderung Schweiz lanciert eine nationale Kampagne zur psychischen Gesundheit am Arbeitsplatz. Mit praktischen Tools für Unternehmen zielt die Initiative auf nachhaltige Verbesserungen im Arbeitsalltag.</field>
+            <field name="blog_reasoning">Highly relevant: national health campaign affecting workplace wellbeing, relevant to social sector employers.</field>
+        </record>
+
+        <!-- Discarded stage: not relevant -->
+        <record id="demo_article_discarded_1" model="news.article">
+            <field name="title">Schweizer Fussballnationalmannschaft qualifiziert sich für EM</field>
+            <field name="source_id" ref="newsassistant.demo_source_kriso"/>
+            <field name="url">https://www.kriso.ch/blog/fussball-em-qualifikation-2024</field>
+            <field name="stage_id" ref="newsassistant.news_article_stage_discarded"/>
+            <field name="state">scraped</field>
+            <field name="digest_state">processed</field>
+            <field name="summary">Die Schweizer Nationalmannschaft hat sich erfolgreich für die Europameisterschaft qualifiziert.</field>
+            <field name="blog_reasoning">Not relevant: sports news with no connection to the social sector.</field>
+        </record>
+
+    </data>
+</odoo>

@@ -167,6 +167,27 @@ class NewsArticle(models.Model):
         )
         return api_key.strip() if api_key else None
 
+    def _get_pipeline_stage(self, param_key, fallback_name):
+        """Get a pipeline stage from settings, falling back to name lookup.
+
+        Args:
+            param_key: ir.config_parameter key storing the stage ID (str).
+            fallback_name: Stage name to search by if the parameter is unset.
+
+        Returns:
+            news.article.stage: The stage record, or empty recordset if not found.
+        """
+        stage_id_str = self.env["ir.config_parameter"].sudo().get_param(param_key, default="")
+        if stage_id_str:
+            try:
+                stage = self.env["news.article.stage"].browse(int(stage_id_str))
+                if stage.exists():
+                    return stage
+            except (ValueError, TypeError):
+                pass
+        # Fallback: search by name
+        return self.env["news.article.stage"].search([("name", "=", fallback_name)], limit=1)
+
     def _search_pixabay(self, query):
         """Search Pixabay for images matching the query.
 
@@ -603,8 +624,8 @@ class NewsArticle(models.Model):
         elif decision == "uncertain":
             self._handle_uncertain(reasoning, log_entries, add_entry)
         elif decision == "relevant":
-            self._handle_relevant(reasoning, log_entries, add_entry, job_id, start_time)
-            return  # _handle_relevant creates its own log
+            self._handle_shortlist(reasoning, log_entries, add_entry, job_id, start_time)
+            return  # _handle_shortlist creates its own log
 
         # Create log for discard/uncertain
         total_duration = time.time() - start_time
@@ -700,19 +721,18 @@ class NewsArticle(models.Model):
             return None, None
 
     def _handle_discard(self, reasoning, log_entries, add_entry):
-        """Handle discard decision: move to Discarded stage."""
-        discarded_stage = self.env.ref(
-            "newsassistant.news_article_stage_discarded",
-            raise_if_not_found=False,
+        """Handle discard decision: move to configured discard stage."""
+        discard_stage = self._get_pipeline_stage(
+            "newsassistant_blog.discard_stage_id", "Discarded"
         )
-        if discarded_stage:
-            self.write({"stage_id": discarded_stage.id})
+        if discard_stage:
+            self.write({"stage_id": discard_stage.id})
             add_entry(
                 "info",
-                f"Moved to Discarded stage: {reasoning}",
+                f"Moved to {discard_stage.name} stage: {reasoning}",
             )
         else:
-            add_entry("warning", "Discarded stage not found")
+            add_entry("warning", "Discard stage not found")
 
         _logger.info("Article discarded: %s - %s", self.title, reasoning)
 
@@ -724,18 +744,17 @@ class NewsArticle(models.Model):
         )
         _logger.info("Article uncertain: %s - %s", self.title, reasoning)
 
-    def _handle_relevant(self, reasoning, log_entries, add_entry, job_id, start_time):
-        """Handle relevant decision: generate teaser, create blog post, move to Relevant."""
-        # Move to Relevant stage
-        relevant_stage = self.env.ref(
-            "newsassistant.news_article_stage_relevant",
-            raise_if_not_found=False,
+    def _handle_shortlist(self, reasoning, log_entries, add_entry, job_id, start_time):
+        """Handle relevant decision: generate teaser, create blog post, move to Shortlist."""
+        # Move to configured shortlist stage
+        shortlist_stage = self._get_pipeline_stage(
+            "newsassistant_blog.shortlist_stage_id", "Shortlist"
         )
-        if relevant_stage:
-            self.write({"stage_id": relevant_stage.id, "blog_reasoning": reasoning})
-            add_entry("info", f"Moved to Relevant stage: {reasoning}")
+        if shortlist_stage:
+            self.write({"stage_id": shortlist_stage.id, "blog_reasoning": reasoning})
+            add_entry("info", f"Moved to {shortlist_stage.name} stage: {reasoning}")
         else:
-            add_entry("warning", "Relevant stage not found")
+            add_entry("warning", "Shortlist stage not found")
 
         # Generate teaser
         teaser = self._generate_teaser(log_entries, add_entry)
@@ -753,7 +772,7 @@ class NewsArticle(models.Model):
             entries=log_entries,
             job_id=job_id,
         )
-        _logger.info("Article relevant: %s - %s", self.title, reasoning)
+        _logger.info("Article shortlisted: %s - %s", self.title, reasoning)
 
     def _generate_teaser(self, log_entries, add_entry):
         """Generate teaser for relevant article.
@@ -959,6 +978,16 @@ class NewsArticle(models.Model):
                 metadata={"post_id": post.id, "blog_id": blog.id},
             )
             _logger.info("Created blog post %d for article %s", post.id, self.title)
+
+            # Move article to configured published stage
+            published_stage = self._get_pipeline_stage(
+                "newsassistant_blog.published_stage_id", "Published"
+            )
+            if published_stage:
+                self.write({"stage_id": published_stage.id})
+                add_entry("info", f"Moved to {published_stage.name} stage")
+            else:
+                add_entry("warning", "Published stage not found, article stage not updated")
 
             # Add header image to blog post
             image_data, filename, source = self._get_header_image_for_blog(add_entry)

@@ -6,3 +6,4 @@ from . import test_queue_jobs
 from . import test_kanban
 from . import test_article_state
 from . import test_header_image
+from . import test_config_settings

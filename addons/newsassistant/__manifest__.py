@@ -22,6 +22,7 @@
         "data/queue_job_data.xml",
         "data/ir_cron_data.xml",
         "data/ir_config_parameter_data.xml",
+        "views/res_config_settings_views.xml",
         "views/news_article_views.xml",
         "views/news_source_views.xml",
         "views/news_article_stage_views.xml",
@@ -32,6 +33,7 @@
     "demo": [
         "demo/news_source_demo.xml",
     ],
+    "post_init_hook": "post_init_hook",
     "installable": True,
     "application": True,
     "auto_install": False,

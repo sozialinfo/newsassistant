@@ -8,8 +8,8 @@ class TestKanban(TransactionCase):
         super().setUpClass()
         cls.env = cls.env(context=dict(cls.env.context, queue_job__no_delay=True))
         cls.stage_new = cls.env.ref("newsassistant.news_article_stage_new")
-        cls.stage_relevant = cls.env.ref("newsassistant.news_article_stage_relevant")
-        cls.stage_archived = cls.env.ref("newsassistant.news_article_stage_archived")
+        cls.stage_shortlist = cls.env.ref("newsassistant.news_article_stage_shortlist")
+        cls.stage_published = cls.env.ref("newsassistant.news_article_stage_published")
         cls.stage_discarded = cls.env.ref("newsassistant.news_article_stage_discarded")
         cls.source = cls.env["news.source"].create({
             "name": "Test Source",
@@ -21,8 +21,8 @@ class TestKanban(TransactionCase):
         stages = self.env["news.article.stage"].search([])
         stage_names = stages.mapped("name")
         self.assertIn("New", stage_names)
-        self.assertIn("Relevant", stage_names)
-        self.assertIn("Archived", stage_names)
+        self.assertIn("Shortlist", stage_names)
+        self.assertIn("Published", stage_names)
         self.assertIn("Discarded", stage_names)
 
     def test_stage_ordering(self):
@@ -31,12 +31,12 @@ class TestKanban(TransactionCase):
         sequences = stages.mapped("sequence")
         self.assertEqual(sequences, sorted(sequences))
 
-    def test_archived_and_discarded_folded(self):
-        """Test that Archived and Discarded stages are folded."""
-        self.assertTrue(self.stage_archived.fold)
+    def test_published_and_discarded_folded(self):
+        """Test that Published and Discarded stages are folded."""
+        self.assertTrue(self.stage_published.fold)
         self.assertTrue(self.stage_discarded.fold)
         self.assertFalse(self.stage_new.fold)
-        self.assertFalse(self.stage_relevant.fold)
+        self.assertFalse(self.stage_shortlist.fold)
 
     def test_article_default_stage(self):
         """Test that new articles get the 'New' stage by default."""
@@ -56,11 +56,11 @@ class TestKanban(TransactionCase):
         })
         self.assertEqual(article.stage_id, self.stage_new)
 
-        article.write({"stage_id": self.stage_relevant.id})
-        self.assertEqual(article.stage_id, self.stage_relevant)
+        article.write({"stage_id": self.stage_shortlist.id})
+        self.assertEqual(article.stage_id, self.stage_shortlist)
 
-        article.write({"stage_id": self.stage_archived.id})
-        self.assertEqual(article.stage_id, self.stage_archived)
+        article.write({"stage_id": self.stage_published.id})
+        self.assertEqual(article.stage_id, self.stage_published)
 
     def test_read_group_stage_ids_shows_all(self):
         """Test that _read_group_stage_ids returns all stages."""

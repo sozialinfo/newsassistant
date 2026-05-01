@@ -1,0 +1,258 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* newsassistant_blog
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-05-01 08:34+0000\n"
+"PO-Revision-Date: 2026-05-01 08:34+0000\n"
+"Last-Translator: \n"
+"Language-Team: German\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. module: newsassistant_blog
+#. odoo-python
+msgid " Skipped %d article(s) not in 'Scraped' state."
+msgstr " %d Artikel übersprungen (nicht im Status 'Abgerufen')."
+
+#. module: newsassistant_blog
+msgid "<strong>Example prompt:</strong>"
+msgstr "<strong>Beispiel-Prompt:</strong>"
+
+#. module: newsassistant_blog
+msgid "A blog post already exists for this news article."
+msgstr "Für diesen Artikel existiert bereits ein Blogeintrag."
+
+#. module: newsassistant_blog
+msgid "AI reasoning for why this article is relevant for the blog"
+msgstr "KI-Begründung für die Relevanz des Artikels für den Blog"
+
+#. module: newsassistant_blog
+msgid "AI-generated teaser for blog publishing"
+msgstr "KI-generierter Teaser für die Blogveröffentlichung"
+
+#. module: newsassistant_blog
+msgid "Article must be in 'Scraped' state to process. Current state: %s"
+msgstr "Der Artikel muss sich im Status 'Abgerufen' befinden. Aktueller Status: %s"
+
+#. module: newsassistant_blog
+msgid "Blog"
+msgstr "Blog"
+
+#. module: newsassistant_blog
+msgid "Blog Post"
+msgstr "Blogeintrag"
+
+#. module: newsassistant_blog
+msgid "Blog Post Count"
+msgstr "Anzahl Blogeinträge"
+
+#. module: newsassistant_blog
+msgid "Blog Posts"
+msgstr "Blogeinträge"
+
+#. module: newsassistant_blog
+msgid "Blog Settings"
+msgstr "Blog-Einstellungen"
+
+#. module: newsassistant_blog
+msgid "Blog where curated articles will be published."
+msgstr "Blog, in dem kuratierte Artikel veröffentlicht werden."
+
+#. module: newsassistant_blog
+msgid "Cannot Process"
+msgstr "Kann nicht verarbeitet werden"
+
+#. module: newsassistant_blog
+msgid "Category"
+msgstr "Kategorie"
+
+#. module: newsassistant_blog
+msgid "Config Settings"
+msgstr "Konfigurationseinstellungen"
+
+#. module: newsassistant_blog
+msgid "Content Strategy"
+msgstr "Inhaltsstrategie"
+
+#. module: newsassistant_blog
+msgid "Define how teasers should be written for relevant articles."
+msgstr "Definieren Sie, wie Teaser für relevante Artikel geschrieben werden sollen."
+
+#. module: newsassistant_blog
+msgid "Digest Now"
+msgstr "Jetzt verarbeiten"
+
+#. module: newsassistant_blog
+msgid "Digest Pending"
+msgstr "Verarbeitung ausstehend"
+
+#. module: newsassistant_blog
+msgid "Digest Processed"
+msgstr "Verarbeitung abgeschlossen"
+
+#. module: newsassistant_blog
+msgid "Digest Processing"
+msgstr "Digest-Verarbeitung"
+
+#. module: newsassistant_blog
+msgid "Digest Selected Articles"
+msgstr "Ausgewählte Artikel verarbeiten"
+
+#. module: newsassistant_blog
+msgid "Digest Started"
+msgstr "Verarbeitung gestartet"
+
+#. module: newsassistant_blog
+msgid "Digest State"
+msgstr "Verarbeitungsstatus"
+
+#. module: newsassistant_blog
+msgid "Discard Stage"
+msgstr "Status für verworfene Artikel"
+
+#. module: newsassistant_blog
+msgid "Get your free API key at"
+msgstr "Holen Sie sich Ihren kostenlosen API-Schlüssel bei"
+
+#. module: newsassistant_blog
+msgid "Header Images"
+msgstr "Titelbilder"
+
+#. module: newsassistant_blog
+msgid "News Article"
+msgstr "Nachrichtenartikel"
+
+#. module: newsassistant_blog
+msgid "News Log"
+msgstr "Nachrichtenprotokoll"
+
+#. module: newsassistant_blog
+msgid "Newsassistant Blog"
+msgstr "Newsassistant Blog"
+
+#. module: newsassistant_blog
+msgid "Newsassistant Blog: Process Digest"
+msgstr "Newsassistant Blog: Digest verarbeiten"
+
+#. module: newsassistant_blog
+msgid "No Articles to Process"
+msgstr "Keine Artikel zu verarbeiten"
+
+#. module: newsassistant_blog
+msgid "No Blog Post"
+msgstr "Kein Blogeintrag"
+
+#. module: newsassistant_blog
+msgid "No blog post has been created for this article yet."
+msgstr "Für diesen Artikel wurde noch kein Blogeintrag erstellt."
+
+#. module: newsassistant_blog
+msgid "None of the selected articles are in 'Scraped' state."
+msgstr "Keiner der ausgewählten Artikel befindet sich im Status 'Abgerufen'."
+
+#. module: newsassistant_blog
+msgid "Pending"
+msgstr "Ausstehend"
+
+#. module: newsassistant_blog
+msgid "Pipeline Stages"
+msgstr "Pipeline-Stufen"
+
+#. module: newsassistant_blog
+msgid "Pixabay API Key"
+msgstr "Pixabay API-Schlüssel"
+
+#. module: newsassistant_blog
+msgid "Process this article through the digest pipeline"
+msgstr "Diesen Artikel durch die Digest-Pipeline verarbeiten"
+
+#. module: newsassistant_blog
+msgid "Processed"
+msgstr "Verarbeitet"
+
+#. module: newsassistant_blog
+msgid "Processing article in background..."
+msgstr "Artikel wird im Hintergrund verarbeitet..."
+
+#. module: newsassistant_blog
+msgid "Published Stage"
+msgstr "Status für veröffentlichte Artikel"
+
+#. module: newsassistant_blog
+msgid "Publishing"
+msgstr "Veröffentlichung"
+
+#. module: newsassistant_blog
+msgid "Queued %d article(s) for digest processing."
+msgstr "%d Artikel zur Digest-Verarbeitung in die Warteschlange gestellt."
+
+#. module: newsassistant_blog
+msgid "Reasoning"
+msgstr "Begründung"
+
+#. module: newsassistant_blog
+msgid "Relevance Criteria"
+msgstr "Relevanzkriterien"
+
+#. module: newsassistant_blog
+msgid "Shortlist Stage"
+msgstr "Status für die Shortlist"
+
+#. module: newsassistant_blog
+msgid "Source Article"
+msgstr "Quellartikel"
+
+#. module: newsassistant_blog
+msgid "Stage assigned to articles that have been auto-published to the blog."
+msgstr "Status für Artikel, die automatisch im Blog veröffentlicht wurden."
+
+#. module: newsassistant_blog
+msgid "Stage assigned to articles that need human review before publishing."
+msgstr "Status für Artikel, die vor der Veröffentlichung manuell geprüft werden müssen."
+
+#. module: newsassistant_blog
+msgid "Stage assigned to articles that the pipeline has discarded as not relevant."
+msgstr "Status für Artikel, die von der Pipeline als nicht relevant eingestuft wurden."
+
+#. module: newsassistant_blog
+msgid "Target Blog"
+msgstr "Ziel-Blog"
+
+#. module: newsassistant_blog
+msgid "Teaser"
+msgstr "Teaser"
+
+#. module: newsassistant_blog
+msgid "Teaser Generation"
+msgstr "Teaser-Generierung"
+
+#. module: newsassistant_blog
+msgid "Teaser Prompt"
+msgstr "Teaser-Prompt"
+
+#. module: newsassistant_blog
+msgid "Teaser Style"
+msgstr "Teaser-Stil"
+
+#. module: newsassistant_blog
+msgid "The news article this blog post was generated from"
+msgstr "Der Nachrichtenartikel, aus dem dieser Blogeintrag generiert wurde"
+
+#. module: newsassistant_blog
+msgid "Your Content Strategy"
+msgstr "Ihre Inhaltsstrategie"
+
+#. module: newsassistant_blog
+msgid "Your Teaser Prompt"
+msgstr "Ihr Teaser-Prompt"
+
+#. module: newsassistant_blog
+msgid "pixabay.com/api/docs"
+msgstr "pixabay.com/api/docs"

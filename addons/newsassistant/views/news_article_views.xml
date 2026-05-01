@@ -135,8 +135,8 @@
                 <field name="content"/>
                 <filter name="filter_new" string="New"
                         domain="[('stage_id', '=', %(newsassistant.news_article_stage_new)d)]"/>
-                <filter name="filter_relevant" string="Relevant"
-                        domain="[('stage_id', '=', %(newsassistant.news_article_stage_relevant)d)]"/>
+                <filter name="filter_shortlist" string="Shortlist"
+                        domain="[('stage_id', '=', %(newsassistant.news_article_stage_shortlist)d)]"/>
                 <separator/>
                 <filter name="filter_state_pending" string="Pending"
                         domain="[('state', '=', 'pending')]"/>
