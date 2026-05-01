@@ -5,6 +5,8 @@ MODULES   = newsassistant,newsassistant_blog
 LANGUAGE  = de_CH
 ADMIN_LANG = de_CH
 
+PIXABAY_API_KEY ?= $(shell grep ^PIXABAY_API_KEY $(PWD)/.env | cut -d= -f2-)
+
 ODOO_CONF = /etc/odoo/odoo.conf
 ODOO_PORT = 18069
 
@@ -59,6 +61,7 @@ post-setup:
 		"env['res.users'].browse(2).write({'lang': '$(ADMIN_LANG)'})" \
 		"env.ref('newsassistant.newsassistant_group_admin').write({'users': [(4, 2)]})" \
 		"env.ref('newsassistant.newsassistant_group_user').write({'users': [(4, 2)]})" \
+		"env['ir.config_parameter'].sudo().set_param('newsassistant_blog.pixabay_api_key', '$(PIXABAY_API_KEY)')" \
 		"env.cr.commit()" \
 		"print('post-setup done')" \
 	| docker compose exec -T $(SERVICE) odoo shell \
