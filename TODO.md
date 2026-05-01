@@ -1,26 +1,22 @@
-# Article stages
-- When the module ``newsassistant`` is installed, create the following article stages: New, Shortlist, Published (collapsed), Discarded (collapsed)
-- In the module  ``newsassistant`` add the confiugraiton to define the stage for new arrticles
-- In the module ``newsassistant_blog`` add the configuration to defined stages for human intervention needed (shortlist) and automatically published (published)
-- When the module ``newsassistant_blog`` is installed, check if the stanard stages for shortlist and published are present. if yes, link them in the settings. if not, create them and link them in the settings
+# Digest
+- If an article is discarded during digest due to misfit with the content strategy, the reasoning is not visible. Make sure to always show the Blog Tab, no matter the digest status.
 
-# Auto-Create blog
-- When the module ``newsassistant_blog`` is installed, create a new blog "News" and add it as default in the settings
+# Settings
+Let's optimize the settings.
+
+- The settings for the News Assistant must all appear under one single menu in the settings, no matter if the module is actually a submodule.
+- The placement of the multiline input for the prompts is awkward: it's right of the label, making it small and "hangig" to the right. Plce the label on its own line and then make the input field as wide as possible within the standard framework.
+- In the description of the prompt for the relevance criteria in the settings, explain what auto-publish, human review and discard mean.
+
+# Refactor GUI
+- In the news source, remove the tab for the log
+- In the news source, add a smart button for the log (which navigates to a filtered list of logs for this source)
+- In the news source, add a smart button for the snapshots (which navigates to a filtered list of snapshots for this source)
+- On all detail screens, add a smart button to display active queue jobs (display only for admin and only if there are any)
 
 
 
-
-# Receiving E-Mail 
-- Add a new module ``newsassistant_email``
-- Using the odoo standard pattern for inbound e-mail, add a new alias ``newsassistant``
-- The e-mail alias must be configurable
-- When an e-mail is received
-    - The module checks if a news source for the domain of the sender is defined
-    - If not, a new news source is created
-    - A new news article is created, with the e-mail body as the content
-    - The log must be filled in the news source, using the same pattern as when scraping from a website
-
-# Newsletter
+# Mass Mailing
 - Add a new module ``newsassistant_mass_mailing``. The purpose of this module is to select news articles for publication in a newsletter. It depends on ``mass_mailing``
 - On the news article, add a new flag ``newsletter_relevant``. It must be possible to set/unset this flag in the detail view, but also in the list view
 - Add a new menu "Newsletter"
@@ -31,9 +27,23 @@
     - As a button on the detail view of an article
     - As an action on the list view of all articles
     - When clicked, a popup appears, where the user must select the newsletter where the news will be added to. In the same popup, it must be possible to create a new newsletter, either from a template or as a copy of an existing newsletter
+    - In the selected newsletter, add a new section for each article, with the title, the digest blurb, the image (with a reasonable size) and the link back to the original source of the article. If there is no image, use just the blurb and adjust the layout. Use AI to find the proper placing within existing newsletters.
 
-# Digest
-- If an article is discarded during digest due to misfit with the content strategy, the reasoning is not visible. Make sure to always show the Blog Tab, no matter the digest status.
 
-# Merge Settings
-- The settings for the News Assistant must all appear under one single menu in the settings, no matter if the module is actually a submodule.
+
+
+
+# Strategy Check
+With this new feature, news can be screened for relevance to the long term strategy of the organisation.
+
+- Add a new module ``newsassistant_strategy_check``
+- In this new module, a many-to-many field ``strategy_check`` is added to the news article, which allows to add labels. Use the odoo standard pattern
+- In the configuration, an admin user can define labels
+- In the configuration, an admin user can define a stragegy-check prompt which returns labels for a specific article
+- The user can copy/paste the strategy and the module then suggests a strategy-check prompt and the labels
+- In the kanban board, add the possibility to group by strategy check label
+- Add a new menu "Strategy Brief" which renders HTML editor sing AI for a selected period. It reads articles wich are deemed strategy-relevant and then renders a strategy brief as HTML in the language of the user, with an executive summary and a more detailled text, referencing the origianl sources of new articles where applicable. The strategy brief can be freely edited and downloaded as PDF. It should be no longer than 2 A4-pages.
+
+
+# Translation
+Make sure all terms are translated to German

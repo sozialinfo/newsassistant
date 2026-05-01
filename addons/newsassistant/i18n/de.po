@@ -689,3 +689,133 @@ msgstr "Metadaten anzeigen"
 #: model_terms:ir.ui.view,arch_db:newsassistant.news_log_view_search
 msgid "Warning"
 msgstr "Warnung"
+
+#. module: newsassistant
+#: model_terms:ir.ui.view,arch_db:newsassistant.res_config_settings_view_form_newsassistant
+msgid "Article Defaults"
+msgstr "Artikel-Standardwerte"
+
+#. module: newsassistant
+#. odoo-python
+#: code:addons/newsassistant/models/news_article.py:0
+msgid "Cannot Re-extract"
+msgstr "Neuextraktion nicht möglich"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_snapshot__captured_at
+msgid "Captured At"
+msgstr "Erfasst am"
+
+#. module: newsassistant
+#: model:ir.model.fields,help:newsassistant.field_news_snapshot__raw_content
+msgid "Captured HTML content — the raw input for article extraction."
+msgstr "Erfasster HTML-Inhalt – die Roheingabe für die Artikelextraktion."
+
+#. module: newsassistant
+#: model:ir.model,name:newsassistant.model_res_config_settings
+msgid "Config Settings"
+msgstr "Konfigurationseinstellungen"
+
+#. module: newsassistant
+#: model:ir.model.fields.selection,name:newsassistant.selection__news_source__source_type__email
+msgid "E-Mail"
+msgstr "E-Mail"
+
+#. module: newsassistant
+#: model:ir.model.fields.selection,name:newsassistant.selection__news_log__category__email
+msgid "Email Inbound"
+msgstr "Eingehende E-Mail"
+
+#. module: newsassistant
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_source_view_search
+msgid "Email Sources"
+msgstr "E-Mail-Quellen"
+
+#. module: newsassistant
+#: model:ir.model.fields,help:newsassistant.field_news_source__sender_domain
+msgid "Email domain to match inbound emails (e.g. newsletter.example.com)"
+msgstr "E-Mail-Domain für eingehende Newsletter (z. B. newsletter.example.com)"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_article__header_image
+msgid "Header Image"
+msgstr "Kopfbild"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_article__header_image_filename
+msgid "Header Image Filename"
+msgstr "Dateiname Kopfbild"
+
+#. module: newsassistant
+#: model:ir.model.fields,help:newsassistant.field_news_article__header_image
+msgid "Header image extracted from the article, suitable for blog covers"
+msgstr "Aus dem Artikel extrahiertes Kopfbild, geeignet für Blog-Cover"
+
+#. module: newsassistant
+#: model:ir.actions.act_window,name:newsassistant.action_newsassistant_settings
+msgid "News Assistant Settings"
+msgstr "News Assistant Einstellungen"
+
+#. module: newsassistant
+#: model:ir.model,name:newsassistant.model_news_snapshot
+msgid "News Snapshot (Email)"
+msgstr "Nachrichten-Snapshot"
+
+#. module: newsassistant
+#. odoo-python
+#: code:addons/newsassistant/models/news_article.py:0
+msgid "No snapshot linked to this article."
+msgstr "Kein Snapshot mit diesem Artikel verknüpft."
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_snapshot__raw_content
+msgid "Raw Content"
+msgstr "Rohinhalt"
+
+#. module: newsassistant
+#. odoo-python
+#: code:addons/newsassistant/models/news_article.py:0
+msgid "Re-extract Started"
+msgstr "Neuextraktion gestartet"
+
+#. module: newsassistant
+#. odoo-python
+#: code:addons/newsassistant/models/news_article.py:0
+msgid "Re-extracting article from snapshot in background..."
+msgstr "Artikel wird im Hintergrund aus dem Snapshot neu extrahiert..."
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_source__sender_domain
+msgid "Sender Domain"
+msgstr "Absender-Domain"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_snapshot__name
+msgid "Snapshot"
+msgstr "Snapshot"
+
+#. module: newsassistant
+#: model:ir.actions.act_window,name:newsassistant.news_snapshot_action
+#: model:ir.model.fields,field_description:newsassistant.field_news_source__snapshot_ids
+msgid "Snapshots"
+msgstr "Snapshots"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_source__source_type
+msgid "Type"
+msgstr "Typ"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_source__url
+msgid "URL"
+msgstr "URL"
+
+#. module: newsassistant
+#: model:ir.model.fields.selection,name:newsassistant.selection__news_source__source_type__website
+msgid "Website"
+msgstr "Website"
+
+#. module: newsassistant
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_source_view_search
+msgid "Website Sources"
+msgstr "Website-Quellen"

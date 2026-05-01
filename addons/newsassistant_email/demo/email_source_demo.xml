@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Demo email source: SKOS Newsletter -->
+        <record id="demo_source_skos_email" model="news.source">
+            <field name="name">SKOS Newsletter</field>
+            <field name="source_type">email</field>
+            <field name="sender_domain">skos.ch</field>
+            <field name="active">True</field>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- No demo snapshots: snapshots are created at runtime by the scraping
+         pipeline. Demo snapshot stubs would auto-enqueue extraction jobs
+         that fail without valid API keys. The blog module creates its own
+         demo snapshots (with articles) for the Kanban view. -->
+</odoo>

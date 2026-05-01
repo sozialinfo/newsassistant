@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="mail_alias_news_snapshot" model="mail.alias">
+        <field name="alias_name">newsassistant</field>
+        <field name="alias_model_id" ref="newsassistant.model_news_snapshot"/>
+        <field name="alias_defaults">{}</field>
+    </record>
+</odoo>

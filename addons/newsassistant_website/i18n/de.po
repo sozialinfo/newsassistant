@@ -1,0 +1,49 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* newsassistant_website
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-05-01 12:26+0000\n"
+"PO-Revision-Date: 2026-05-01 12:26+0000\n"
+"Last-Translator: \n"
+"Language-Team: German\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. module: newsassistant_website
+#: model:ir.actions.server,name:newsassistant_website.ir_cron_scrape_news_website_ir_actions_server
+msgid "News Assistant: Scrape All Website Sources"
+msgstr "News Assistant: Alle Website-Quellen durchsuchen"
+
+#. module: newsassistant_website
+#: model:ir.model,name:newsassistant_website.model_news_snapshot
+msgid "News Snapshot (Email)"
+msgstr "Nachrichten-Snapshot"
+
+#. module: newsassistant_website
+#: model:ir.model,name:newsassistant_website.model_news_source
+msgid "News Source"
+msgstr "Nachrichtenquelle"
+
+#. module: newsassistant_website
+#: model_terms:ir.ui.view,arch_db:newsassistant_website.news_source_view_form_website
+msgid "Scrape Now"
+msgstr "Jetzt durchsuchen"
+
+#. module: newsassistant_website
+#. odoo-python
+#: code:addons/newsassistant_website/models/news_source_website.py:0
+msgid "Scrape Started"
+msgstr "Durchsuchen gestartet"
+
+#. module: newsassistant_website
+#. odoo-python
+#: code:addons/newsassistant_website/models/news_source_website.py:0
+msgid "Scraping source in background..."
+msgstr "Quelle wird im Hintergrund durchsucht..."

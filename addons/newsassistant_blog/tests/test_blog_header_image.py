@@ -51,7 +51,12 @@ class TestBlogPostHeaderImage(TransactionCase):
         cls.env = cls.env(context=dict(cls.env.context, queue_job__no_delay=True))
         cls.source = cls.env["news.source"].create({
             "name": "Test Source",
+            "source_type": "website",
             "url": "https://example.com/news",
+        })
+        cls.snapshot = cls.env["news.snapshot"].with_context(skip_snapshot_extraction=True).create({
+            "source_id": cls.source.id,
+            "raw_content": "<p>Content</p>",
         })
         cls.stage_new = cls.env.ref("newsassistant.news_article_stage_new")
 
@@ -68,7 +73,7 @@ class TestBlogPostHeaderImage(TransactionCase):
         """Helper to create a scraped article ready for blog post creation."""
         vals = {
             "title": title,
-            "source_id": self.source.id,
+            "snapshot_id": self.snapshot.id,
             "url": f"https://example.com/article/{title.lower().replace(' ', '-')}",
             "stage_id": self.stage_new.id,
             "state": "scraped",
@@ -369,9 +374,15 @@ class TestKanbanHeaderImageDisplay(TransactionCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls.env = cls.env(context=dict(cls.env.context, queue_job__no_delay=True))
         cls.source = cls.env["news.source"].create({
             "name": "Test Source",
+            "source_type": "website",
             "url": "https://example.com/news",
+        })
+        cls.snapshot = cls.env["news.snapshot"].with_context(skip_snapshot_extraction=True).create({
+            "source_id": cls.source.id,
+            "raw_content": "<p>Content</p>",
         })
         cls.stage_new = cls.env.ref("newsassistant.news_article_stage_new")
 
@@ -381,7 +392,7 @@ class TestKanbanHeaderImageDisplay(TransactionCase):
 
         article = self.env["news.article"].create({
             "title": "Article with Image",
-            "source_id": self.source.id,
+            "snapshot_id": self.snapshot.id,
             "url": "https://example.com/article/1",
             "stage_id": self.stage_new.id,
             "header_image": base64.b64encode(test_image).decode("utf-8"),
@@ -400,7 +411,7 @@ class TestKanbanHeaderImageDisplay(TransactionCase):
         """Test that article without header image has empty binary field."""
         article = self.env["news.article"].create({
             "title": "Article without Image",
-            "source_id": self.source.id,
+            "snapshot_id": self.snapshot.id,
             "url": "https://example.com/article/2",
             "stage_id": self.stage_new.id,
         })
@@ -438,7 +449,7 @@ class TestKanbanHeaderImageDisplay(TransactionCase):
 
         article = self.env["news.article"].create({
             "title": "Test Article",
-            "source_id": self.source.id,
+            "snapshot_id": self.snapshot.id,
             "url": "https://example.com/article/3",
             "stage_id": self.stage_new.id,
             "header_image": base64.b64encode(test_image).decode("utf-8"),

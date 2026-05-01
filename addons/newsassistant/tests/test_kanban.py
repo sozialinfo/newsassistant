@@ -1,3 +1,4 @@
+"""Tests for kanban stages and article model."""
 from odoo.tests.common import TransactionCase, tagged
 
 
@@ -13,7 +14,12 @@ class TestKanban(TransactionCase):
         cls.stage_discarded = cls.env.ref("newsassistant.news_article_stage_discarded")
         cls.source = cls.env["news.source"].create({
             "name": "Test Source",
+            "source_type": "website",
             "url": "https://example.com/news",
+        })
+        cls.snapshot = cls.env["news.snapshot"].with_context(skip_snapshot_extraction=True).create({
+            "source_id": cls.source.id,
+            "raw_content": "<p>Content</p>",
         })
 
     def test_default_stages_exist(self):
@@ -42,7 +48,7 @@ class TestKanban(TransactionCase):
         """Test that new articles get the 'New' stage by default."""
         article = self.env["news.article"].create({
             "title": "Test Article",
-            "source_id": self.source.id,
+            "snapshot_id": self.snapshot.id,
             "url": "https://example.com/test-article",
         })
         self.assertEqual(article.stage_id, self.stage_new)
@@ -51,7 +57,7 @@ class TestKanban(TransactionCase):
         """Test that article stage can be changed (simulating kanban drag)."""
         article = self.env["news.article"].create({
             "title": "Test Article",
-            "source_id": self.source.id,
+            "snapshot_id": self.snapshot.id,
             "url": "https://example.com/test-article-2",
         })
         self.assertEqual(article.stage_id, self.stage_new)
@@ -73,12 +79,12 @@ class TestKanban(TransactionCase):
         """Test that duplicate URLs are rejected by the database."""
         self.env["news.article"].create({
             "title": "Article A",
-            "source_id": self.source.id,
+            "snapshot_id": self.snapshot.id,
             "url": "https://example.com/unique-test",
         })
         with self.assertRaises(Exception):
             self.env["news.article"].create({
                 "title": "Article B",
-                "source_id": self.source.id,
+                "snapshot_id": self.snapshot.id,
                 "url": "https://example.com/unique-test",
             })

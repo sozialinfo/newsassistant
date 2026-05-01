@@ -15,7 +15,12 @@ class TestPipelineStages(TransactionCase):
         cls.stage_discarded = cls.env.ref("newsassistant.news_article_stage_discarded")
         cls.source = cls.env["news.source"].create({
             "name": "Pipeline Stage Test Source",
+            "source_type": "website",
             "url": "https://pipeline-test.example.com/news",
+        })
+        cls.snapshot = cls.env["news.snapshot"].with_context(skip_snapshot_extraction=True).create({
+            "source_id": cls.source.id,
+            "raw_content": "<p>Content</p>",
         })
         cls.blog = cls.env["blog.blog"].create({"name": "Pipeline Test Blog"})
 
@@ -39,7 +44,7 @@ class TestPipelineStages(TransactionCase):
     def _create_article(self, url_suffix=""):
         return self.env["news.article"].create({
             "title": f"Test Article {url_suffix}",
-            "source_id": self.source.id,
+            "snapshot_id": self.snapshot.id,
             "url": f"https://pipeline-test.example.com/article-{url_suffix}",
             "state": "scraped",
             "summary": "Test summary.",

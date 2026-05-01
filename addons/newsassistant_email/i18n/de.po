@@ -1,0 +1,74 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* newsassistant_email
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-05-01 12:26+0000\n"
+"PO-Revision-Date: 2026-05-01 12:26+0000\n"
+"Last-Translator: \n"
+"Language-Team: German\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. module: newsassistant_email
+#: model:ir.model.fields,field_description:newsassistant_email.field_news_snapshot__alias_id
+msgid "Alias"
+msgstr "Alias"
+
+#. module: newsassistant_email
+#: model:ir.model.fields,field_description:newsassistant_email.field_news_snapshot__alias_domain_id
+msgid "Alias Domain"
+msgstr "Alias-Domain"
+
+#. module: newsassistant_email
+#: model:ir.model.fields,field_description:newsassistant_email.field_news_snapshot__alias_domain
+msgid "Alias Domain Name"
+msgstr "Alias-Domain-Name"
+
+#. module: newsassistant_email
+#: model:ir.model.fields,field_description:newsassistant_email.field_news_snapshot__alias_name
+msgid "Alias Name"
+msgstr "Alias-Name"
+
+#. module: newsassistant_email
+#: model:ir.model,name:newsassistant_email.model_res_config_settings
+msgid "Config Settings"
+msgstr "Konfigurationseinstellungen"
+
+#. module: newsassistant_email
+#: model:ir.model.fields,field_description:newsassistant_email.field_news_snapshot__alias_defaults
+msgid "Default Values"
+msgstr "Standardwerte"
+
+#. module: newsassistant_email
+#: model:ir.model.fields,field_description:newsassistant_email.field_news_snapshot__alias_email
+#: model:ir.model.fields,field_description:newsassistant_email.field_res_config_settings__newsassistant_email_alias_name
+#: model_terms:ir.ui.view,arch_db:newsassistant_email.res_config_settings_view_form_newsassistant_email
+msgid "Email Alias"
+msgstr "E-Mail-Alias"
+
+#. module: newsassistant_email
+#: model_terms:ir.ui.view,arch_db:newsassistant_email.res_config_settings_view_form_newsassistant_email
+msgid "Email Capture"
+msgstr "E-Mail-Erfassung"
+
+#. module: newsassistant_email
+#: model:ir.model,name:newsassistant_email.model_news_snapshot
+msgid "News Snapshot (Email)"
+msgstr "Nachrichten-Snapshot (E-Mail)"
+
+#. module: newsassistant_email
+#: model_terms:ir.ui.view,arch_db:newsassistant_email.res_config_settings_view_form_newsassistant_email
+msgid "Newsletters sent to this address will be captured as snapshots. Format: alias@yourdomain.com"
+msgstr "An diese Adresse gesendete Newsletter werden als Snapshots erfasst. Format: alias@ihredomain.com"
+
+#. module: newsassistant_email
+#: model:ir.model.fields,help:newsassistant_email.field_res_config_settings__newsassistant_email_alias_name
+msgid "The alias name for inbound newsletters (e.g. 'newsassistant' → newsassistant@yourdomain.com)"
+msgstr "Der Alias-Name für eingehende Newsletter (z. B. 'newsassistant' → newsassistant@ihredomain.com)"

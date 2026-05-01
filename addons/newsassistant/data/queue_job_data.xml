@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo noupdate="1">
-    <!-- Channel definition -->
+    <!-- Parent channel -->
     <record id="channel_newsassistant" model="queue.job.channel">
         <field name="name">newsassistant</field>
         <field name="parent_id" ref="queue_job.channel_root"/>
     </record>
 
-    <!-- Job function: scrape listing page (Stage 1) -->
-    <record id="job_function_news_source_scrape_listing" model="queue.job.function">
-        <field name="model_id" ref="model_news_source"/>
-        <field name="method">_scrape_listing</field>
-        <field name="channel_id" ref="channel_newsassistant"/>
-        <field name="retry_pattern" eval="{1: 300, 3: 900, 5: 3600}"/>
+    <!-- Dedicated channel for email-triggered extraction.
+         Sibling of root.newsassistant so website scraping backlog
+         never blocks inbound email processing. -->
+    <record id="channel_email_extraction" model="queue.job.channel">
+        <field name="name">email_extraction</field>
+        <field name="parent_id" ref="queue_job.channel_root"/>
     </record>
 
-    <!-- Job function: fetch and extract article (Stage 2) -->
-    <record id="job_function_news_article_fetch_and_extract" model="queue.job.function">
-        <field name="model_id" ref="model_news_article"/>
-        <field name="method">_fetch_and_extract</field>
+    <!-- Job function: extract articles from a snapshot -->
+    <record id="job_function_news_snapshot_extract" model="queue.job.function">
+        <field name="model_id" ref="model_news_snapshot"/>
+        <field name="method">_extract_articles</field>
         <field name="channel_id" ref="channel_newsassistant"/>
         <field name="retry_pattern" eval="{1: 300, 3: 900, 5: 3600}"/>
     </record>

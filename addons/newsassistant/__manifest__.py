@@ -1,12 +1,17 @@
 {
     "name": "News Assistant",
-    "version": "18.0.2.1.0",
+    "version": "18.0.3.0.0",
     "category": "Productivity",
-    "summary": "Automated news scraping and triage for Swiss social-sector sources",
+    "summary": "Automated news capture and triage — base module",
     "description": """
-        News Assistant automatically scrapes ~60 Swiss social-sector news sources,
-        extracts clean article content using AI (Infomaniak AI Services),
-        and presents articles in a kanban board for manual triage.
+        News Assistant base module. Provides the core data model:
+        - news.source (typed: website or email)
+        - news.snapshot (raw HTML capture)
+        - news.article (extracted and structured content)
+        - news.log / news.log.entry (unified logging)
+
+        Install newsassistant_website for website scraping.
+        Install newsassistant_email for inbound email capture.
     """,
     "author": "Verein sozialinfo.ch",
     "website": "https://sozialinfo.ch",
@@ -19,10 +24,10 @@
         "security/newsassistant_security.xml",
         "security/ir.model.access.csv",
         "data/news_article_stage_data.xml",
-        "data/queue_job_data.xml",
-        "data/ir_cron_data.xml",
         "data/ir_config_parameter_data.xml",
+        "data/queue_job_data.xml",
         "views/res_config_settings_views.xml",
+        "views/news_snapshot_views.xml",
         "views/news_article_views.xml",
         "views/news_source_views.xml",
         "views/news_article_stage_views.xml",

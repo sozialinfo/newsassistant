@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_newsassistant_email" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.newsassistant.email</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="newsassistant.res_config_settings_view_form_newsassistant"/>
+        <field name="arch" type="xml">
+            <xpath expr="//app[@name='newsassistant']" position="inside">
+                <block title="Email Capture">
+                    <setting string="Email Alias"
+                             help="Newsletters sent to this address will be captured as snapshots. Format: alias@yourdomain.com">
+                        <field name="newsassistant_email_alias_name"
+                               placeholder="newsassistant"/>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+</odoo>

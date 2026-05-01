@@ -14,6 +14,7 @@
         <!-- Drupal 11: Cards + list rows -->
         <record id="demo_source_gesundheitsfoerderung" model="news.source">
             <field name="name">Gesundheitsförderung Schweiz</field>
+            <field name="source_type">website</field>
             <field name="url">https://gesundheitsfoerderung.ch/aktuell/news</field>
             <field name="active">True</field>
         </record>
@@ -21,6 +22,7 @@
         <!-- WordPress: Classic blog post list -->
         <record id="demo_source_kriso" model="news.source">
             <field name="name">KRISO - Kritische Sozialarbeit</field>
+            <field name="source_type">website</field>
             <field name="url">https://www.kriso.ch/blog/</field>
             <field name="active">True</field>
         </record>
@@ -28,6 +30,7 @@
         <!-- TYPO3: Card grid -->
         <record id="demo_source_procap" model="news.source">
             <field name="name">Procap</field>
+            <field name="source_type">website</field>
             <field name="url">https://www.procap.ch/news-archiv/</field>
             <field name="active">True</field>
         </record>
@@ -35,6 +38,7 @@
         <!-- Drupal 10: Teaser cards -->
         <record id="demo_source_heks" model="news.source">
             <field name="name">HEKS</field>
+            <field name="source_type">website</field>
             <field name="url">https://www.heks.ch/medien</field>
             <field name="active">True</field>
         </record>
@@ -42,6 +46,7 @@
         <!-- TYPO3: News list view -->
         <record id="demo_source_skos" model="news.source">
             <field name="name">SKOS</field>
+            <field name="source_type">website</field>
             <field name="url">https://skos.ch/aktuell</field>
             <field name="active">True</field>
         </record>
@@ -49,6 +54,7 @@
         <!-- Custom CMS: Media page -->
         <record id="demo_source_pro_infirmis" model="news.source">
             <field name="name">Pro Infirmis</field>
+            <field name="source_type">website</field>
             <field name="url">https://www.proinfirmis.ch/ueber-uns/medien.html</field>
             <field name="active">True</field>
         </record>
@@ -56,6 +62,7 @@
         <!-- Caritas: Filtered content with query params -->
         <record id="demo_source_caritas" model="news.source">
             <field name="name">Caritas Schweiz</field>
+            <field name="source_type">website</field>
             <field name="url">https://www.caritas.ch/de/entdecken/?filters=%7B%22themes%22%3A%5B%5D%2C%22types%22%3A%5B%2252%22%2C%2253%22%5D%2C%22countries%22%3A%5B%5D%7D</field>
             <field name="active">True</field>
         </record>
@@ -63,6 +70,7 @@
         <!-- Inclusion Handicap: Aktuelles list -->
         <record id="demo_source_inclusion_handicap" model="news.source">
             <field name="name">Inclusion Handicap</field>
+            <field name="source_type">website</field>
             <field name="url">https://www.inclusion-handicap.ch/de/aktuelles-12.html</field>
             <field name="active">True</field>
         </record>
@@ -70,6 +78,7 @@
         <!-- CURAVIVA: Homepage with news section -->
         <record id="demo_source_curaviva" model="news.source">
             <field name="name">CURAVIVA</field>
+            <field name="source_type">website</field>
             <field name="url">https://www.curaviva.ch/de</field>
             <field name="active">True</field>
         </record>
@@ -77,7 +86,16 @@
         <!-- Infodrog: News page -->
         <record id="demo_source_infodrog" model="news.source">
             <field name="name">Infodrog</field>
+            <field name="source_type">website</field>
             <field name="url">https://www.infodrog.ch/de/news.html</field>
+            <field name="active">True</field>
+        </record>
+
+        <!-- Email source: Sozialinfo Newsletter -->
+        <record id="demo_source_sozialinfo_email" model="news.source">
+            <field name="name">Sozialinfo Newsletter</field>
+            <field name="source_type">email</field>
+            <field name="sender_domain">sozialinfo.ch</field>
             <field name="active">True</field>
         </record>
     </data>

@@ -7,7 +7,13 @@
         <field name="arch" type="xml">
             <list>
                 <field name="name"/>
-                <field name="url" widget="url"/>
+                <field name="source_type" widget="badge"
+                       decoration-info="source_type == 'website'"
+                       decoration-primary="source_type == 'email'"/>
+                <field name="url" widget="url" optional="show"
+                       invisible="source_type != 'website'"/>
+                <field name="sender_domain" optional="show"
+                       invisible="source_type != 'email'"/>
                 <field name="is_scraping" widget="boolean" string="Scraping"
                        decoration-info="is_scraping"/>
                 <field name="state" widget="badge"
@@ -27,9 +33,6 @@
         <field name="arch" type="xml">
             <form>
                 <header>
-                    <button name="action_scrape_now" type="object"
-                            string="Scrape Now" icon="fa-refresh"
-                            groups="newsassistant.newsassistant_group_admin"/>
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
@@ -50,7 +53,13 @@
                     </div>
                     <group>
                         <group>
-                            <field name="url" widget="url"/>
+                            <field name="source_type" widget="radio"/>
+                            <field name="url" widget="url"
+                                   invisible="source_type != 'website'"
+                                   required="source_type == 'website'"/>
+                            <field name="sender_domain"
+                                   invisible="source_type != 'email'"
+                                   required="source_type == 'email'"/>
                             <field name="active" widget="boolean_toggle"/>
                         </group>
                         <group>
@@ -63,9 +72,19 @@
                     <group string="Error Details" invisible="state != 'error'">
                         <field name="error_message" nolabel="1" colspan="2"/>
                     </group>
-                    <!-- Log tab (admin only) -->
-                    <notebook groups="newsassistant.newsassistant_group_admin">
-                        <page string="Log">
+                    <notebook>
+                        <!-- Snapshots tab (all users) -->
+                        <page string="Snapshots">
+                            <field name="snapshot_ids" nolabel="1" readonly="1">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="captured_at"/>
+                                    <field name="article_count"/>
+                                </list>
+                            </field>
+                        </page>
+                        <!-- Log tab (admin only) -->
+                        <page string="Log" groups="newsassistant.newsassistant_group_admin">
                             <field name="log_ids" nolabel="1" readonly="1">
                                 <list limit="20">
                                     <field name="timestamp"/>
@@ -74,6 +93,7 @@
                                            decoration-warning="level == 'warning'"
                                            decoration-danger="level == 'error'"/>
                                     <field name="category"/>
+                                    <field name="snapshot_id" widget="many2one_link" optional="show"/>
                                     <field name="article_id" widget="many2one_link"/>
                                     <field name="message"/>
                                     <field name="duration" widget="float_time"/>
@@ -95,8 +115,14 @@
             <search>
                 <field name="name"/>
                 <field name="url"/>
+                <field name="sender_domain"/>
                 <filter name="active" string="Active" domain="[('active', '=', True)]"/>
                 <filter name="inactive" string="Archived" domain="[('active', '=', False)]"/>
+                <separator/>
+                <filter name="type_website" string="Website Sources"
+                        domain="[('source_type', '=', 'website')]"/>
+                <filter name="type_email" string="Email Sources"
+                        domain="[('source_type', '=', 'email')]"/>
                 <separator/>
                 <filter name="state_ok" string="OK" domain="[('state', '=', 'ok')]"/>
                 <filter name="state_error" string="Has Errors" domain="[('state', '=', 'error')]"/>

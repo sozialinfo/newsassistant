@@ -52,6 +52,7 @@
                         </group>
                         <group string="Linked Objects">
                             <field name="source_id" widget="many2one_link"/>
+                            <field name="snapshot_id" widget="many2one_link"/>
                             <field name="article_id" widget="many2one_link"/>
                             <field name="job_id" widget="many2one_link"/>
                         </group>
@@ -102,6 +103,8 @@
                         domain="[('category', '=', 'listing')]"/>
                 <filter name="filter_extraction" string="Article Extraction"
                         domain="[('category', '=', 'extraction')]"/>
+                <filter name="filter_email" string="Email Inbound"
+                        domain="[('category', '=', 'email')]"/>
                 <separator/>
                 <filter name="filter_today" string="Today"
                         domain="[('timestamp', '&gt;=', (context_today()).strftime('%%Y-%%m-%%d'))]"/>

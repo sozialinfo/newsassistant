@@ -689,3 +689,103 @@ msgstr "Voir les métadonnées"
 #: model_terms:ir.ui.view,arch_db:newsassistant.news_log_view_search
 msgid "Warning"
 msgstr "Avertissement"
+
+#. module: newsassistant
+msgid "Article Defaults"
+msgstr "Valeurs par défaut des articles"
+
+#. module: newsassistant
+msgid "Cannot Re-extract"
+msgstr "Impossible de réextraire"
+
+#. module: newsassistant
+msgid "Captured At"
+msgstr "Capturé le"
+
+#. module: newsassistant
+msgid "Captured HTML content — the raw input for article extraction."
+msgstr "Contenu HTML capturé — l'entrée brute pour l'extraction d'articles."
+
+#. module: newsassistant
+msgid "Config Settings"
+msgstr "Paramètres de configuration"
+
+#. module: newsassistant
+msgid "E-Mail"
+msgstr "E-Mail"
+
+#. module: newsassistant
+msgid "Email Inbound"
+msgstr "E-mail entrant"
+
+#. module: newsassistant
+msgid "Email Sources"
+msgstr "Sources e-mail"
+
+#. module: newsassistant
+msgid "Email domain to match inbound emails (e.g. newsletter.example.com)"
+msgstr "Domaine e-mail pour les newsletters entrantes (p. ex. newsletter.example.com)"
+
+#. module: newsassistant
+msgid "Header Image"
+msgstr "Image d'en-tête"
+
+#. module: newsassistant
+msgid "Header Image Filename"
+msgstr "Nom de fichier de l'image d'en-tête"
+
+#. module: newsassistant
+msgid "Header image extracted from the article, suitable for blog covers"
+msgstr "Image d'en-tête extraite de l'article, adaptée aux couvertures de blog"
+
+#. module: newsassistant
+msgid "News Assistant Settings"
+msgstr "Paramètres News Assistant"
+
+#. module: newsassistant
+msgid "News Snapshot (Email)"
+msgstr "Capture d'actualités"
+
+#. module: newsassistant
+msgid "No snapshot linked to this article."
+msgstr "Aucune capture liée à cet article."
+
+#. module: newsassistant
+msgid "Raw Content"
+msgstr "Contenu brut"
+
+#. module: newsassistant
+msgid "Re-extract Started"
+msgstr "Réextraction démarrée"
+
+#. module: newsassistant
+msgid "Re-extracting article from snapshot in background..."
+msgstr "Réextraction de l'article depuis la capture en arrière-plan..."
+
+#. module: newsassistant
+msgid "Sender Domain"
+msgstr "Domaine expéditeur"
+
+#. module: newsassistant
+msgid "Snapshot"
+msgstr "Capture"
+
+#. module: newsassistant
+msgid "Snapshots"
+msgstr "Captures"
+
+#. module: newsassistant
+msgid "Type"
+msgstr "Type"
+
+#. module: newsassistant
+msgid "URL"
+msgstr "URL"
+
+#. module: newsassistant
+msgid "Website"
+msgstr "Site web"
+
+#. module: newsassistant
+msgid "Website Sources"
+msgstr "Sources site web"

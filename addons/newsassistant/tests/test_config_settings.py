@@ -1,3 +1,4 @@
+"""Tests for newsassistant res.config.settings extension."""
 from odoo.tests.common import TransactionCase, tagged
 
 
@@ -8,11 +9,17 @@ class TestCoreConfigSettings(TransactionCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls.env = cls.env(context=dict(cls.env.context, queue_job__no_delay=True))
         cls.stage_new = cls.env.ref("newsassistant.news_article_stage_new")
         cls.stage_shortlist = cls.env.ref("newsassistant.news_article_stage_shortlist")
         cls.source = cls.env["news.source"].create({
             "name": "Config Test Source",
+            "source_type": "website",
             "url": "https://config-test.example.com/news",
+        })
+        cls.snapshot = cls.env["news.snapshot"].with_context(skip_snapshot_extraction=True).create({
+            "source_id": cls.source.id,
+            "raw_content": "<p>Content</p>",
         })
 
     def _get_settings(self):
@@ -20,13 +27,11 @@ class TestCoreConfigSettings(TransactionCase):
 
     def test_get_values_returns_default_stage_when_unset(self):
         """get_values returns False for new article stage when param not set."""
-        # Ensure param is cleared
         self.env["ir.config_parameter"].sudo().set_param(
             "newsassistant.new_article_stage_id", ""
         )
         settings = self._get_settings()
         values = settings.get_values()
-        # When param is empty, field should not be set (falsy)
         self.assertFalse(values.get("newsassistant_new_article_stage_id"))
 
     def test_set_values_writes_config_parameter(self):
@@ -41,14 +46,11 @@ class TestCoreConfigSettings(TransactionCase):
         self.assertEqual(param, str(self.stage_shortlist.id))
 
     def test_get_values_reads_configured_stage(self):
-        """get_values returns the configured stage via native config_parameter mechanism."""
+        """get_values returns the configured stage."""
         self.env["ir.config_parameter"].sudo().set_param(
             "newsassistant.new_article_stage_id", str(self.stage_shortlist.id)
         )
-        # With native config_parameter, the field value is read from the param
-        # when accessing the settings record (not via get_values dict key)
         settings = self._get_settings()
-        # The field should reflect the stored param value
         self.assertEqual(
             settings.newsassistant_new_article_stage_id.id,
             self.stage_shortlist.id,
@@ -85,11 +87,10 @@ class TestCoreConfigSettings(TransactionCase):
         )
         article = self.env["news.article"].create({
             "title": "Config Default Stage Test",
-            "source_id": self.source.id,
-            "url": "https://config-test.example.com/article-1",
+            "snapshot_id": self.snapshot.id,
+            "url": "https://config-test.example.com/article-config-1",
         })
         self.assertEqual(article.stage_id, self.stage_shortlist)
-        # Cleanup: reset to New stage for other tests
         self.env["ir.config_parameter"].sudo().set_param(
             "newsassistant.new_article_stage_id", ""
         )

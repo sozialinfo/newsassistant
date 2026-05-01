@@ -31,6 +31,7 @@ class NewsLog(models.Model):
         [
             ("listing", "Listing Scrape"),
             ("extraction", "Article Extraction"),
+            ("email", "Email Inbound"),
         ],
         required=True,
         index=True,
@@ -42,6 +43,12 @@ class NewsLog(models.Model):
     source_id = fields.Many2one(
         "news.source",
         string="Source",
+        ondelete="set null",
+        index=True,
+    )
+    snapshot_id = fields.Many2one(
+        "news.snapshot",
+        string="Snapshot",
         ondelete="set null",
         index=True,
     )

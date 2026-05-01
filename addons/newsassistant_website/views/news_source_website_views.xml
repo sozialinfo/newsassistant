@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Extend news.source form to add Scrape Now button for website sources -->
+    <record id="news_source_view_form_website" model="ir.ui.view">
+        <field name="name">news.source.form.website</field>
+        <field name="model">news.source</field>
+        <field name="inherit_id" ref="newsassistant.news_source_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_scrape_now" type="object"
+                        string="Scrape Now" icon="fa-refresh"
+                        groups="newsassistant.newsassistant_group_admin"
+                        invisible="source_type != 'website'"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,7 +1,7 @@
 DB        = newsassistant
 CONTAINER = odoo-newsassistant
 SERVICE   = odoo
-MODULES   = newsassistant,newsassistant_blog
+MODULES   = newsassistant,newsassistant_website,newsassistant_email,newsassistant_blog
 LANGUAGE  = de_CH
 ADMIN_LANG = de_CH
 
@@ -43,7 +43,7 @@ clear-filestore:
 
 .PHONY: init
 init:
-	$(DOCKER_RUN) odoo \
+	docker compose run --rm $(SERVICE) odoo \
 		-d $(DB) \
 		-i $(MODULES) \
 		--load-language=$(LANGUAGE) \
@@ -86,7 +86,7 @@ test:
 		-d test_$(DB)_$$(date +%s) \
 		-i $(MODULES) \
 		--test-enable \
-		--test-tags=/newsassistant,/newsassistant_blog \
+		--test-tags=/newsassistant,/newsassistant_website,/newsassistant_email,/newsassistant_blog \
 		--stop-after-init \
 		--http-port=$(ODOO_PORT) \
 		-c $(ODOO_CONF)
@@ -107,7 +107,7 @@ test-module:
 # ────────────────────
 .PHONY: i18n-update
 i18n-update:
-	@for mod in newsassistant newsassistant_blog; do \
+	@for mod in newsassistant newsassistant_website newsassistant_email newsassistant_blog; do \
 		docker compose exec -T $(SERVICE) odoo \
 			-d $(DB) \
 			--modules=$$mod \
@@ -128,6 +128,26 @@ i18n-install:
 		--stop-after-init \
 		--http-port=$(ODOO_PORT) \
 		-c $(ODOO_CONF)
+
+# ────────────────────────────────────────────────
+# sendmail: inject a test newsletter email
+#
+#   Usage: make sendmail test@skos.ch
+#
+# Sends a realistic HTML newsletter from the given
+# address to the newsassistant alias via XMLRPC.
+# ────────────────────────────────────────────────
+# Capture the email address when invoked as: make sendmail user@domain.tld
+# Only treat the extra goal as a FROM address if it contains '@'
+_SENDMAIL_ARG := $(filter-out sendmail,$(MAKECMDGOALS))
+_SENDMAIL_FROM := $(if $(findstring @,$(_SENDMAIL_ARG)),$(_SENDMAIL_ARG),editor@skos.ch)
+
+.PHONY: sendmail
+sendmail:
+	@scripts/sendmail.py "$(_SENDMAIL_FROM)" "$(DB)"
+
+# Suppress "no rule to make target" for the email address argument
+$(if $(findstring @,$(_SENDMAIL_ARG)),$(eval $(_SENDMAIL_ARG):;@:))
 
 # ────────────────────
 # Utility

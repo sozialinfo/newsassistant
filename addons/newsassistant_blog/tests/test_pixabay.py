@@ -41,7 +41,12 @@ class TestPixabayFallback(TransactionCase):
         cls.env = cls.env(context=dict(cls.env.context, queue_job__no_delay=True))
         cls.source = cls.env["news.source"].create({
             "name": "Test Source",
+            "source_type": "website",
             "url": "https://example.com/news",
+        })
+        cls.snapshot = cls.env["news.snapshot"].with_context(skip_snapshot_extraction=True).create({
+            "source_id": cls.source.id,
+            "raw_content": "<p>Content</p>",
         })
         cls.stage_new = cls.env.ref("newsassistant.news_article_stage_new")
 
@@ -58,7 +63,7 @@ class TestPixabayFallback(TransactionCase):
         """Helper to create a scraped article ready for digest processing."""
         vals = {
             "title": title,
-            "source_id": self.source.id,
+            "snapshot_id": self.snapshot.id,
             "url": f"https://example.com/article/{title.lower().replace(' ', '-')}",
             "stage_id": self.stage_new.id,
             "state": "scraped",
@@ -339,17 +344,26 @@ class TestPixabayFallback(TransactionCase):
 class TestPixabayApiKeyConfiguration(TransactionCase):
     """Test Pixabay API key configuration via system parameters."""
 
+    def _create_test_source_and_snapshot(self, url_suffix="pixabay-cfg"):
+        source = self.env["news.source"].create({
+            "name": f"Test {url_suffix}",
+            "source_type": "website",
+            "url": f"https://example.com/{url_suffix}",
+        })
+        snapshot = self.env["news.snapshot"].with_context(skip_snapshot_extraction=True).create({
+            "source_id": source.id,
+            "raw_content": "<p>Content</p>",
+        })
+        return snapshot
+
     def test_get_pixabay_api_key_when_not_set(self):
         """Test _get_pixabay_api_key returns None when not configured."""
         self.env["ir.config_parameter"].sudo().set_param("newsassistant_blog.pixabay_api_key", "")
-
+        snapshot = self._create_test_source_and_snapshot("cfg-1")
         article = self.env["news.article"].create({
             "title": "Test",
-            "source_id": self.env["news.source"].create({
-                "name": "Test",
-                "url": "https://example.com",
-            }).id,
-            "url": "https://example.com/test",
+            "snapshot_id": snapshot.id,
+            "url": "https://example.com/test-cfg-1",
             "stage_id": self.env.ref("newsassistant.news_article_stage_new").id,
         })
 
@@ -361,14 +375,11 @@ class TestPixabayApiKeyConfiguration(TransactionCase):
         self.env["ir.config_parameter"].sudo().set_param(
             "newsassistant_blog.pixabay_api_key", "my-secret-api-key"
         )
-
+        snapshot = self._create_test_source_and_snapshot("cfg-2")
         article = self.env["news.article"].create({
             "title": "Test",
-            "source_id": self.env["news.source"].create({
-                "name": "Test",
-                "url": "https://example.com",
-            }).id,
-            "url": "https://example.com/test",
+            "snapshot_id": snapshot.id,
+            "url": "https://example.com/test-cfg-2",
             "stage_id": self.env.ref("newsassistant.news_article_stage_new").id,
         })
 
@@ -380,14 +391,11 @@ class TestPixabayApiKeyConfiguration(TransactionCase):
         self.env["ir.config_parameter"].sudo().set_param(
             "newsassistant_blog.pixabay_api_key", "  my-api-key  "
         )
-
+        snapshot = self._create_test_source_and_snapshot("cfg-3")
         article = self.env["news.article"].create({
             "title": "Test",
-            "source_id": self.env["news.source"].create({
-                "name": "Test",
-                "url": "https://example.com",
-            }).id,
-            "url": "https://example.com/test",
+            "snapshot_id": snapshot.id,
+            "url": "https://example.com/test-cfg-3",
             "stage_id": self.env.ref("newsassistant.news_article_stage_new").id,
         })
 

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Deactivate the daily scraping cron in demo/dev environments.
+             The cron is active in production (data/ir_cron_data.xml).
+             Demo installs should not flood the queue with real HTTP requests. -->
+        <record id="ir_cron_scrape_news_website" model="ir.cron">
+            <field name="active" eval="False"/>
+        </record>
+    </data>
+</odoo>

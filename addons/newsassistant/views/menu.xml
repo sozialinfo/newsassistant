@@ -54,4 +54,10 @@
               parent="menu_news_configuration"
               action="news_article_stage_action"
               sequence="10"/>
+
+    <menuitem id="menu_news_settings"
+              name="Settings"
+              parent="menu_news_configuration"
+              action="action_newsassistant_settings"
+              sequence="90"/>
 </odoo>

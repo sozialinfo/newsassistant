@@ -34,12 +34,46 @@ NOT RELEVANT (discard):
 - Goal: Help readers quickly decide if they want to read the full article</field>
         </record>
 
+        <!-- Demo snapshots for each source (used as parent for articles) -->
+        <record id="demo_snapshot_skos_blog" model="news.snapshot">
+            <field name="source_id" ref="newsassistant.demo_source_skos"/>
+            <field name="raw_content">&lt;p&gt;SKOS demo snapshot content.&lt;/p&gt;</field>
+        </record>
+        <record id="demo_snapshot_procap_blog" model="news.snapshot">
+            <field name="source_id" ref="newsassistant.demo_source_procap"/>
+            <field name="raw_content">&lt;p&gt;Procap demo snapshot content.&lt;/p&gt;</field>
+        </record>
+        <record id="demo_snapshot_infodrog_blog" model="news.snapshot">
+            <field name="source_id" ref="newsassistant.demo_source_infodrog"/>
+            <field name="raw_content">&lt;p&gt;Infodrog demo snapshot content.&lt;/p&gt;</field>
+        </record>
+        <record id="demo_snapshot_caritas_blog" model="news.snapshot">
+            <field name="source_id" ref="newsassistant.demo_source_caritas"/>
+            <field name="raw_content">&lt;p&gt;Caritas demo snapshot content.&lt;/p&gt;</field>
+        </record>
+        <record id="demo_snapshot_inclusion_blog" model="news.snapshot">
+            <field name="source_id" ref="newsassistant.demo_source_inclusion_handicap"/>
+            <field name="raw_content">&lt;p&gt;Inclusion Handicap demo snapshot content.&lt;/p&gt;</field>
+        </record>
+        <record id="demo_snapshot_heks_blog" model="news.snapshot">
+            <field name="source_id" ref="newsassistant.demo_source_heks"/>
+            <field name="raw_content">&lt;p&gt;HEKS demo snapshot content.&lt;/p&gt;</field>
+        </record>
+        <record id="demo_snapshot_gesundheit_blog" model="news.snapshot">
+            <field name="source_id" ref="newsassistant.demo_source_gesundheitsfoerderung"/>
+            <field name="raw_content">&lt;p&gt;Gesundheitsförderung Schweiz demo snapshot content.&lt;/p&gt;</field>
+        </record>
+        <record id="demo_snapshot_kriso_blog" model="news.snapshot">
+            <field name="source_id" ref="newsassistant.demo_source_kriso"/>
+            <field name="raw_content">&lt;p&gt;KRISO demo snapshot content.&lt;/p&gt;</field>
+        </record>
+
         <!-- Demo articles spread across all stages -->
 
         <!-- New stage: recently scraped, not yet processed -->
         <record id="demo_article_new_1" model="news.article">
             <field name="title">Neue Richtlinien für Sozialhilfe: SKOS veröffentlicht aktualisierte Empfehlungen</field>
-            <field name="source_id" ref="newsassistant.demo_source_skos"/>
+            <field name="snapshot_id" ref="demo_snapshot_skos_blog"/>
             <field name="url">https://skos.ch/aktuell/neue-richtlinien-sozialhilfe-2024</field>
             <field name="stage_id" ref="newsassistant.news_article_stage_new"/>
             <field name="state">scraped</field>
@@ -49,7 +83,7 @@ NOT RELEVANT (discard):
 
         <record id="demo_article_new_2" model="news.article">
             <field name="title">Procap lanciert neues Projekt zur beruflichen Integration</field>
-            <field name="source_id" ref="newsassistant.demo_source_procap"/>
+            <field name="snapshot_id" ref="demo_snapshot_procap_blog"/>
             <field name="url">https://www.procap.ch/news-archiv/berufliche-integration-projekt-2024</field>
             <field name="stage_id" ref="newsassistant.news_article_stage_new"/>
             <field name="state">scraped</field>
@@ -59,7 +93,7 @@ NOT RELEVANT (discard):
 
         <record id="demo_article_new_3" model="news.article">
             <field name="title">Infodrog: Neue Erkenntnisse zur Suchtprävention bei Jugendlichen</field>
-            <field name="source_id" ref="newsassistant.demo_source_infodrog"/>
+            <field name="snapshot_id" ref="demo_snapshot_infodrog_blog"/>
             <field name="url">https://www.infodrog.ch/de/news/suchtpraevention-jugendliche-2024.html</field>
             <field name="stage_id" ref="newsassistant.news_article_stage_new"/>
             <field name="state">scraped</field>
@@ -70,7 +104,7 @@ NOT RELEVANT (discard):
         <!-- Shortlist stage: flagged for human review -->
         <record id="demo_article_shortlist_1" model="news.article">
             <field name="title">Caritas Schweiz fordert Massnahmen gegen wachsende Altersarmut</field>
-            <field name="source_id" ref="newsassistant.demo_source_caritas"/>
+            <field name="snapshot_id" ref="demo_snapshot_caritas_blog"/>
             <field name="url">https://www.caritas.ch/de/entdecken/altersarmut-massnahmen-2024</field>
             <field name="stage_id" ref="newsassistant.news_article_stage_shortlist"/>
             <field name="state">scraped</field>
@@ -81,7 +115,7 @@ NOT RELEVANT (discard):
 
         <record id="demo_article_shortlist_2" model="news.article">
             <field name="title">Inclusion Handicap: Bundesrat soll UN-Behindertenrechtskonvention besser umsetzen</field>
-            <field name="source_id" ref="newsassistant.demo_source_inclusion_handicap"/>
+            <field name="snapshot_id" ref="demo_snapshot_inclusion_blog"/>
             <field name="url">https://www.inclusion-handicap.ch/de/aktuelles/un-behindertenrechtskonvention-2024.html</field>
             <field name="stage_id" ref="newsassistant.news_article_stage_shortlist"/>
             <field name="state">scraped</field>
@@ -93,7 +127,7 @@ NOT RELEVANT (discard):
         <!-- Published stage: auto-published to blog -->
         <record id="demo_article_published_1" model="news.article">
             <field name="title">HEKS startet Integrationsprogramm für geflüchtete Familien</field>
-            <field name="source_id" ref="newsassistant.demo_source_heks"/>
+            <field name="snapshot_id" ref="demo_snapshot_heks_blog"/>
             <field name="url">https://www.heks.ch/medien/integrationsprogramm-gefluechtete-2024</field>
             <field name="stage_id" ref="newsassistant.news_article_stage_published"/>
             <field name="state">scraped</field>
@@ -105,7 +139,7 @@ NOT RELEVANT (discard):
 
         <record id="demo_article_published_2" model="news.article">
             <field name="title">Gesundheitsförderung Schweiz: Neue Kampagne für psychische Gesundheit am Arbeitsplatz</field>
-            <field name="source_id" ref="newsassistant.demo_source_gesundheitsfoerderung"/>
+            <field name="snapshot_id" ref="demo_snapshot_gesundheit_blog"/>
             <field name="url">https://gesundheitsfoerderung.ch/aktuell/news/psychische-gesundheit-arbeitsplatz-2024</field>
             <field name="stage_id" ref="newsassistant.news_article_stage_published"/>
             <field name="state">scraped</field>
@@ -118,7 +152,7 @@ NOT RELEVANT (discard):
         <!-- Discarded stage: not relevant -->
         <record id="demo_article_discarded_1" model="news.article">
             <field name="title">Schweizer Fussballnationalmannschaft qualifiziert sich für EM</field>
-            <field name="source_id" ref="newsassistant.demo_source_kriso"/>
+            <field name="snapshot_id" ref="demo_snapshot_kriso_blog"/>
             <field name="url">https://www.kriso.ch/blog/fussball-em-qualifikation-2024</field>
             <field name="stage_id" ref="newsassistant.news_article_stage_discarded"/>
             <field name="state">scraped</field>
