@@ -6,7 +6,7 @@ import requests
 
 _logger = logging.getLogger(__name__)
 
-MIN_IMAGE_WIDTH = 1000
+MIN_IMAGE_WIDTH = 800
 MIN_IMAGE_HEIGHT = 400
 SKIP_URL_PATTERNS = (".svg", "logo", "icon", "footer", "avatar", "sprite", "button")
 ACCEPTED_IMAGE_TYPES = ("image/jpeg", "image/png", "image/webp")
@@ -33,7 +33,7 @@ def validate_and_download_image(url, base_url=None, timeout=15):
 
     Validates:
     - Format: JPEG, PNG, or WebP
-    - Dimensions: minimum 1000x400 pixels
+    - Dimensions: minimum 800x400 pixels
     - Orientation: landscape (width > height)
 
     Args:

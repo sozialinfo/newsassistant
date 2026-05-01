@@ -51,14 +51,14 @@ The system SHALL only accept JPEG, PNG, or WebP images as header images.
 - **THEN** the image SHALL be skipped without downloading
 
 ### Requirement: Validate image dimensions
-The system SHALL require minimum dimensions of 1000x400 pixels for header images.
+The system SHALL require minimum dimensions of 800x400 pixels for header images.
 
 #### Scenario: Image meets minimum dimensions
-- **WHEN** an image has width >= 1000 pixels AND height >= 400 pixels
+- **WHEN** an image has width >= 800 pixels AND height >= 400 pixels
 - **THEN** the image SHALL proceed to orientation validation
 
 #### Scenario: Image too small
-- **WHEN** an image has width < 1000 pixels OR height < 400 pixels
+- **WHEN** an image has width < 800 pixels OR height < 400 pixels
 - **THEN** the image SHALL be rejected
 
 ### Requirement: Validate image orientation

@@ -1,21 +1,3 @@
-# Digest
-- If an article is discarded during digest due to misfit with the content strategy, the reasoning is not visible. Make sure to always show the Blog Tab, no matter the digest status.
-
-# Settings
-Let's optimize the settings.
-
-- The settings for the News Assistant must all appear under one single menu in the settings, no matter if the module is actually a submodule.
-- The placement of the multiline input for the prompts is awkward: it's right of the label, making it small and "hangig" to the right. Plce the label on its own line and then make the input field as wide as possible within the standard framework.
-- In the description of the prompt for the relevance criteria in the settings, explain what auto-publish, human review and discard mean.
-
-# Refactor GUI
-- In the news source, remove the tab for the log
-- In the news source, add a smart button for the log (which navigates to a filtered list of logs for this source)
-- In the news source, add a smart button for the snapshots (which navigates to a filtered list of snapshots for this source)
-- On all detail screens, add a smart button to display active queue jobs (display only for admin and only if there are any)
-
-
-
 # Mass Mailing
 - Add a new module ``newsassistant_mass_mailing``. The purpose of this module is to select news articles for publication in a newsletter. It depends on ``mass_mailing``
 - On the news article, add a new flag ``newsletter_relevant``. It must be possible to set/unset this flag in the detail view, but also in the list view
@@ -39,10 +21,12 @@ With this new feature, news can be screened for relevance to the long term strat
 - Add a new module ``newsassistant_strategy_digest``
 - In this new module, a many-to-many field ``strategy_digest`` is added to the news article, which allows to add labels. Use the odoo standard pattern
 - In the configuration, an admin user can define labels
-- In the configuration, an admin user can define a stragegy-check prompt which returns labels for a specific article
-- The user can copy/paste the strategy and the module then suggests a strategy-check prompt and the labels
-- In the kanban board, add the possibility to group by strategy check label
-- Add a new menu "Strategy Brief" which renders HTML editor sing AI for a selected period. It reads articles wich are deemed strategy-relevant and then renders a strategy brief as HTML in the language of the user, with an executive summary and a more detailled text, referencing the origianl sources of new articles where applicable. The strategy brief can be freely edited and downloaded as PDF. It should be no longer than 2 A4-pages.
+- In the configuration, an admin user can define a Strategy Digest prompt which returns labels for a specific article
+- The user can copy/paste the full strategy of the organisation and the module then suggests a strategy digest prompt and the labels
+- In the kanban board, add the possibility to group by strategy digest label
+- Add a new model strategy_digest which contains the digest for a certain period. It contains links to the selected articles as well as a strategy brief (HTML editor)
+- Add a new menu "Strategy Digest". It shows a list of strategy digest records.
+- When adding a new digest, the module creates a new brief, using AI for a selected period. It reads articles wich are deemed strategy-relevant and then renders a strategy brief as HTML in the language of the user, with an executive summary and a more detailled text, referencing the origianl sources of new articles where applicable. The strategy brief can be freely edited and downloaded as PDF. It should be no longer than 2 A4-pages.
 
 
 # Translation

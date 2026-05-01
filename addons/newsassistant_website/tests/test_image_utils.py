@@ -60,8 +60,17 @@ class TestValidateAndDownloadImage(TransactionCase):
 
     @patch("odoo.addons.newsassistant_website.models.image_utils.requests.get")
     def test_accepts_valid_landscape_jpeg(self, mock_get):
-        """Valid landscape JPEG at minimum size is accepted."""
-        img_bytes = _create_test_image_bytes(1000, 400)
+        """Valid landscape JPEG at minimum size (800x400) is accepted."""
+        img_bytes = _create_test_image_bytes(800, 400)
+        mock_get.return_value = _make_mock_response(content=img_bytes)
+        data, filename = validate_and_download_image("https://example.com/img.jpg")
+        self.assertIsNotNone(data)
+        self.assertIsNotNone(filename)
+
+    @patch("odoo.addons.newsassistant_website.models.image_utils.requests.get")
+    def test_accepts_900x600_image(self, mock_get):
+        """Image at 900x600 (previously rejected at 1000px threshold) is now accepted."""
+        img_bytes = _create_test_image_bytes(900, 600)
         mock_get.return_value = _make_mock_response(content=img_bytes)
         data, filename = validate_and_download_image("https://example.com/img.jpg")
         self.assertIsNotNone(data)
@@ -69,8 +78,8 @@ class TestValidateAndDownloadImage(TransactionCase):
 
     @patch("odoo.addons.newsassistant_website.models.image_utils.requests.get")
     def test_rejects_small_image(self, mock_get):
-        """Image smaller than 1000x400 is rejected."""
-        img_bytes = _create_test_image_bytes(500, 300)
+        """Image smaller than 800px wide is rejected."""
+        img_bytes = _create_test_image_bytes(700, 400)
         mock_get.return_value = _make_mock_response(content=img_bytes)
         data, filename = validate_and_download_image("https://example.com/img.jpg")
         self.assertIsNone(data)
