@@ -188,31 +188,40 @@ class NewsSource(models.Model):
     error_message = fields.Text(readonly=True)
     article_count = fields.Integer(compute="_compute_article_count", string="Article Count")
     snapshot_ids = fields.One2many("news.snapshot", "source_id", string="Snapshots")
+    snapshot_count = fields.Integer(compute="_compute_snapshot_count", string="Snapshot Count")
     article_ids = fields.One2many("news.article", "source_id", string="Articles")
     log_ids = fields.One2many("news.log", "source_id", string="Logs")
+    log_count = fields.Integer(compute="_compute_log_count", string="Log Count")
 
     # Computed field for scraping indicator
     is_scraping = fields.Boolean(
         compute="_compute_is_scraping",
         string="Currently Scraping",
     )
+    job_count = fields.Integer(
+        compute="_compute_job_count",
+        string="Queue Jobs",
+    )
 
     def _compute_is_scraping(self):
         """Check if this source has any running scrape jobs."""
         if not self.ids:
+            for source in self:
+                source.is_scraping = False
             return
 
-        # Use SQL to check for running jobs since 'records' is a serialized field
+        # records is stored as a JSONB string, so double-parse: (records#>>'{}')::jsonb
         self.env.cr.execute("""
-            SELECT DISTINCT records->>'res_id' AS source_id
-            FROM queue_job
+            SELECT DISTINCT (elem.value)::int AS source_id
+            FROM queue_job,
+                 jsonb_array_elements((records#>>'{}')::jsonb->'ids') AS elem
             WHERE state = 'started'
               AND channel = 'root.newsassistant'
               AND model_name = 'news.source'
-              AND records->>'res_id' IN %s
-        """, [tuple(str(id) for id in self.ids)])
+              AND (elem.value)::int IN %s
+        """, [tuple(self.ids)])
 
-        scraping_ids = {int(row[0]) for row in self.env.cr.fetchall() if row[0]}
+        scraping_ids = {row[0] for row in self.env.cr.fetchall()}
 
         for source in self:
             source.is_scraping = source.id in scraping_ids
@@ -222,6 +231,80 @@ class NewsSource(models.Model):
             source.article_count = self.env["news.article"].search_count(
                 [("source_id", "=", source.id)]
             )
+
+    def _compute_snapshot_count(self):
+        for source in self:
+            source.snapshot_count = self.env["news.snapshot"].search_count(
+                [("source_id", "=", source.id)]
+            )
+
+    def _compute_log_count(self):
+        for source in self:
+            source.log_count = self.env["news.log"].search_count(
+                [("source_id", "=", source.id)]
+            )
+
+    def _compute_job_count(self):
+        """Count all queue jobs for this source."""
+        counts = {}
+        if self.ids:
+            # records is stored as a JSONB string, so double-parse: (records#>>'{}')::jsonb
+            self.env.cr.execute("""
+                SELECT (elem.value)::int AS source_id, COUNT(*) AS cnt
+                FROM queue_job,
+                     jsonb_array_elements((records#>>'{}')::jsonb->'ids') AS elem
+                WHERE model_name = 'news.source'
+                  AND (elem.value)::int IN %s
+                GROUP BY (elem.value)::int
+            """, [tuple(self.ids)])
+            counts = {row[0]: row[1] for row in self.env.cr.fetchall()}
+        for source in self:
+            source.job_count = counts.get(source.id, 0)
+
+    def action_view_logs(self):
+        """Open the log list filtered for this source."""
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Logs",
+            "res_model": "news.log",
+            "view_mode": "list,form",
+            "domain": [("source_id", "=", self.id)],
+            "context": {},
+        }
+
+    def action_view_snapshots(self):
+        """Open the snapshot list filtered for this source."""
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Snapshots",
+            "res_model": "news.snapshot",
+            "view_mode": "list,form",
+            "domain": [("source_id", "=", self.id)],
+            "context": {},
+        }
+
+    def action_view_jobs(self):
+        """Open all queue jobs for this source."""
+        self.ensure_one()
+        # records is stored as a JSONB string, so double-parse: (records#>>'{}')::jsonb
+        self.env.cr.execute("""
+            SELECT DISTINCT q.uuid
+            FROM queue_job q,
+                 jsonb_array_elements((q.records#>>'{}')::jsonb->'ids') AS elem
+            WHERE q.model_name = 'news.source'
+              AND (elem.value)::int = %s
+        """, [self.id])
+        job_uuids = [row[0] for row in self.env.cr.fetchall()]
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Queue Jobs",
+            "res_model": "queue.job",
+            "view_mode": "list,form",
+            "domain": [("uuid", "in", job_uuids)],
+            "context": {},
+        }
 
     # -------------------------------------------------------------------------
     # AI Service

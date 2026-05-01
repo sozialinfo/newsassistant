@@ -256,3 +256,17 @@ msgstr "Ihr Teaser-Prompt"
 #. module: newsassistant_blog
 msgid "pixabay.com/api/docs"
 msgstr "pixabay.com/api/docs"
+
+#. module: newsassistant_blog
+#: model_terms:ir.ui.view,arch_db:newsassistant_blog.res_config_settings_view_form_newsassistant_blog
+msgid ""
+"Define what makes articles relevant, uncertain, or discardable. The AI "
+"classifies each article into one of three outcomes: Relevant (auto-published"
+" to the blog), Uncertain (moved to Shortlist for human review), or Discard "
+"(moved to Discard stage and skipped)."
+msgstr ""
+"Definieren Sie, was Artikel relevant, unsicher oder nicht relevant macht. "
+"Die KI klassifiziert jeden Artikel in eines von drei Ergebnissen: Relevant "
+"(automatisch im Blog veröffentlicht), Unsicher (zur manuellen Prüfung in "
+"die Shortlist verschoben), oder Verwerfen (in die Verwerfen-Phase "
+"verschoben und übersprungen)."

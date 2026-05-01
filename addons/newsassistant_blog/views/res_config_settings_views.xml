@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Settings form view -->
+    <!-- Settings form view — merged into the News Assistant app block -->
     <record id="res_config_settings_view_form_newsassistant_blog" model="ir.ui.view">
         <field name="name">res.config.settings.view.form.inherit.newsassistant_blog</field>
         <field name="model">res.config.settings</field>
-        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="inherit_id" ref="newsassistant.res_config_settings_view_form_newsassistant"/>
         <field name="arch" type="xml">
-            <xpath expr="//form" position="inside">
-                <app data-string="Newsassistant Blog" string="Newsassistant Blog" name="newsassistant_blog" logo="/newsassistant_blog/static/description/icon.png">
-                    <block title="Content Strategy" name="newsfeed_content_strategy_setting">
-                        <setting string="Relevance Criteria" help="Define what makes articles relevant, uncertain, or discardable. The AI will use this to classify each article.">
-                            <div class="content-group">
-                                <div class="mt8 text-muted small">
-                                    <p><strong>Example prompt:</strong></p>
-                                    <pre class="bg-light p-2 rounded" style="white-space: pre-wrap; font-size: 0.85em;">You are curating a newsfeed for Swiss social sector professionals.
+            <xpath expr="//app[@name='newsassistant']" position="inside">
+                <block title="Content Strategy" name="newsfeed_content_strategy_setting">
+                    <setting string="Relevance Criteria"
+                             help="Define what makes articles relevant, uncertain, or discardable. The AI classifies each article into one of three outcomes: Relevant (auto-published to the blog), Uncertain (moved to Shortlist for human review), or Discard (moved to Discard stage and skipped).">
+                        <div class="content-group">
+                            <div class="mt8 text-muted small">
+                                <p><strong>Example prompt:</strong></p>
+                                <pre class="bg-light p-2 rounded" style="white-space: pre-wrap; font-size: 0.85em;">You are curating a newsfeed for Swiss social sector professionals.
 
 HIGHLY RELEVANT (auto-publish):
 - Policy changes affecting social institutions in Switzerland
@@ -31,20 +31,20 @@ NOT RELEVANT (discard):
 - News from other countries without Swiss connection
 - Commercial press releases unrelated to social sector
 - Duplicate or very similar content to recent articles</pre>
-                                </div>
-                                <div class="mt16">
-                                    <label class="o_form_label" for="newsfeed_content_strategy">Your Content Strategy</label>
-                                    <field name="newsfeed_content_strategy" widget="text" class="o_text_overflow" style="min-height: 200px;"/>
-                                </div>
                             </div>
-                        </setting>
-                    </block>
-                    <block title="Teaser Generation" name="newsfeed_teaser_setting">
-                        <setting string="Teaser Style" help="Define how teasers should be written for relevant articles.">
-                            <div class="content-group">
-                                <div class="mt8 text-muted small">
-                                    <p><strong>Example prompt:</strong></p>
-                                    <pre class="bg-light p-2 rounded" style="white-space: pre-wrap; font-size: 0.85em;">Write a teaser for this news article following these guidelines:
+                            <div class="mt16" style="width: 100%;">
+                                <label class="o_form_label d-block mb4" for="newsfeed_content_strategy">Your Content Strategy</label>
+                                <field name="newsfeed_content_strategy" widget="text" class="o_text_overflow w-100" style="min-height: 200px;"/>
+                            </div>
+                        </div>
+                    </setting>
+                </block>
+                <block title="Teaser Generation" name="newsfeed_teaser_setting">
+                    <setting string="Teaser Style" help="Define how teasers should be written for relevant articles.">
+                        <div class="content-group">
+                            <div class="mt8 text-muted small">
+                                <p><strong>Example prompt:</strong></p>
+                                <pre class="bg-light p-2 rounded" style="white-space: pre-wrap; font-size: 0.85em;">Write a teaser for this news article following these guidelines:
 
 - Length: 2-3 sentences (max 280 characters)
 - Tone: Professional but accessible, informative
@@ -52,63 +52,53 @@ NOT RELEVANT (discard):
 - Language: Use the same language as the original article
 - Style: Neutral, factual, no clickbait or sensationalism
 - Goal: Help readers quickly decide if they want to read the full article</pre>
-                                </div>
-                                <div class="mt16">
-                                    <label class="o_form_label" for="newsfeed_teaser_prompt">Your Teaser Prompt</label>
-                                    <field name="newsfeed_teaser_prompt" widget="text" class="o_text_overflow" style="min-height: 150px;"/>
-                                </div>
                             </div>
-                        </setting>
-                    </block>
-                    <block title="Publishing" name="newsfeed_publishing_setting">
-                        <setting string="Target Blog" help="Select which blog to publish curated articles to. Create a blog first if you don't have one.">
-                            <div class="content-group">
-                                <div class="mt16">
-                                    <field name="newsfeed_blog_id" options="{'no_create': True}"/>
-                                </div>
+                            <div class="mt16" style="width: 100%;">
+                                <label class="o_form_label d-block mb4" for="newsfeed_teaser_prompt">Your Teaser Prompt</label>
+                                <field name="newsfeed_teaser_prompt" widget="text" class="o_text_overflow w-100" style="min-height: 150px;"/>
                             </div>
-                        </setting>
-                    </block>
-                    <block title="Pipeline Stages" name="newsfeed_pipeline_stages_setting">
-                        <setting string="Shortlist Stage"
-                                 help="Stage assigned to articles that need human review before publishing.">
-                            <field name="newsassistant_blog_shortlist_stage_id"
-                                   options="{'no_create': True}"/>
-                        </setting>
-                        <setting string="Published Stage"
-                                 help="Stage assigned to articles that have been auto-published to the blog.">
-                            <field name="newsassistant_blog_published_stage_id"
-                                   options="{'no_create': True}"/>
-                        </setting>
-                        <setting string="Discard Stage"
-                                 help="Stage assigned to articles that the pipeline has discarded as not relevant.">
-                            <field name="newsassistant_blog_discard_stage_id"
-                                   options="{'no_create': True}"/>
-                        </setting>
-                    </block>
-                    <block title="Header Images" name="newsfeed_header_images_setting">
-                        <setting string="Pixabay API Key" help="When articles don't have suitable header images, Pixabay can provide fallback images. Get a free API key at pixabay.com.">
-                            <div class="content-group">
-                                <div class="mt16">
-                                    <field name="newsfeed_pixabay_api_key" password="True"/>
-                                </div>
-                                <div class="mt8 text-muted small">
-                                    <p>Get your free API key at <a href="https://pixabay.com/api/docs/" target="_blank">pixabay.com/api/docs</a></p>
-                                </div>
+                        </div>
+                    </setting>
+                </block>
+                <block title="Publishing" name="newsfeed_publishing_setting">
+                    <setting string="Target Blog" help="Select which blog to publish curated articles to. Create a blog first if you don't have one.">
+                        <div class="content-group">
+                            <div class="mt16">
+                                <field name="newsfeed_blog_id" options="{'no_create': True}"/>
                             </div>
-                        </setting>
-                    </block>
-                </app>
+                        </div>
+                    </setting>
+                </block>
+                <block title="Pipeline Stages" name="newsfeed_pipeline_stages_setting">
+                    <setting string="Shortlist Stage"
+                             help="Stage assigned to articles that need human review before publishing.">
+                        <field name="newsassistant_blog_shortlist_stage_id"
+                               options="{'no_create': True}"/>
+                    </setting>
+                    <setting string="Published Stage"
+                             help="Stage assigned to articles that have been auto-published to the blog.">
+                        <field name="newsassistant_blog_published_stage_id"
+                               options="{'no_create': True}"/>
+                    </setting>
+                    <setting string="Discard Stage"
+                             help="Stage assigned to articles that the pipeline has discarded as not relevant.">
+                        <field name="newsassistant_blog_discard_stage_id"
+                               options="{'no_create': True}"/>
+                    </setting>
+                </block>
+                <block title="Header Images" name="newsfeed_header_images_setting">
+                    <setting string="Pixabay API Key" help="When articles don't have suitable header images, Pixabay can provide fallback images. Get a free API key at pixabay.com.">
+                        <div class="content-group">
+                            <div class="mt16">
+                                <field name="newsfeed_pixabay_api_key" password="True"/>
+                            </div>
+                            <div class="mt8 text-muted small">
+                                <p>Get your free API key at <a href="https://pixabay.com/api/docs/" target="_blank">pixabay.com/api/docs</a></p>
+                            </div>
+                        </div>
+                    </setting>
+                </block>
             </xpath>
         </field>
-    </record>
-
-    <!-- Action to open settings directly to Newsassistant Blog section -->
-    <record id="action_newsassistant_blog_settings" model="ir.actions.act_window">
-        <field name="name">Blog Settings</field>
-        <field name="res_model">res.config.settings</field>
-        <field name="view_mode">form</field>
-        <field name="target">inline</field>
-        <field name="context">{'module': 'newsassistant_blog', 'bin_size': False}</field>
     </record>
 </odoo>

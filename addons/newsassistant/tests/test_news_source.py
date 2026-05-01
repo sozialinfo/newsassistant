@@ -98,3 +98,68 @@ class TestNewsSource(TransactionCase):
             "url": "https://example.com",
         })
         self.assertEqual(source.source_type, "website")
+
+    def test_snapshot_count_zero_for_new_source(self):
+        """New source should have zero snapshot count."""
+        source = self.env["news.source"].create({
+            "name": "No Snapshots Source",
+            "source_type": "website",
+            "url": "https://no-snap.example.com",
+        })
+        self.assertEqual(source.snapshot_count, 0)
+
+    def test_snapshot_count_reflects_snapshots(self):
+        """snapshot_count should reflect the number of snapshots for this source."""
+        source = self.env["news.source"].create({
+            "name": "Snap Count Source",
+            "source_type": "website",
+            "url": "https://snap-count.example.com",
+        })
+        for _ in range(3):
+            self.env["news.snapshot"].with_context(skip_snapshot_extraction=True).create({
+                "source_id": source.id,
+                "raw_content": "<p>snap</p>",
+            })
+        source.invalidate_recordset(["snapshot_count"])
+        self.assertEqual(source.snapshot_count, 3)
+
+    def test_log_count_zero_for_new_source(self):
+        """New source should have zero log count."""
+        source = self.env["news.source"].create({
+            "name": "No Logs Source",
+            "source_type": "website",
+            "url": "https://no-log.example.com",
+        })
+        self.assertEqual(source.log_count, 0)
+
+    def test_log_count_reflects_logs(self):
+        """log_count should reflect the number of logs for this source."""
+        source = self.env["news.source"].create({
+            "name": "Log Count Source",
+            "source_type": "website",
+            "url": "https://log-count.example.com",
+        })
+        for i in range(2):
+            self.env["news.log"].create({
+                "source_id": source.id,
+                "level": "success",
+                "category": "listing",
+                "message": f"Log entry {i}",
+            })
+        source.invalidate_recordset(["log_count"])
+        self.assertEqual(source.log_count, 2)
+
+    def test_job_count_zero_for_new_source(self):
+        """New source should have zero job count (no jobs in test context)."""
+        source = self.env["news.source"].create({
+            "name": "No Jobs Source",
+            "source_type": "website",
+            "url": "https://no-jobs.example.com",
+        })
+        self.assertEqual(source.job_count, 0)
+
+    def test_action_view_jobs_returns_window_action(self):
+        """action_view_jobs should return a window action for queue.job."""
+        action = self.source.action_view_jobs()
+        self.assertEqual(action["type"], "ir.actions.act_window")
+        self.assertEqual(action["res_model"], "queue.job")

@@ -82,3 +82,15 @@ class TestArticleState(TransactionCase):
         article.write({"snapshot_id": False})
         result = article.action_re_extract()
         self.assertEqual(result["params"]["type"], "warning")
+
+    def test_job_count_zero_for_new_article(self):
+        """New article should have zero job count (no jobs in test context)."""
+        article = self._create_article()
+        self.assertEqual(article.job_count, 0)
+
+    def test_action_view_jobs_returns_window_action(self):
+        """action_view_jobs should return a window action for queue.job."""
+        article = self._create_article()
+        action = article.action_view_jobs()
+        self.assertEqual(action["type"], "ir.actions.act_window")
+        self.assertEqual(action["res_model"], "queue.job")

@@ -65,6 +65,10 @@ class NewsArticle(models.Model):
     retry_count = fields.Integer(default=0, readonly=True)
     last_error_date = fields.Datetime(readonly=True)
     log_ids = fields.One2many("news.log", "article_id", string="Logs")
+    job_count = fields.Integer(
+        compute="_compute_job_count",
+        string="Queue Jobs",
+    )
 
     _sql_constraints = [
         ("url_unique", "UNIQUE(url)", "An article with this URL already exists."),
@@ -91,6 +95,44 @@ class NewsArticle(models.Model):
     def _read_group_stage_ids(self, stages, domain):
         """Always show all stages in kanban, even empty ones."""
         return self.env["news.article.stage"].search([])
+
+    def _compute_job_count(self):
+        """Count all queue jobs for this article."""
+        counts = {}
+        if self.ids:
+            # records is stored as a JSONB string, so double-parse: (records#>>'{}')::jsonb
+            self.env.cr.execute("""
+                SELECT (elem.value)::int AS article_id, COUNT(*) AS cnt
+                FROM queue_job,
+                     jsonb_array_elements((records#>>'{}')::jsonb->'ids') AS elem
+                WHERE model_name = 'news.article'
+                  AND (elem.value)::int IN %s
+                GROUP BY (elem.value)::int
+            """, [tuple(self.ids)])
+            counts = {row[0]: row[1] for row in self.env.cr.fetchall()}
+        for article in self:
+            article.job_count = counts.get(article.id, 0)
+
+    def action_view_jobs(self):
+        """Open all queue jobs for this article."""
+        self.ensure_one()
+        # records is stored as a JSONB string, so double-parse: (records#>>'{}')::jsonb
+        self.env.cr.execute("""
+            SELECT DISTINCT q.uuid
+            FROM queue_job q,
+                 jsonb_array_elements((q.records#>>'{}')::jsonb->'ids') AS elem
+            WHERE q.model_name = 'news.article'
+              AND (elem.value)::int = %s
+        """, [self.id])
+        job_uuids = [row[0] for row in self.env.cr.fetchall()]
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Queue Jobs",
+            "res_model": "queue.job",
+            "view_mode": "list,form",
+            "domain": [("uuid", "in", job_uuids)],
+            "context": {},
+        }
 
     def action_re_extract(self):
         """Button action: manually re-extract article from its snapshot."""

@@ -789,3 +789,21 @@ msgstr "Site web"
 #. module: newsassistant
 msgid "Website Sources"
 msgstr "Sources site web"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_article__job_count
+#: model:ir.model.fields,field_description:newsassistant.field_news_source__job_count
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_article_view_form
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_source_view_form
+msgid "Queue Jobs"
+msgstr "Files de tâches"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_source__log_count
+msgid "Log Count"
+msgstr "Nombre de journaux"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_source__snapshot_count
+msgid "Snapshot Count"
+msgstr "Nombre de captures"

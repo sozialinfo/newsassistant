@@ -14,19 +14,17 @@
                         title="Process this article through the digest pipeline"/>
             </xpath>
 
-            <!-- Add smart button box for blog post -->
-            <xpath expr="//sheet/div[hasclass('oe_title')]" position="before">
-                <div class="oe_button_box" name="button_box">
-                    <button name="action_view_blog_post" type="object"
-                            class="oe_stat_button" icon="fa-rss"
-                            invisible="blog_post_count == 0"
-                            string="Blog Post"/>
-                </div>
+            <!-- Add blog post smart button into existing button_box -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_blog_post" type="object"
+                        class="oe_stat_button" icon="fa-rss"
+                        invisible="blog_post_count == 0"
+                        string="Blog Post"/>
             </xpath>
 
             <!-- Add Blog tab before the Log tab (after Full Content page) -->
             <xpath expr="//notebook/page[field[@name='content']]" position="after">
-                <page string="Blog" name="blog" invisible="not teaser">
+                <page string="Blog" name="blog">
                     <group>
                         <field name="digest_state" widget="badge"
                                decoration-muted="digest_state == 'pending'"

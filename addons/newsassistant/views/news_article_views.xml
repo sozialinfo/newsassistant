@@ -59,6 +59,15 @@
                            options="{'clickable': '1'}"/>
                 </header>
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_jobs"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-cogs"
+                                groups="newsassistant.newsassistant_group_admin">
+                            <field name="job_count" widget="statinfo" string="Queue Jobs"/>
+                        </button>
+                    </div>
                     <!-- Skipped article banner -->
                     <div class="alert alert-warning" role="alert"
                          invisible="state != 'skipped'">

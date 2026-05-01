@@ -33,11 +33,11 @@ Let's optimize the settings.
 
 
 
-# Strategy Check
+# Strategy Digest
 With this new feature, news can be screened for relevance to the long term strategy of the organisation.
 
-- Add a new module ``newsassistant_strategy_check``
-- In this new module, a many-to-many field ``strategy_check`` is added to the news article, which allows to add labels. Use the odoo standard pattern
+- Add a new module ``newsassistant_strategy_digest``
+- In this new module, a many-to-many field ``strategy_digest`` is added to the news article, which allows to add labels. Use the odoo standard pattern
 - In the configuration, an admin user can define labels
 - In the configuration, an admin user can define a stragegy-check prompt which returns labels for a specific article
 - The user can copy/paste the strategy and the module then suggests a strategy-check prompt and the labels

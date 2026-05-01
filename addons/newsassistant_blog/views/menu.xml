@@ -1,9 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Add Newsassistant Blog Settings to Configuration menu -->
-    <menuitem id="menu_newsassistant_blog_settings"
-              name="Blog Settings"
-              parent="newsassistant.menu_news_configuration"
-              action="action_newsassistant_blog_settings"
-              sequence="20"/>
+    <!-- Blog settings are merged into the News Assistant settings (no separate menu item needed) -->
 </odoo>

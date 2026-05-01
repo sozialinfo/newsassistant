@@ -256,3 +256,16 @@ msgstr "Votre prompt d'accroche"
 #. module: newsassistant_blog
 msgid "pixabay.com/api/docs"
 msgstr "pixabay.com/api/docs"
+
+#. module: newsassistant_blog
+#: model_terms:ir.ui.view,arch_db:newsassistant_blog.res_config_settings_view_form_newsassistant_blog
+msgid ""
+"Define what makes articles relevant, uncertain, or discardable. The AI "
+"classifies each article into one of three outcomes: Relevant (auto-published"
+" to the blog), Uncertain (moved to Shortlist for human review), or Discard "
+"(moved to Discard stage and skipped)."
+msgstr ""
+"Définissez ce qui rend les articles pertinents, incertains ou à écarter. "
+"L'IA classifie chaque article dans l'un des trois résultats : Pertinent "
+"(publié automatiquement sur le blog), Incertain (déplacé vers la Shortlist "
+"pour révision humaine), ou Écarté (déplacé vers la phase Écarté et ignoré)."
