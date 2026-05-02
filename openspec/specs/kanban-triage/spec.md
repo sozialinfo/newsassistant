@@ -85,3 +85,12 @@ The system SHALL provide a top-level menu "News Assistant" with sub-menus: "Arti
 #### Scenario: Navigate to sources
 - **WHEN** the user clicks "News Assistant" → "Sources"
 - **THEN** the list view of news sources SHALL be displayed
+
+#### Scenario: Strategy label chips on kanban card
+- **WHEN** an article has one or more strategy labels assigned
+- **THEN** the kanban card SHALL display coloured label chips for each assigned strategy label
+
+#### Scenario: Filter kanban by strategy label
+- **WHEN** a user selects a strategy label in the search bar
+- **THEN** only articles with that strategy label SHALL be shown in the kanban
+- **THEN** articles without that label SHALL be hidden from all columns

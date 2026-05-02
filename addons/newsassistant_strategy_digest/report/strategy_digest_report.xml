@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Report action — intentionally no paperformat_id set:
+         falls back to env.company.paperformat_id (configured in
+         General Settings → Configure Document Layout) -->
+    <record id="action_report_strategy_digest" model="ir.actions.report">
+        <field name="name">Strategy Digest</field>
+        <field name="model">strategy.digest</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">newsassistant_strategy_digest.report_strategy_digest</field>
+        <field name="report_file">newsassistant_strategy_digest.report_strategy_digest</field>
+        <field name="print_report_name">'Strategy Digest - %s' % (object.name)</field>
+        <field name="binding_model_id" ref="model_strategy_digest"/>
+        <field name="binding_type">report</field>
+    </record>
+</odoo>

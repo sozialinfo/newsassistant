@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Form view -->
+    <record id="strategy_strategy_view_form" model="ir.ui.view">
+        <field name="name">strategy.strategy.form</field>
+        <field name="model">strategy.strategy</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_distill_prompt"
+                            string="Distill Prompt"
+                            type="object"
+                            class="btn-primary"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Strategy name..."/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Date Range">
+                            <field name="date_from"/>
+                            <field name="date_to"/>
+                        </group>
+                        <group string="Labels">
+                            <field name="label_ids" widget="many2many_tags"
+                                   options="{'color_field': 'color'}" nolabel="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Description">
+                            <field name="description" nolabel="1"
+                                   placeholder="Describe the strategy in your own words (used alongside PDF documents for prompt distillation)..."/>
+                        </page>
+                        <page string="Documents">
+                            <field name="document_ids" widget="many2many_binary" nolabel="1"/>
+                        </page>
+                        <page string="AI Labelling Prompt">
+                            <div class="alert alert-info" role="alert"
+                                 invisible="prompt">
+                                Click <strong>Distill Prompt</strong> to generate the AI labelling prompt
+                                from the strategy documents and description.
+                            </div>
+                            <field name="prompt" nolabel="1"
+                                   placeholder="No prompt generated yet. Click 'Distill Prompt' in the header."/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- List view -->
+    <record id="strategy_strategy_view_list" model="ir.ui.view">
+        <field name="name">strategy.strategy.list</field>
+        <field name="model">strategy.strategy</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="date_from"/>
+                <field name="date_to"/>
+                <field name="label_ids" widget="many2many_tags"
+                       options="{'color_field': 'color'}"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Search view -->
+    <record id="strategy_strategy_view_search" model="ir.ui.view">
+        <field name="name">strategy.strategy.search</field>
+        <field name="model">strategy.strategy</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="label_ids"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Window action -->
+    <record id="strategy_strategy_action" model="ir.actions.act_window">
+        <field name="name">Strategies</field>
+        <field name="res_model">strategy.strategy</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="strategy_strategy_view_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No strategies defined yet
+            </p>
+            <p>
+                Create a strategy to start labelling articles by strategic relevance.
+                Upload PDF documents and click "Distill Prompt" to generate the AI labelling prompt.
+            </p>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Form view -->
+    <record id="strategy_digest_view_form" model="ir.ui.view">
+        <field name="name">strategy.digest.form</field>
+        <field name="model">strategy.digest</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_generate_brief"
+                            string="Generate Brief"
+                            type="object"
+                            class="btn-primary"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Digest name..."/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Period">
+                            <field name="date_from"/>
+                            <field name="date_to"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Brief">
+                            <div class="alert alert-info" role="alert"
+                                 invisible="brief">
+                                Click <strong>Generate Brief</strong> to create an AI-powered strategy
+                                brief for the selected period. Make sure articles have been evaluated
+                                for strategy labels first.
+                            </div>
+                            <field name="brief" nolabel="1" widget="html"/>
+                        </page>
+                        <page string="Strategies">
+                            <field name="strategy_ids" nolabel="1">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="date_from"/>
+                                    <field name="date_to"/>
+                                    <field name="label_ids" widget="many2many_tags"
+                                           options="{'color_field': 'color'}"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Articles">
+                            <field name="article_ids" nolabel="1">
+                                <list>
+                                    <field name="title"/>
+                                    <field name="source_id"/>
+                                    <field name="date"/>
+                                    <field name="strategy_label_ids" widget="many2many_tags"
+                                           options="{'color_field': 'color'}"/>
+                                    <field name="url" widget="url"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- List view -->
+    <record id="strategy_digest_view_list" model="ir.ui.view">
+        <field name="name">strategy.digest.list</field>
+        <field name="model">strategy.digest</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="date_from"/>
+                <field name="date_to"/>
+                <field name="state" widget="badge"
+                       decoration-muted="state == 'draft'"
+                       decoration-success="state == 'done'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Window action -->
+    <record id="strategy_digest_action" model="ir.actions.act_window">
+        <field name="name">Strategy Digest</field>
+        <field name="res_model">strategy.digest</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No strategy digests yet
+            </p>
+            <p>
+                Create a strategy digest to generate an AI-powered executive brief
+                for a selected time period, based on strategy-labelled articles.
+            </p>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="strategy_digest_q1_2026" model="strategy.digest">
+        <field name="name">Q1 2026 Strategy Review</field>
+        <field name="date_from">2026-01-01</field>
+        <field name="date_to">2026-03-31</field>
+        <field name="state">draft</field>
+    </record>
+</odoo>

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Extend kanban view: add strategy label chips to card -->
+    <record id="news_article_view_kanban_strategy" model="ir.ui.view">
+        <field name="name">news.article.kanban.strategy</field>
+        <field name="model">news.article</field>
+        <field name="inherit_id" ref="newsassistant.news_article_view_kanban"/>
+        <field name="arch" type="xml">
+            <!-- Add strategy label chips below the title -->
+            <xpath expr="//div[hasclass('fw-bold')]" position="after">
+                <field name="strategy_label_ids" widget="many2many_tags"
+                       options="{'color_field': 'color'}"
+                       invisible="not strategy_label_ids"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Extend search view: add strategy label filter -->
+    <record id="news_article_view_search_strategy" model="ir.ui.view">
+        <field name="name">news.article.search.strategy</field>
+        <field name="model">news.article</field>
+        <field name="inherit_id" ref="newsassistant.news_article_view_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search/field[@name='content']" position="after">
+                <field name="strategy_label_ids" string="Strategy Label"/>
+            </xpath>
+            <!-- Add strategy eval state filter after existing state filters -->
+            <xpath expr="//filter[@name='filter_state_skipped']" position="after">
+                <separator/>
+                <filter name="filter_strategy_pending"
+                        string="Strategy: Pending"
+                        domain="[('strategy_eval_state', '=', 'pending')]"/>
+                <filter name="filter_strategy_processed"
+                        string="Strategy: Processed"
+                        domain="[('strategy_eval_state', '=', 'processed')]"/>
+                <filter name="filter_has_strategy_labels"
+                        string="Has Strategy Labels"
+                        domain="[('strategy_label_ids', '!=', False)]"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Extend form view: add strategy labels field and re-evaluate button -->
+    <record id="news_article_view_form_strategy" model="ir.ui.view">
+        <field name="name">news.article.form.strategy</field>
+        <field name="model">news.article</field>
+        <field name="inherit_id" ref="newsassistant.news_article_view_form"/>
+        <field name="arch" type="xml">
+            <!-- Add re-evaluate button to button_box -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_reevaluate_strategy_labels"
+                        string="Re-evaluate Strategy Labels"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-tags"/>
+            </xpath>
+            <!-- Add strategy labels field in the main group -->
+            <xpath expr="//group/group[field[@name='source_id']]" position="after">
+                <group string="Strategy">
+                    <field name="strategy_label_ids" widget="many2many_tags"
+                           options="{'color_field': 'color'}"/>
+                    <field name="strategy_eval_state" widget="badge"
+                           decoration-muted="strategy_eval_state == 'pending'"
+                           decoration-success="strategy_eval_state == 'processed'"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Extend list view: add strategy_label_ids column (optional) -->
+    <record id="news_article_view_list_strategy" model="ir.ui.view">
+        <field name="name">news.article.list.strategy</field>
+        <field name="model">news.article</field>
+        <field name="inherit_id" ref="newsassistant.news_article_view_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='stage_id']" position="before">
+                <field name="strategy_label_ids" widget="many2many_tags"
+                       options="{'color_field': 'color'}" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
