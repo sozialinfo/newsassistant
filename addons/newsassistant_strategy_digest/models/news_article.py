@@ -9,6 +9,7 @@ from odoo import _, fields, models
 from odoo.exceptions import UserError
 
 from odoo.addons.queue_job.exception import RetryableJobError
+from odoo.addons.newsassistant.models.utils import html_to_markdown
 
 _logger = logging.getLogger(__name__)
 
@@ -171,7 +172,7 @@ class NewsArticle(models.Model):
         _logger.info("Evaluating strategy labels for article: %s", self.title)
 
         today = fields.Date.today()
-        strategies = self.env["strategy.strategy"].search([])
+        strategies = self.env["strategy.strategy"].search([("state", "=", "active")])
         active_strategies = strategies.filtered(
             lambda s: s._is_active_for_period(today, today) and s.prompt and s.prompt.strip()
         )
@@ -222,9 +223,10 @@ class NewsArticle(models.Model):
 
         label_names = [label.name for label in strategy.label_ids]
 
+        prompt_text = html_to_markdown(strategy.prompt)
         system_prompt = (
             "/no_think\n"
-            f"{strategy.prompt}\n\n"
+            f"{prompt_text}\n\n"
             "Based on the above strategy, evaluate the following news article.\n"
             "Return a JSON object with exactly these fields:\n"
             '- "is_relevant": true or false\n'
@@ -235,16 +237,11 @@ class NewsArticle(models.Model):
         )
 
         # Prepare article content
-        import re
-        from html import unescape
-
         article_content = f"Title: {self.title}\n\n"
         if self.summary:
             article_content += f"Summary: {self.summary}\n\n"
         if self.content:
-            clean_content = re.sub(r"<[^>]+>", " ", self.content)
-            clean_content = unescape(clean_content)
-            clean_content = re.sub(r"\s+", " ", clean_content).strip()
+            clean_content = html_to_markdown(self.content)
             article_content += f"Content: {clean_content[:4000]}"
 
         ai_result = self._call_ai(system_prompt, article_content, temperature=0.1)

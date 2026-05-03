@@ -8,6 +8,8 @@ import requests
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
+from odoo.addons.newsassistant.models.utils import html_has_content, html_to_markdown
+
 from odoo.addons.queue_job.exception import RetryableJobError
 
 _logger = logging.getLogger(__name__)
@@ -58,6 +60,11 @@ class StrategyDigest(models.Model):
         string="Strategy Brief",
         help="AI-generated executive brief for this period. Can be freely edited after generation.",
     )
+    has_brief = fields.Boolean(
+        string="Has Brief",
+        compute="_compute_has_brief",
+        store=False,
+    )
     state = fields.Selection(
         [
             ("draft", "Draft"),
@@ -65,11 +72,18 @@ class StrategyDigest(models.Model):
         ],
         default="draft",
         string="State",
-        readonly=True,
+        copy=False,
     )
 
     # -------------------------------------------------------------------------
     # Constraints
+    # -------------------------------------------------------------------------
+
+    @api.depends("brief")
+    def _compute_has_brief(self):
+        for record in self:
+            record.has_brief = html_has_content(record.brief)
+
     # -------------------------------------------------------------------------
 
     @api.constrains("date_from", "date_to")
@@ -85,12 +99,13 @@ class StrategyDigest(models.Model):
     # -------------------------------------------------------------------------
 
     def _get_active_strategies_for_period(self):
-        """Return all strategies active during this digest's period.
+        """Return all active strategies active during this digest's period.
 
+        Only strategies with state='active' and dates overlapping the period are returned.
         Strategies with no dates are considered eternal (always active).
         """
         self.ensure_one()
-        all_strategies = self.env["strategy.strategy"].search([])
+        all_strategies = self.env["strategy.strategy"].search([("state", "=", "active")])
         return all_strategies.filtered(
             lambda s: s._is_active_for_period(self.date_from, self.date_to)
         )
@@ -235,7 +250,8 @@ class StrategyDigest(models.Model):
                 strategies_text += f"Date range: {date_range}\n"
             strategies_text += f"Labels: {label_names}\n"
             if strategy.prompt:
-                strategies_text += f"Focus: {strategy.prompt[:500]}\n"
+                prompt_md = html_to_markdown(strategy.prompt)
+                strategies_text += f"Focus: {prompt_md[:500]}\n"
 
         # Articles section — numbered for footnote referencing
         articles_text = ""
@@ -268,6 +284,13 @@ class StrategyDigest(models.Model):
         )
 
         return system_prompt, user_content
+
+    def action_print_brief(self):
+        """Print the strategy brief as PDF."""
+        self.ensure_one()
+        return self.env.ref(
+            "newsassistant_strategy_digest.action_report_strategy_digest"
+        ).report_action(self)
 
     def action_generate_brief(self):
         """Generate the AI strategy brief for this digest's period."""
@@ -310,7 +333,6 @@ class StrategyDigest(models.Model):
 
         self.write({
             "brief": brief_html,
-            "state": "done",
             "strategy_ids": [(6, 0, strategies.ids)],
             "article_ids": [(6, 0, articles[:MAX_ARTICLES_IN_BRIEF].ids)],
         })
@@ -322,14 +344,4 @@ class StrategyDigest(models.Model):
             len(articles),
         )
 
-        return {
-            "type": "ir.actions.client",
-            "tag": "display_notification",
-            "params": {
-                "title": _("Brief Generated"),
-                "message": _("Strategy brief generated with %d articles and %d strategies.")
-                           % (len(articles[:MAX_ARTICLES_IN_BRIEF]), len(strategies)),
-                "type": "success",
-                "sticky": False,
-            },
-        }
+        return False

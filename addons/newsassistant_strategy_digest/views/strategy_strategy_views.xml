@@ -7,10 +7,14 @@
         <field name="arch" type="xml">
             <form>
                 <header>
-                    <button name="action_distill_prompt"
-                            string="Distill Prompt"
+                    <button name="action_activate"
+                            string="Activate"
                             type="object"
-                            class="btn-primary"/>
+                            class="oe_highlight"
+                            invisible="state != 'draft'"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,active,archived"
+                           options="{'clickable': '1'}"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
@@ -36,14 +40,27 @@
                         <page string="Documents">
                             <field name="document_ids" widget="many2many_binary" nolabel="1"/>
                         </page>
-                        <page string="AI Labelling Prompt">
+                        <page string="Prompt">
+                            <div class="mb-3">
+                                <p class="text-muted">
+                                    This prompt instructs the AI on how to evaluate news articles
+                                    for this strategy. It is generated from the attached documents
+                                    and description, but can be edited manually.
+                                </p>
+                            </div>
                             <div class="alert alert-info" role="alert"
                                  invisible="prompt">
-                                Click <strong>Distill Prompt</strong> to generate the AI labelling prompt
-                                from the strategy documents and description.
+                                No prompt generated yet. Click <strong>Distill Prompt</strong>
+                                below to generate the AI labelling prompt from the strategy
+                                documents and description.
                             </div>
-                            <field name="prompt" nolabel="1"
-                                   placeholder="No prompt generated yet. Click 'Distill Prompt' in the header."/>
+                            <field name="prompt" nolabel="1"/>
+                            <div class="mt-3">
+                                <button name="action_distill_prompt"
+                                        string="Distill Prompt"
+                                        type="object"
+                                        class="btn-secondary"/>
+                            </div>
                         </page>
                     </notebook>
                 </sheet>
@@ -62,6 +79,10 @@
                 <field name="date_to"/>
                 <field name="label_ids" widget="many2many_tags"
                        options="{'color_field': 'color'}"/>
+                <field name="state" widget="badge"
+                       decoration-muted="state == 'draft'"
+                       decoration-success="state == 'active'"
+                       decoration-danger="state == 'archived'"/>
             </list>
         </field>
     </record>
@@ -74,7 +95,36 @@
             <search>
                 <field name="name"/>
                 <field name="label_ids"/>
+                <filter string="Draft" name="draft" domain="[('state','=','draft')]"/>
+                <filter string="Active" name="active" domain="[('state','=','active')]"/>
+                <filter string="Archived" name="archived" domain="[('state','=','archived')]"/>
             </search>
+        </field>
+    </record>
+
+    <!-- Wizard: Distill Confirm (overwrite) -->
+    <record id="strategy_distill_confirm_view_form" model="ir.ui.view">
+        <field name="name">strategy.distill.confirm.form</field>
+        <field name="model">strategy.distill.confirm</field>
+        <field name="arch" type="xml">
+            <form string="Overwrite Prompt?">
+                <sheet>
+                    <div class="alert alert-warning" role="alert">
+                        This strategy already has a prompt. Distilling a new prompt will
+                        <strong>overwrite</strong> the existing one. Any manual edits to
+                        the current prompt will be lost.
+                        <br/><br/>
+                        Do you want to continue?
+                    </div>
+                </sheet>
+                <footer>
+                    <button name="action_confirm_distill"
+                            string="Distill &amp; Overwrite"
+                            type="object"
+                            class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
         </field>
     </record>
 

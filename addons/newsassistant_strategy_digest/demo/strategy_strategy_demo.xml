@@ -14,14 +14,8 @@
 
     <record id="strategy_fachkraefte_sozialbereich" model="strategy.strategy">
         <field name="name">Berufsbildung &amp; Fachkräfte im Sozialbereich</field>
-        <field name="description">
-            Strategie von SAVOIRSOCIAL – Schweizerischer Dachverband für die Berufsbildung im Sozialbereich (privater Verein).
-            Vier strategische Handlungsfelder: (1) Entwicklung der Berufsbildung im Sozialbereich,
-            (2) Vernetzung, (3) Strategische Kooperationen, (4) Fachzentrum für die Berufsbildung.
-            Artikel sind relevant, wenn sie Fachkräftemangel im Sozialbereich, Berufsbildung, Ausbildungsabschlüsse,
-            Arbeitsbedingungen in sozialen Berufen, OdA-Soziales, FaBe-Ausbildung oder Professionalisierung
-            der Sozialen Arbeit in der Schweiz behandeln.
-        </field>
+        <field name="state">draft</field>
+        <field name="description">Strategie von SAVOIRSOCIAL – Schweizerischer Dachverband für die Berufsbildung im Sozialbereich.</field>
         <field name="document_ids" eval="[(4, ref('attachment_savoirsocial_strategie'))]"/>
     </record>
 </odoo>

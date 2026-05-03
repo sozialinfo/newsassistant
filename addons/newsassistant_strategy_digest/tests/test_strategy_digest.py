@@ -49,21 +49,24 @@ class TestStrategyDigest(TransactionCase):
         cls.label = cls.StrategyLabel.create({"name": "DigestTestLabel"})
         cls.strategy_eternal = cls.StrategyStrategy.create({
             "name": "EternalDigestStrategy",
-            "prompt": "Test prompt for strategy evaluation.",
+            "state": "active",
+            "prompt": "<p>Test prompt for strategy evaluation.</p>",
             "label_ids": [(4, cls.label.id)],
         })
         cls.strategy_2026 = cls.StrategyStrategy.create({
             "name": "2026DigestStrategy",
+            "state": "active",
             "date_from": date(2026, 1, 1),
             "date_to": date(2026, 12, 31),
-            "prompt": "Test prompt for 2026 strategy.",
+            "prompt": "<p>Test prompt for 2026 strategy.</p>",
             "label_ids": [(4, cls.label.id)],
         })
         cls.strategy_2025 = cls.StrategyStrategy.create({
             "name": "2025OnlyDigestStrategy",
+            "state": "active",
             "date_from": date(2025, 1, 1),
             "date_to": date(2025, 12, 31),
-            "prompt": "Old prompt.",
+            "prompt": "<p>Old prompt.</p>",
         })
 
         cls.article_in_period = _make_article_with_label(
@@ -97,6 +100,29 @@ class TestStrategyDigest(TransactionCase):
         digest = self._make_digest(name="Create Test Digest")
         self.assertEqual(digest.state, "draft")
         self.assertFalse(digest.brief)
+
+    def test_state_clickable_via_write(self):
+        """State can be set directly via write (statusbar is clickable)."""
+        digest = self._make_digest(name="Clickable State Digest")
+        digest.write({"state": "done"})
+        self.assertEqual(digest.state, "done")
+        digest.write({"state": "draft"})
+        self.assertEqual(digest.state, "draft")
+
+    def test_has_brief_false_when_empty(self):
+        """has_brief is False when brief is empty, whitespace-only, or editor artefact HTML."""
+        digest = self._make_digest(name="HasBrief Empty Digest")
+        self.assertFalse(digest.has_brief)
+        digest.write({"brief": "<p><br></p>"})
+        self.assertFalse(digest.has_brief)
+        digest.write({"brief": '<h2 data-oe-version="1.2"><br></h2>'})
+        self.assertFalse(digest.has_brief)
+
+    def test_has_brief_true_when_content(self):
+        """has_brief is True when brief has real text content."""
+        digest = self._make_digest(name="HasBrief Content Digest")
+        digest.write({"brief": "<h2>Summary</h2><p>Content.</p>"})
+        self.assertTrue(digest.has_brief)
 
     def test_date_validation(self):
         """date_from > date_to raises ValidationError."""
@@ -187,10 +213,10 @@ class TestStrategyDigest(TransactionCase):
         with patch.object(digest.__class__, "_call_ai", return_value=mock_result):
             result = digest.action_generate_brief()
 
-        self.assertEqual(digest.state, "done")
         self.assertIn("Executive Summary", digest.brief)
         self.assertIn(self.article_in_period, digest.article_ids)
-        self.assertEqual(result["params"]["type"], "success")
+        self.assertTrue(digest.has_brief)
+        self.assertFalse(result)
 
     def test_generate_brief_can_regenerate(self):
         """Brief can be regenerated (overwrite) even when state is done."""
@@ -205,12 +231,10 @@ class TestStrategyDigest(TransactionCase):
         with patch.object(digest.__class__, "_call_ai", return_value=mock_v1):
             digest.action_generate_brief()
         self.assertIn("Version 1", digest.brief)
-        self.assertEqual(digest.state, "done")
 
         with patch.object(digest.__class__, "_call_ai", return_value=mock_v2):
             digest.action_generate_brief()
         self.assertIn("Version 2", digest.brief)
-        self.assertEqual(digest.state, "done")
 
     def test_build_brief_prompt_german(self):
         """Brief prompt includes German instruction for de_DE."""
@@ -460,3 +484,58 @@ class TestStrategyDigestCallAI(TransactionCase):
 
         self.assertIn("<h2>Summary</h2>", digest.brief)
         self.assertNotIn("```", digest.brief)
+
+
+@tagged("post_install", "-at_install")
+class TestStrategyDigestHtmlConversion(TransactionCase):
+    """Tests for HTML→Markdown conversion in digest brief generation."""
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.StrategyDigest = cls.env["strategy.digest"]
+        cls.StrategyStrategy = cls.env["strategy.strategy"]
+        cls.StrategyLabel = cls.env["strategy.label"]
+
+        cls.label = cls.StrategyLabel.create({"name": "HtmlConvTestLabel"})
+        cls.strategy_html = cls.StrategyStrategy.create({
+            "name": "HtmlConvTestStrategy",
+            "state": "active",
+            "prompt": "<h2>Focus Areas</h2><p>Evaluate articles about <strong>innovation</strong>.</p>",
+            "label_ids": [(4, cls.label.id)],
+        })
+
+    def test_build_brief_prompt_converts_html_prompt_to_text(self):
+        """_build_brief_prompt converts HTML strategy prompt to plain text for LLM."""
+        digest = self.StrategyDigest.create({
+            "name": "HtmlConv Digest",
+            "date_from": date(2026, 1, 1),
+            "date_to": date(2026, 12, 31),
+        })
+        source = self.env["news.source"].create({
+            "name": "HtmlConvSrc",
+            "source_type": "website",
+            "url": "https://htmlconv-test.com",
+        })
+        snapshot = self.env["news.snapshot"].with_context(skip_snapshot_extraction=True).create({
+            "source_id": source.id,
+            "raw_content": "<p>Article content</p>",
+        })
+        article = self.env["news.article"].create({
+            "title": "HtmlConv Article",
+            "snapshot_id": snapshot.id,
+            "url": "https://htmlconv-test.com/article",
+            "state": "scraped",
+            "date": date(2026, 6, 15),
+            "strategy_label_ids": [(4, self.label.id)],
+        })
+
+        strategies = self.strategy_html
+        articles = article
+        _, user_content = digest._build_brief_prompt(strategies, articles, "en_US")
+
+        # Prompt should be plain text — no raw HTML tags in the brief prompt
+        self.assertNotIn("<h2>", user_content)
+        self.assertNotIn("<strong>", user_content)
+        # But the text content should be there
+        self.assertIn("innovation", user_content)

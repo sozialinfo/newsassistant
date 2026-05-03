@@ -62,6 +62,7 @@ post-setup:
 		"env.ref('newsassistant.newsassistant_group_admin').write({'users': [(4, 2)]})" \
 		"env.ref('newsassistant.newsassistant_group_user').write({'users': [(4, 2)]})" \
 		"env['ir.config_parameter'].sudo().set_param('newsassistant_blog.pixabay_api_key', '$(PIXABAY_API_KEY)')" \
+		"env['ir.config_parameter'].sudo().set_param('report.url', 'http://localhost:8069')" \
 		"env.cr.commit()" \
 		"print('post-setup done')" \
 	| docker compose exec -T $(SERVICE) odoo shell \

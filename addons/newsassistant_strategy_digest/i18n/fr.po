@@ -569,3 +569,51 @@ msgstr "Valable jusqu'au"
 #: model:ir.model.fields,help:newsassistant_strategy_digest.field_news_article__strategy_eval_state
 msgid "Whether this article has been evaluated against active strategies."
 msgstr "Si cet article a été évalué par rapport aux stratégies actives."
+
+#. module: newsassistant_strategy_digest
+#: model_terms:ir.ui.view,arch_db:newsassistant_strategy_digest.strategy_strategy_view_form
+msgid "Activate"
+msgstr "Activer"
+
+#. module: newsassistant_strategy_digest
+#: model:ir.model.fields.selection,name:newsassistant_strategy_digest.selection__strategy_strategy__state__active
+#: model_terms:ir.ui.view,arch_db:newsassistant_strategy_digest.strategy_strategy_view_search
+msgid "Active"
+msgstr "Actif"
+
+#. module: newsassistant_strategy_digest
+#: model:ir.model.fields.selection,name:newsassistant_strategy_digest.selection__strategy_strategy__state__archived
+#: model_terms:ir.ui.view,arch_db:newsassistant_strategy_digest.strategy_strategy_view_search
+msgid "Archived"
+msgstr "Archivé"
+
+#. module: newsassistant_strategy_digest
+#: model:ir.model,name:newsassistant_strategy_digest.model_strategy_distill_confirm
+msgid "Confirm Prompt Overwrite"
+msgstr "Confirmer l'écrasement du prompt"
+
+#. module: newsassistant_strategy_digest
+#: model_terms:ir.ui.view,arch_db:newsassistant_strategy_digest.strategy_distill_confirm_view_form
+msgid "Distill &amp; Overwrite"
+msgstr "Générer &amp; Écraser"
+
+#. module: newsassistant_strategy_digest
+#: model_terms:ir.ui.view,arch_db:newsassistant_strategy_digest.strategy_distill_confirm_view_form
+msgid "Overwrite Prompt?"
+msgstr "Écraser le prompt ?"
+
+#. module: newsassistant_strategy_digest
+#: model_terms:ir.ui.view,arch_db:newsassistant_strategy_digest.strategy_strategy_view_form
+msgid "Prompt"
+msgstr "Prompt"
+
+#. module: newsassistant_strategy_digest
+#: model_terms:ir.ui.view,arch_db:newsassistant_strategy_digest.strategy_distill_confirm_view_form
+msgid "Cancel"
+msgstr "Annuler"
+
+#. module: newsassistant_strategy_digest
+#. odoo-python
+#: code:addons/newsassistant_strategy_digest/models/strategy_strategy.py:0
+msgid "%(count)d label(s) identified and saved: %(labels)s"
+msgstr "%(count)d étiquette(s) identifiée(s) et enregistrée(s) : %(labels)s"

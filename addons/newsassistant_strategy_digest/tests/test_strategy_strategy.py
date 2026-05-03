@@ -9,6 +9,8 @@ import requests
 from odoo.exceptions import UserError
 from odoo.tests.common import TransactionCase, tagged
 
+from odoo.addons.newsassistant.models.utils import html_has_content, html_to_markdown
+
 try:
     from odoo.addons.queue_job.exception import RetryableJobError
 except ImportError:  # pragma: no cover
@@ -163,7 +165,7 @@ class TestStrategyStrategy(TransactionCase):
         with patch.object(strategy.__class__, "_call_ai", return_value=mock_result):
             result = strategy.action_distill_prompt()
 
-        self.assertEqual(strategy.prompt, "Evaluate articles about social sector vocational training.")
+        self.assertIn("Evaluate articles about social sector vocational training.", strategy.prompt)
         self.assertEqual(len(strategy.label_ids), 2)
         label_names = strategy.label_ids.mapped("name")
         self.assertIn("Berufsbildung", label_names)
@@ -218,7 +220,7 @@ class TestStrategyStrategy(TransactionCase):
              patch.object(strategy.__class__, "_call_ai", return_value=mock_result):
             strategy.action_distill_prompt()
 
-        self.assertEqual(strategy.prompt, "Generated prompt from PDF.")
+        self.assertIn("Generated prompt from PDF.", strategy.prompt)
         self.assertEqual(len(strategy.label_ids), 1)
         self.assertEqual(strategy.label_ids[0].name, "PDFLabel")
 
@@ -389,7 +391,7 @@ class TestStrategyStrategyCallAI(TransactionCase):
              patch.object(strategy.__class__, "_call_ai", return_value=mock_ai_result):
             result = strategy.action_distill_prompt()
 
-        self.assertEqual(strategy.prompt, "Generated from description only.")
+        self.assertIn("Generated from description only.", strategy.prompt)
         self.assertEqual(len(strategy.label_ids), 1)
         self.assertEqual(result["params"]["type"], "success")
 
@@ -425,3 +427,261 @@ class TestStrategyStrategyCallAI(TransactionCase):
                           side_effect=Exception("something went wrong")):
             with self.assertRaises(UserError):
                 strategy.action_distill_prompt()
+
+
+@tagged("post_install", "-at_install")
+class TestStrategyState(TransactionCase):
+    """Tests for strategy.strategy state transitions and activation guard."""
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.StrategyStrategy = cls.env["strategy.strategy"]
+
+    def _make_strategy(self, **kwargs):
+        defaults = {"name": "State Test Strategy"}
+        defaults.update(kwargs)
+        return self.StrategyStrategy.create(defaults)
+
+    def _mock_distill(self, strategy):
+        """Return a mock AI result for distillation."""
+        import json as json_mod
+        return {
+            "content": json_mod.dumps({
+                "labels": [{"name": "TestLabel_State", "description": "desc"}],
+                "prompt": "Test prompt text.",
+            }),
+            "usage": {"total_tokens": 100},
+            "duration_ms": 200,
+        }
+
+    # ── Default state ────────────────────────────────────────────────────────
+
+    def test_new_strategy_defaults_to_draft(self):
+        """Newly created strategy has state='draft'."""
+        s = self._make_strategy()
+        self.assertEqual(s.state, "draft")
+
+    # ── State selection values ────────────────────────────────────────────────
+
+    def test_state_selection_values(self):
+        """State field transitions work via write() when prompt is set."""
+        s = self._make_strategy(prompt="<p>Prompt</p>")
+        s.write({"state": "active"})
+        self.assertEqual(s.state, "active")
+        s.write({"state": "archived"})
+        self.assertEqual(s.state, "archived")
+        s.write({"state": "draft"})
+        self.assertEqual(s.state, "draft")
+
+    # ── State transitions via write() ─────────────────────────────────────────
+
+    def test_set_draft_from_active(self):
+        """write(state=draft) works from active."""
+        s = self._make_strategy(state="active")
+        s.write({"state": "draft"})
+        self.assertEqual(s.state, "draft")
+
+    def test_set_draft_from_archived(self):
+        """write(state=draft) works from archived."""
+        s = self._make_strategy(state="archived")
+        s.write({"state": "draft"})
+        self.assertEqual(s.state, "draft")
+
+    def test_archive_from_draft(self):
+        """write(state=archived) works from draft."""
+        s = self._make_strategy()
+        s.write({"state": "archived"})
+        self.assertEqual(s.state, "archived")
+
+    def test_archive_from_active(self):
+        """write(state=archived) works from active."""
+        s = self._make_strategy(state="active")
+        s.write({"state": "archived"})
+        self.assertEqual(s.state, "archived")
+
+    # ── Activation guard ──────────────────────────────────────────────────────
+
+    def test_activate_with_prompt_succeeds(self):
+        """write(state=active) succeeds when prompt is set."""
+        s = self._make_strategy(prompt="<p>Existing prompt</p>")
+        s.write({"state": "active"})
+        self.assertEqual(s.state, "active")
+
+    def test_action_activate_with_prompt(self):
+        """action_activate() activates immediately when prompt is set."""
+        s = self._make_strategy(prompt="<p>Existing prompt</p>")
+        s.action_activate()
+        self.assertEqual(s.state, "active")
+
+    def test_action_activate_auto_distills(self):
+        """action_activate() auto-distills prompt when description is set."""
+        s = self._make_strategy(description="Some description.")
+        with patch.object(s.__class__, "_call_ai", return_value=self._mock_distill(s)):
+            s.action_activate()
+        self.assertEqual(s.state, "active")
+        self.assertTrue(html_has_content(s.prompt))
+
+    def test_action_activate_no_content_raises(self):
+        """action_activate() raises UserError when no prompt and no content."""
+        s = self._make_strategy()
+        with self.assertRaises(UserError):
+            s.action_activate()
+
+    def test_activate_no_prompt_no_content_raises_user_error(self):
+        """write(state=active) raises UserError when no prompt and no content."""
+        s = self._make_strategy()
+        with self.assertRaises(UserError):
+            s.write({"state": "active"})
+
+    def test_activate_empty_html_prompt_raises_user_error(self):
+        """write(state=active) raises UserError when prompt is HTML editor empty state."""
+        # The HTML editor stores '<p><br></p>' when cleared — must be treated as no prompt
+        s = self._make_strategy(prompt="<p><br></p>")
+        with self.assertRaises(UserError):
+            s.write({"state": "active"})
+
+    def test_activate_no_prompt_with_description_distills_and_activates(self):
+        """write(state=active) auto-distills prompt and activates when description is set."""
+        s = self._make_strategy(description="Some description.")
+        with patch.object(s.__class__, "_call_ai", return_value=self._mock_distill(s)):
+            s.write({"state": "active"})
+        self.assertEqual(s.state, "active")
+        self.assertTrue(html_has_content(s.prompt))
+
+    def test_activate_no_prompt_with_documents_distills_and_activates(self):
+        """write(state=active) auto-distills prompt and activates when documents are attached."""
+        attachment = self.env["ir.attachment"].create({
+            "name": "test.pdf",
+            "datas": base64.b64encode(b"%PDF fake").decode(),
+            "mimetype": "application/pdf",
+        })
+        s = self._make_strategy()
+        s.write({"document_ids": [(4, attachment.id)]})
+        with patch.object(s.__class__, "_call_ai", return_value=self._mock_distill(s)):
+            s.write({"state": "active"})
+        self.assertEqual(s.state, "active")
+        self.assertTrue(html_has_content(s.prompt))
+
+    # ── action_distill_prompt — overwrite confirmation ────────────────────────
+
+    def test_distill_skips_label_with_empty_name(self):
+        """_do_distill_prompt skips AI-returned labels with empty names."""
+        import json as json_mod
+        s = self._make_strategy(description="Description.")
+        mock_result = {
+            "content": json_mod.dumps({
+                "labels": [
+                    {"name": "", "description": "Empty name label."},
+                    {"name": "ValidLabel_EmptySkip", "description": "Valid label."},
+                ],
+                "prompt": "Valid prompt text.",
+            }),
+            "usage": {"total_tokens": 100},
+            "duration_ms": 200,
+        }
+        with patch.object(s.__class__, "_call_ai", return_value=mock_result):
+            s._do_distill_prompt()
+        # Only the valid label should be created
+        label_names = s.label_ids.mapped("name")
+        self.assertNotIn("", label_names)
+        self.assertIn("ValidLabel_EmptySkip", label_names)
+
+    def test_distill_prompt_when_prompt_exists_opens_wizard(self):
+        """action_distill_prompt opens wizard when prompt already set."""
+        s = self._make_strategy(
+            prompt="<p>Existing prompt</p>",
+            description="Some description.",
+        )
+        result = s.action_distill_prompt()
+        self.assertEqual(result["type"], "ir.actions.act_window")
+        self.assertEqual(result["res_model"], "strategy.distill.confirm")
+
+    def test_distill_prompt_when_no_prompt_runs_directly(self):
+        """action_distill_prompt runs distillation directly when no prompt set."""
+        s = self._make_strategy(description="Some description.")
+        with patch.object(s.__class__, "_call_ai", return_value=self._mock_distill(s)):
+            result = s.action_distill_prompt()
+        # Should return notification, not a wizard
+        self.assertEqual(result["type"], "ir.actions.client")
+        self.assertEqual(result["tag"], "display_notification")
+
+    # ── strategy.distill.confirm wizard ──────────────────────────────────────
+
+    def test_distill_confirm_wizard_runs_distillation(self):
+        """StrategyDistillConfirm.action_confirm_distill() overwrites existing prompt."""
+        s = self._make_strategy(
+            prompt="<p>Old prompt</p>",
+            description="New description for distillation.",
+        )
+        wizard = self.env["strategy.distill.confirm"].create({"strategy_id": s.id})
+
+        with patch.object(s.__class__, "_call_ai", return_value=self._mock_distill(s)):
+            wizard.action_confirm_distill()
+
+        # Prompt should be updated (contains the new content)
+        self.assertIn("<p>", s.prompt)
+        self.assertNotIn("Old prompt", s.prompt)
+
+    # ── HTML prompt storage ───────────────────────────────────────────────────
+
+    def test_distill_writes_html_prompt(self):
+        """_do_distill_prompt writes the prompt as HTML (wrapped in <p> tags)."""
+        s = self._make_strategy(description="Description for HTML prompt test.")
+        with patch.object(s.__class__, "_call_ai", return_value=self._mock_distill(s)):
+            s._do_distill_prompt()
+        self.assertIn("<p>", s.prompt)
+
+    def test_prompt_field_accepts_html(self):
+        """prompt field (Html) accepts and stores HTML content."""
+        s = self._make_strategy()
+        s.write({"prompt": "<h2>Title</h2><p>Body text.</p>"})
+        self.assertIn("<h2>", s.prompt)
+
+    # ── Reactivation from archived ────────────────────────────────────────────
+
+    def test_reactivate_from_archived_with_prompt(self):
+        """Can reactivate an archived strategy that has a prompt."""
+        s = self._make_strategy(state="archived", prompt="<p>Prompt</p>")
+        s.write({"state": "active"})
+        self.assertEqual(s.state, "active")
+
+
+@tagged("post_install", "-at_install")
+class TestStrategyActiveFilter(TransactionCase):
+    """Tests for active-only filtering in digest and article evaluation."""
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.StrategyStrategy = cls.env["strategy.strategy"]
+
+        cls.active_strategy = cls.StrategyStrategy.create({
+            "name": "Active Strategy Filter Test",
+            "state": "active",
+            "prompt": "<p>Active prompt</p>",
+        })
+        cls.draft_strategy = cls.StrategyStrategy.create({
+            "name": "Draft Strategy Filter Test",
+            "state": "draft",
+            "prompt": "<p>Draft prompt</p>",
+        })
+        cls.archived_strategy = cls.StrategyStrategy.create({
+            "name": "Archived Strategy Filter Test",
+            "state": "archived",
+            "prompt": "<p>Archived prompt</p>",
+        })
+
+    def test_get_active_strategies_excludes_draft_and_archived(self):
+        """_get_active_strategies_for_period only returns state='active' strategies."""
+        from datetime import date
+        digest = self.env["strategy.digest"].create({
+            "name": "Filter Test Digest",
+            "date_from": date(2020, 1, 1),
+            "date_to": date(2030, 12, 31),
+        })
+        result = digest._get_active_strategies_for_period()
+        result_ids = result.ids
+        self.assertIn(self.active_strategy.id, result_ids)
+        self.assertNotIn(self.draft_strategy.id, result_ids)
+        self.assertNotIn(self.archived_strategy.id, result_ids)

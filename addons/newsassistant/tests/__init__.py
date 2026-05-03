@@ -1,3 +1,4 @@
+from . import test_utils
 from . import test_news_source
 from . import test_html_cleaner
 from . import test_url_normalization

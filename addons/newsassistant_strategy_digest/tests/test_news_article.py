@@ -46,7 +46,8 @@ class TestNewsArticleStrategyEval(TransactionCase):
         cls.label = cls.env["strategy.label"].create({"name": "EvalTestLabel"})
         cls.strategy = cls.env["strategy.strategy"].create({
             "name": "EvalTestStrategy",
-            "prompt": "Evaluate articles about technology.",
+            "state": "active",
+            "prompt": "<p>Evaluate articles about technology.</p>",
             "label_ids": [(4, cls.label.id)],
         })
 
@@ -341,7 +342,8 @@ class TestNewsArticleEvalCoverage(TransactionCase):
         cls.label = cls.env["strategy.label"].create({"name": "CoverageLabel"})
         cls.strategy = cls.env["strategy.strategy"].create({
             "name": "CoverageStrategy",
-            "prompt": "Evaluate for coverage.",
+            "state": "active",
+            "prompt": "<p>Evaluate for coverage.</p>",
             "label_ids": [(4, cls.label.id)],
         })
         # Article with summary and content
@@ -476,3 +478,80 @@ class TestNewsArticleEvalCoverage(TransactionCase):
 
         self.assertIn(self.label, article.strategy_label_ids)
         self.assertEqual(article.strategy_eval_state, "processed")
+
+
+@tagged("post_install", "-at_install")
+class TestNewsArticleHtmlConversion(TransactionCase):
+    """Tests for HTML→Markdown conversion in article strategy evaluation."""
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.label = cls.env["strategy.label"].create({"name": "HtmlConvEvalLabel"})
+        cls.strategy_html = cls.env["strategy.strategy"].create({
+            "name": "HtmlConvEvalStrategy",
+            "state": "active",
+            "prompt": "<h2>Strategy Focus</h2><p>Evaluate articles about <strong>technology</strong>.</p>",
+            "label_ids": [(4, cls.label.id)],
+        })
+        source = cls.env["news.source"].create({
+            "name": "HtmlConvEvalSource",
+            "source_type": "website",
+            "url": "https://htmlconveval.com",
+        })
+        snapshot = cls.env["news.snapshot"].with_context(skip_snapshot_extraction=True).create({
+            "source_id": source.id,
+            "raw_content": "<p>Content about technology.</p>",
+        })
+        cls.article = cls.env["news.article"].create({
+            "title": "HtmlConvEval Article",
+            "snapshot_id": snapshot.id,
+            "url": "https://htmlconveval.com/article",
+            "state": "scraped",
+            "date": date.today(),
+            "content": "<p>This article is about <strong>technology</strong> and innovation.</p>",
+        })
+
+    def test_evaluate_against_strategy_converts_html_prompt(self):
+        """_evaluate_against_strategy converts HTML prompt to plain text before LLM call."""
+        ai_response = json.dumps({"is_relevant": True, "labels": ["HtmlConvEvalLabel"]})
+        mock_result = {"content": ai_response, "usage": {}, "duration_ms": 100}
+
+        captured_calls = []
+
+        def capture_call(system_prompt, user_content, temperature=0.1):
+            captured_calls.append(system_prompt)
+            return mock_result
+
+        with patch.object(self.article.__class__, "_call_ai", side_effect=capture_call):
+            self.article._evaluate_against_strategy(self.strategy_html)
+
+        self.assertTrue(captured_calls)
+        system_prompt = captured_calls[0]
+        # HTML tags from prompt should NOT appear in the system prompt sent to LLM
+        self.assertNotIn("<h2>", system_prompt)
+        self.assertNotIn("<strong>", system_prompt)
+        # But the text content should be present
+        self.assertIn("technology", system_prompt)
+
+    def test_evaluate_against_strategy_converts_article_content_html(self):
+        """_evaluate_against_strategy converts article content HTML to plain text."""
+        ai_response = json.dumps({"is_relevant": False, "labels": []})
+        mock_result = {"content": ai_response, "usage": {}, "duration_ms": 100}
+
+        captured_user_content = []
+
+        def capture_call(system_prompt, user_content, temperature=0.1):
+            captured_user_content.append(user_content)
+            return mock_result
+
+        with patch.object(self.article.__class__, "_call_ai", side_effect=capture_call):
+            self.article._evaluate_against_strategy(self.strategy_html)
+
+        self.assertTrue(captured_user_content)
+        user_content = captured_user_content[0]
+        # HTML tags from article content should NOT appear in user content
+        self.assertNotIn("<p>", user_content)
+        self.assertNotIn("<strong>", user_content)
+        # But the text should be present
+        self.assertIn("technology", user_content)

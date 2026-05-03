@@ -11,11 +11,6 @@
     - When clicked, a popup appears, where the user must select the newsletter where the news will be added to. In the same popup, it must be possible to create a new newsletter, either from a template or as a copy of an existing newsletter
     - In the selected newsletter, add a new section for each article, with the title, the digest blurb, the image (with a reasonable size) and the link back to the original source of the article. If there is no image, use just the blurb and adjust the layout. Use AI to find the proper placing within existing newsletters.
 
-
-# Strategy UI
-For the strategy.strategy, add a status "draft/active/archived", including a ribbon (not sure if this is the proper widget name, use the standard odoo pattern) in the top right corner of the detail view. Make sure the strategy can only be activated if the prompt is set. If the user tries to activate without the prompt, offer the action to create the prompt from the available documents (if there are documents attached). Move the "create prompt" button inside the tab with the prompt and rename the tab just "prompt". Add an explanation above the prompt what the purpose of this prompt is. The prompt itself must be HTML (only converted to MD "on the fly" when sending it to the LLM).
-
-
 # Translation
 - Make sure all terms accross all modules are translated to German and French.
 - Make sure all visible prompts and prompt answers are in the langauge of the user triggering the action
@@ -55,3 +50,13 @@ For snapshots from websites, include the exact URL of the website in the snapsho
 
 # Article Date
 Make the date of an article mandatory. If the LLM cannot find a date, assume [today] as the article's date. When creating a new article in the GUI, automatically prefill the date with [today]
+
+# Prompts
+Refactor all prompts embedded in code to be standalone MD files in the same directory as the PY file using the prompt. I want the prompts the be human editable.
+
+# Cron-Job
+I only want one single cron job, defined in the base modul, which does all the work. When it runs, it scrapes all the sources, creates articles and then also calls the follow-up actions defined in the sub-modules (e.g. strategy check).
+
+# Auto-Refresh
+So: the button calls action_activate() which calls write({"state": "active"}) (which auto-distills if needed), and returns False. The form controller detects no action was returned and reloads the record, showing the updated state, prompt, and labels.
+

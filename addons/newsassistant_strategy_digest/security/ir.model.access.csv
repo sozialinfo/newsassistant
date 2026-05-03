@@ -5,3 +5,4 @@ access_strategy_strategy_user,strategy.strategy.user,model_strategy_strategy,bas
 access_strategy_strategy_admin,strategy.strategy.admin,model_strategy_strategy,base.group_system,1,1,1,1
 access_strategy_digest_user,strategy.digest.user,model_strategy_digest,base.group_user,1,1,1,1
 access_strategy_digest_admin,strategy.digest.admin,model_strategy_digest,base.group_system,1,1,1,1
+access_strategy_distill_confirm_user,strategy.distill.confirm.user,model_strategy_distill_confirm,base.group_user,1,1,1,1

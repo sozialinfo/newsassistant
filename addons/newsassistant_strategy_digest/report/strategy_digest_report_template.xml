@@ -2,21 +2,21 @@
 <odoo>
     <template id="report_strategy_digest">
         <t t-call="web.html_container">
-            <t t-foreach="docs" t-as="o">
+            <t t-foreach="docs" t-as="doc">
                 <t t-call="web.external_layout">
                     <div class="page">
                         <!-- Title block -->
                         <div class="row mb-4">
                             <div class="col-12">
-                                <h1 t-field="o.name"/>
+                                <h1 t-field="doc.name"/>
                                 <p class="text-muted">
-                                    <span t-field="o.date_from"/> – <span t-field="o.date_to"/>
+                                    <span t-field="doc.date_from"/> – <span t-field="doc.date_to"/>
                                 </p>
                             </div>
                         </div>
 
                         <!-- Brief content (AI-generated HTML) -->
-                        <div t-if="o.brief" t-out="o.brief"/>
+                        <div t-if="doc.brief" t-out="doc.brief"/>
 
                         <!-- Fallback if no brief generated -->
                         <div t-else="">
@@ -26,7 +26,7 @@
                         </div>
 
                         <!-- Article reference list (if articles linked) -->
-                        <div t-if="o.article_ids" class="mt-4">
+                        <div t-if="doc.article_ids" class="mt-4">
                             <h3>Referenced Articles</h3>
                             <table class="table table-sm" style="font-size:9pt;">
                                 <thead>
@@ -39,19 +39,19 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <t t-foreach="o.article_ids" t-as="article">
+                                    <t t-foreach="doc.article_ids" t-as="article">
                                         <tr>
                                             <td t-esc="article_index + 1"/>
                                             <td>
                                                 <t t-if="article.url">
-                                                    <a t-att-href="article.url" t-field="article.title"/>
+                                                    <a t-att-href="article.url"><span t-field="article.title"/></a>
                                                 </t>
                                                 <t t-else="">
                                                     <span t-field="article.title"/>
                                                 </t>
                                             </td>
-                                            <td t-field="article.source_id"/>
-                                            <td t-field="article.date"/>
+                                            <td><span t-field="article.source_id"/></td>
+                                            <td><span t-field="article.date"/></td>
                                             <td>
                                                 <t t-foreach="article.strategy_label_ids" t-as="label">
                                                     <span t-field="label.name"/>
@@ -65,10 +65,10 @@
                         </div>
 
                         <!-- Strategies summary -->
-                        <div t-if="o.strategy_ids" class="mt-2">
+                        <div t-if="doc.strategy_ids" class="mt-2">
                             <h3>Strategies</h3>
                             <ul>
-                                <t t-foreach="o.strategy_ids" t-as="strategy">
+                                <t t-foreach="doc.strategy_ids" t-as="strategy">
                                     <li>
                                         <strong t-field="strategy.name"/>
                                         <t t-if="strategy.date_from or strategy.date_to">
