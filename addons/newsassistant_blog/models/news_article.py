@@ -1,6 +1,12 @@
+import base64
 import json
 import logging
+import mimetypes
+import os
+import re
 import time
+from html import unescape
+from urllib.parse import urlparse
 
 import requests
 
@@ -53,8 +59,17 @@ class NewsArticle(models.Model):
     )
 
     def _compute_blog_post_count(self):
+        """Count blog posts per article using a single batched query."""
+        counts = {}
+        if self.ids:
+            result = self.env["blog.post"].read_group(
+                [("news_article_id", "in", self.ids)],
+                ["news_article_id"],
+                ["news_article_id"],
+            )
+            counts = {row["news_article_id"][0]: row["news_article_id_count"] for row in result}
         for article in self:
-            article.blog_post_count = len(article.blog_post_ids)
+            article.blog_post_count = counts.get(article.id, 0)
 
     def action_view_blog_post(self):
         """Open the blog post on the website for editing."""
@@ -409,8 +424,6 @@ class NewsArticle(models.Model):
             RetryableJobError: On transient API errors.
             ValueError: On malformed AI response.
         """
-        import os
-
         api_key = os.environ.get("INFOMANIAK_AI_API_KEY")
         if not api_key:
             raise UserError(
@@ -496,8 +509,6 @@ class NewsArticle(models.Model):
 
     def _parse_ai_json(self, raw_text):
         """Parse JSON from AI response, handling markdown fences and thinking blocks."""
-        import re
-
         text = raw_text.strip()
 
         # Remove thinking blocks
@@ -516,18 +527,6 @@ class NewsArticle(models.Model):
     # -------------------------------------------------------------------------
     # Digest Pipeline
     # -------------------------------------------------------------------------
-
-    @staticmethod
-    def _cron_digest_all():
-        """Cron entry point: enqueue a digest job for each unprocessed article.
-
-        This is a static method called by the cron. We need to get the model
-        from the environment passed by Odoo.
-        """
-        from odoo import api, SUPERUSER_ID
-        # This method is called directly by cron, so we need to handle
-        # the environment ourselves
-        pass
 
     def _cron_digest_all_impl(self):
         """Implementation of cron digest - find and queue unprocessed articles."""
@@ -659,8 +658,6 @@ class NewsArticle(models.Model):
             article_content += f"Summary: {self.summary}\n\n"
         if self.content:
             # Strip HTML tags for cleaner input
-            from html import unescape
-            import re
             clean_content = re.sub(r"<[^>]+>", " ", self.content)
             clean_content = unescape(clean_content)
             clean_content = re.sub(r"\s+", " ", clean_content).strip()
@@ -798,8 +795,6 @@ class NewsArticle(models.Model):
         if self.summary:
             article_content += f"Summary: {self.summary}\n\n"
         if self.content:
-            from html import unescape
-            import re
             clean_content = re.sub(r"<[^>]+>", " ", self.content)
             clean_content = unescape(clean_content)
             clean_content = re.sub(r"\s+", " ", clean_content).strip()
@@ -847,9 +842,6 @@ class NewsArticle(models.Model):
         Returns:
             ir.attachment: The created attachment record.
         """
-        import base64
-        import mimetypes
-
         # Determine mimetype from filename
         mimetype, _ = mimetypes.guess_type(filename)
         if not mimetype:
@@ -888,8 +880,6 @@ class NewsArticle(models.Model):
         Returns:
             tuple: (image_data, filename, source) where source is 'article', 'pixabay', or None
         """
-        import base64
-
         # Try article's extracted header image first
         if self.header_image:
             image_data = base64.b64decode(self.header_image)
@@ -953,7 +943,6 @@ class NewsArticle(models.Model):
             return None
 
         # Format content with teaser and source link
-        from urllib.parse import urlparse
         domain = urlparse(self.url).netloc
 
         content = f"""

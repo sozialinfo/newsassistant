@@ -16,6 +16,12 @@
                                    options="{'no_create': True}"/>
                         </setting>
                     </block>
+                    <block title="AI Configuration">
+                        <setting string="Infomaniak AI Product ID"
+                                 help="Infomaniak AI product ID used for all AI API calls. Default: 103794.">
+                            <field name="newsassistant_infomaniak_product_id"/>
+                        </setting>
+                    </block>
                 </app>
             </xpath>
         </field>

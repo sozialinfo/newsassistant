@@ -13,19 +13,28 @@ class TestEmailInbound(TransactionCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.env = cls.env(context=dict(cls.env.context, queue_job__no_delay=True))
+        # Do NOT use queue_job__no_delay here — it would cause jobs to run
+        # immediately and make real AI API calls. Use skip_snapshot_extraction
+        # context in each test to suppress extraction.
+        pass
 
     def _send_email(self, email_from, body="<p>Newsletter content</p>", subject="Test Newsletter"):
-        """Helper: simulate inbound email via message_new()."""
+        """Helper: simulate inbound email via message_new().
+
+        Mocks AI source naming and traps extraction jobs to prevent real HTTP calls.
+        """
         msg_dict = {
             "email_from": email_from,
             "body": body,
             "subject": subject,
         }
-        # Use skip_snapshot_extraction to prevent auto-triggering AI extraction
-        return self.env["news.snapshot"].with_context(
-            skip_snapshot_extraction=True
-        ).message_new(msg_dict)
+        # Mock AI source naming + trap extraction jobs to prevent real API calls
+        with patch.object(
+            self.env["news.snapshot"].__class__,
+            "_ai_get_source_name",
+            side_effect=lambda domain: domain,
+        ), trap_jobs():
+            return self.env["news.snapshot"].message_new(msg_dict)
 
     def test_known_domain_routes_to_existing_source(self):
         """Email from known domain links snapshot to existing source."""
@@ -43,8 +52,13 @@ class TestEmailInbound(TransactionCase):
             self.env["news.snapshot"].__class__,
             "_ai_get_source_name",
             return_value="New Newsletter",
-        ):
-            snapshot = self._send_email("info@brandnewdomain123.example.com")
+        ), trap_jobs():
+            msg_dict = {
+                "email_from": "info@brandnewdomain123.example.com",
+                "body": "<p>Content</p>",
+                "subject": "Test",
+            }
+            snapshot = self.env["news.snapshot"].message_new(msg_dict)
 
         source = snapshot.source_id
         self.assertTrue(source)
@@ -58,8 +72,13 @@ class TestEmailInbound(TransactionCase):
             self.env["news.snapshot"].__class__,
             "_ai_get_source_name",
             return_value="Active Newsletter",
-        ):
-            snapshot = self._send_email("info@activenews999.example.com")
+        ), trap_jobs():
+            msg_dict = {
+                "email_from": "info@activenews999.example.com",
+                "body": "<p>Content</p>",
+                "subject": "Test",
+            }
+            snapshot = self.env["news.snapshot"].message_new(msg_dict)
         self.assertTrue(snapshot.source_id.active)
 
     def test_snapshot_has_sanitized_html_body(self):
@@ -101,8 +120,13 @@ class TestEmailInbound(TransactionCase):
             self.env["news.snapshot"].__class__,
             "_ai_get_source_name",
             return_value="fallback.example.com",
-        ):
-            snapshot = self._send_email("info@fallback.example.com")
+        ), trap_jobs():
+            msg_dict = {
+                "email_from": "info@fallback.example.com",
+                "body": "<p>Content</p>",
+                "subject": "Test",
+            }
+            snapshot = self.env["news.snapshot"].message_new(msg_dict)
         self.assertEqual(snapshot.source_id.name, "fallback.example.com")
 
     def test_snapshot_creation_enqueues_extraction(self):

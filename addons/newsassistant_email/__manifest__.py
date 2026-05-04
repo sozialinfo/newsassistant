@@ -1,6 +1,6 @@
 {
     "name": "News Assistant — Email",
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.0.1",
     "category": "Productivity",
     "summary": "Inbound email capture for News Assistant",
     "description": """
@@ -21,6 +21,7 @@
         "security/ir.model.access.csv",
         "data/mail_alias_data.xml",
         "views/res_config_settings_views.xml",
+        "views/news_snapshot_views.xml",
     ],
     "demo": [
         "demo/email_source_demo.xml",

@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import re
 import time
 
 import requests
@@ -124,8 +125,6 @@ class NewsArticle(models.Model):
 
     def _parse_ai_json(self, raw_text):
         """Parse JSON from AI response, handling markdown fences and thinking blocks."""
-        import re
-
         text = raw_text.strip()
         text = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
 

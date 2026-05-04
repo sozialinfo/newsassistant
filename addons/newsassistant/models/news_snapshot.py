@@ -1,8 +1,13 @@
 import json
 import logging
+import threading
 import time
+from datetime import datetime
 
 from odoo import api, fields, models
+from odoo.addons.queue_job.exception import RetryableJobError
+
+from .news_source import parse_ai_json
 
 _logger = logging.getLogger(__name__)
 
@@ -76,17 +81,14 @@ class NewsSnapshot(models.Model):
     def create(self, vals_list):
         """Create snapshots and auto-enqueue article extraction for each.
 
-        Enqueueing is suppressed when:
-        - Context key ``skip_snapshot_extraction=True`` is set (test fixtures), or
-        - ``threading.current_thread().testing`` is True, which Odoo sets during
-          both demo data loading and test runs.
+        Enqueueing is suppressed when context key ``skip_snapshot_extraction=True``
+        is set (used in test fixtures and demo data loading to avoid unwanted AI calls).
+
+        During test runs, use ``trap_jobs()`` from OCA queue_job to intercept
+        enqueued jobs without making real API calls.
         """
-        import threading
         snapshots = super().create(vals_list)
-        if (
-            not self.env.context.get("skip_snapshot_extraction")
-            and not getattr(threading.current_thread(), "testing", False)
-        ):
+        if not self.env.context.get("skip_snapshot_extraction"):
             for snapshot in snapshots:
                 snapshot.with_delay(
                     channel="root.newsassistant",
@@ -97,6 +99,35 @@ class NewsSnapshot(models.Model):
     # -------------------------------------------------------------------------
     # Article Extraction
     # -------------------------------------------------------------------------
+
+    # -------------------------------------------------------------------------
+    # Extraction Prompt
+    # -------------------------------------------------------------------------
+
+    _EXTRACTION_SYSTEM_PROMPT = (
+        "/no_think\n"
+        "You are a news extraction assistant. Given HTML content, first determine if this "
+        "is a SINGLE news article or blog post.\n\n"
+        "It is NOT an article if it is:\n"
+        "- A listing/index page showing multiple articles\n"
+        "- A category or topic overview page\n"
+        "- A navigation page, homepage, or search results\n"
+        "- A page without substantial article body text\n\n"
+        "If NOT an article, return: {\"is_article\": false, \"reason\": \"brief explanation\"}\n\n"
+        "If it IS an article, extract the content and return:\n"
+        "{\n"
+        '  "is_article": true,\n'
+        '  "title": "the article title (string)",\n'
+        '  "date": "publication date YYYY-MM-DD or null",\n'
+        '  "summary": "2-3 sentence summary (string)",\n'
+        '  "content": "full article as clean HTML"\n'
+        "}\n\n"
+        "For the content field: Use semantic HTML tags (h2, h3, p, ul, ol, li, strong, em). "
+        "Do NOT include html, head, body, nav, header, footer, script, style tags. "
+        "Just the article body content. No navigation, no boilerplate, no ads.\n"
+        "Keep the original language. Do not translate.\n"
+        "IMPORTANT: Return a single valid JSON object. No markdown formatting, no code fences."
+    )
 
     def _extract_articles(self):
         """Queue job: extract articles from this snapshot's raw HTML content.
@@ -111,12 +142,7 @@ class NewsSnapshot(models.Model):
         start_time = time.time()
         log_entries = []
 
-        # Try to get current job ID from context
-        job_id_ctx = self.env.context.get("job_uuid")
-        job_id = None
-        if job_id_ctx:
-            job = self.env["queue.job"].search([("uuid", "=", job_id_ctx)], limit=1)
-            job_id = job.id if job else None
+        job_id = self._resolve_job_id()
 
         def add_entry(level, message, duration=None, metadata=None):
             log_entries.append({
@@ -141,37 +167,57 @@ class NewsSnapshot(models.Model):
             _logger.warning("Snapshot %s has no raw_content", self.name)
             return
 
-        system_prompt = (
-            "/no_think\n"
-            "You are a news extraction assistant. Given HTML content, first determine if this "
-            "is a SINGLE news article or blog post.\n\n"
-            "It is NOT an article if it is:\n"
-            "- A listing/index page showing multiple articles\n"
-            "- A category or topic overview page\n"
-            "- A navigation page, homepage, or search results\n"
-            "- A page without substantial article body text\n\n"
-            "If NOT an article, return: {\"is_article\": false, \"reason\": \"brief explanation\"}\n\n"
-            "If it IS an article, extract the content and return:\n"
-            "{\n"
-            '  "is_article": true,\n'
-            '  "title": "the article title (string)",\n'
-            '  "date": "publication date YYYY-MM-DD or null",\n'
-            '  "summary": "2-3 sentence summary (string)",\n'
-            '  "content": "full article as clean HTML"\n'
-            "}\n\n"
-            "For the content field: Use semantic HTML tags (h2, h3, p, ul, ol, li, strong, em). "
-            "Do NOT include html, head, body, nav, header, footer, script, style tags. "
-            "Just the article body content. No navigation, no boilerplate, no ads.\n"
-            "Keep the original language. Do not translate.\n"
-            "IMPORTANT: Return a single valid JSON object. No markdown formatting, no code fences."
+        ai_result, ai_response = self._extraction_call_ai(add_entry, start_time, log_entries, job_id)
+        if ai_result is None:
+            return
+
+        article_data = self._extraction_parse_response(ai_response, add_entry, start_time, log_entries, job_id)
+        if article_data is None:
+            return
+
+        if article_data.get("is_article") is False:
+            reason = article_data.get("reason", "Content is not a single article")
+            add_entry("warning", f"Not an article: {reason}", metadata={"reason": reason})
+            self._create_snapshot_log(
+                level="warning",
+                message=f"Skipped (not an article): {reason}",
+                duration=time.time() - start_time,
+                entries=log_entries,
+                job_id=job_id,
+            )
+            _logger.info("Snapshot %s is not an article: %s", self.name, reason)
+            return
+
+        article = self._extraction_create_article(article_data, add_entry)
+
+        self._create_snapshot_log(
+            level="success",
+            message=f"Extracted: {article.title[:50]}",
+            duration=time.time() - start_time,
+            entries=log_entries,
+            article_id=article.id,
+            job_id=job_id,
         )
+        _logger.info("Successfully extracted article from snapshot: %s", article.title)
 
+    def _resolve_job_id(self):
+        """Resolve the current queue.job record ID from context."""
+        job_id_ctx = self.env.context.get("job_uuid")
+        if not job_id_ctx:
+            return None
+        job = self.env["queue.job"].search([("uuid", "=", job_id_ctx)], limit=1)
+        return job.id if job else None
+
+    def _extraction_call_ai(self, add_entry, start_time, log_entries, job_id):
+        """Call the AI for article extraction.
+
+        Returns:
+            tuple: (ai_result dict, ai_response str) or (None, None) on error.
+        """
         add_entry("info", "Calling LLM for content extraction")
-
-        # Use source to call the AI (AI method lives on news.source)
         try:
             ai_result = self.source_id._call_infomaniak_ai(
-                system_prompt, self.raw_content
+                self._EXTRACTION_SYSTEM_PROMPT, self.raw_content
             )
             ai_response = ai_result["content"]
             add_entry(
@@ -185,8 +231,8 @@ class NewsSnapshot(models.Model):
                     "timing": {"duration_ms": ai_result["duration_ms"]},
                 },
             )
+            return ai_result, ai_response
         except Exception as e:
-            from odoo.addons.queue_job.exception import RetryableJobError
             if isinstance(e, RetryableJobError):
                 raise
             _logger.exception("AI error extracting from snapshot %s", self.name)
@@ -198,16 +244,21 @@ class NewsSnapshot(models.Model):
                 entries=log_entries,
                 job_id=job_id,
             )
-            return
+            return None, None
 
-        # Parse AI response
-        from .news_source import parse_ai_json
+    def _extraction_parse_response(self, ai_response, add_entry, start_time, log_entries, job_id):
+        """Parse the AI response JSON.
+
+        Returns:
+            dict: Parsed article data, or None on error.
+        """
         try:
             article_data = parse_ai_json(ai_response, expect_array=False)
             if isinstance(article_data, list) and article_data:
                 article_data = article_data[0]
             if not isinstance(article_data, dict):
                 raise ValueError("Expected a JSON object")
+            return article_data
         except (ValueError, Exception) as e:
             add_entry(
                 "error",
@@ -222,23 +273,14 @@ class NewsSnapshot(models.Model):
                 entries=log_entries,
                 job_id=job_id,
             )
-            return
+            return None
 
-        # Not an article
-        if article_data.get("is_article") is False:
-            reason = article_data.get("reason", "Content is not a single article")
-            add_entry("warning", f"Not an article: {reason}", metadata={"reason": reason})
-            self._create_snapshot_log(
-                level="warning",
-                message=f"Skipped (not an article): {reason}",
-                duration=time.time() - start_time,
-                entries=log_entries,
-                job_id=job_id,
-            )
-            _logger.info("Snapshot %s is not an article: %s", self.name, reason)
-            return
+    def _extraction_create_article(self, article_data, add_entry):
+        """Create or update a news.article from parsed article data.
 
-        # Valid article — create news.article
+        Returns:
+            news.article: The created or updated article record.
+        """
         add_entry("info", "Successfully parsed article data from LLM response")
 
         Article = self.env["news.article"]
@@ -250,7 +292,6 @@ class NewsSnapshot(models.Model):
         }
         if article_data.get("date"):
             try:
-                from datetime import datetime
                 datetime.strptime(article_data["date"], "%Y-%m-%d")
                 vals["date"] = article_data["date"]
             except (ValueError, TypeError):
@@ -265,25 +306,15 @@ class NewsSnapshot(models.Model):
         if existing:
             add_entry("info", f"Article already exists for snapshot, updating: {existing.title}")
             existing.write({k: v for k, v in vals.items() if k != "snapshot_id"})
-            article = existing
-        else:
-            article = Article.create(vals)
+            return existing
 
+        article = Article.create(vals)
         add_entry(
             "info",
             f"Article created/updated: {article.title[:50]}",
             metadata={"article_id": article.id, "title": article.title},
         )
-
-        self._create_snapshot_log(
-            level="success",
-            message=f"Extracted: {article.title[:50]}",
-            duration=time.time() - start_time,
-            entries=log_entries,
-            article_id=article.id,
-            job_id=job_id,
-        )
-        _logger.info("Successfully extracted article from snapshot: %s", article.title)
+        return article
 
     def _create_snapshot_log(self, level, message, duration=None, entries=None, article_id=None, job_id=None):
         """Create a news.log record for this snapshot's extraction."""

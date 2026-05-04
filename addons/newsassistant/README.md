@@ -160,9 +160,12 @@ Go to **News Assistant → Sources** to see:
 
 | Model | Description |
 |-------|-------------|
-| `news.source` | News website to scrape |
+| `news.source` | News website or email source to scrape |
+| `news.snapshot` | Raw captured content (one per article page or email) |
 | `news.article` | Extracted article with clean content |
-| `news.article.stage` | Kanban stage (New, Relevant, Archived, Discarded) |
+| `news.article.stage` | Kanban stage (New, Shortlist, Published, Discarded) |
+| `news.log` | Summary log record per scraping operation |
+| `news.log.entry` | Detailed step entry per log (includes LLM request/response data) |
 
 ### AI Model
 
@@ -182,5 +185,20 @@ Uses `qwen3` via the Infomaniak AI Services OpenAI-compatible API. Two prompts:
 ### Running Tests
 
 ```bash
-docker exec odoo-newsassistant odoo --test-tags newsassistant --stop-after-init -d newsassistant
+make test
+```
+
+Or manually:
+
+```bash
+docker run --rm --network opencode \
+    -v $(pwd)/addons:/mnt/extra-addons \
+    -v $(pwd)/odoo.conf:/etc/odoo/odoo.conf:ro \
+    odoo:18.0 odoo \
+    -d test_newsassistant \
+    -i newsassistant \
+    --test-enable \
+    --test-tags=/newsassistant \
+    --stop-after-init \
+    -c /etc/odoo/odoo.conf
 ```

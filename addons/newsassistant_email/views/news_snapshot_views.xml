@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Add chatter to snapshot form view (mail.thread is added by this module) -->
+    <record id="news_snapshot_view_form_email" model="ir.ui.view">
+        <field name="name">news.snapshot.form.email</field>
+        <field name="model">news.snapshot</field>
+        <field name="inherit_id" ref="newsassistant.news_snapshot_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="after">
+                <chatter/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

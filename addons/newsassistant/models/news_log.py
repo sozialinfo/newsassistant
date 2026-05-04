@@ -83,8 +83,23 @@ class NewsLog(models.Model):
     )
 
     def _compute_created_article_count(self):
+        """Count created articles per log using a single batched query."""
+        if not self.ids:
+            for log in self:
+                log.created_article_count = 0
+            return
+        self.env.cr.execute(
+            """
+            SELECT news_log_id, COUNT(news_article_id)
+            FROM news_article_news_log_rel
+            WHERE news_log_id IN %s
+            GROUP BY news_log_id
+            """,
+            [tuple(self.ids)],
+        )
+        counts = {row[0]: row[1] for row in self.env.cr.fetchall()}
         for log in self:
-            log.created_article_count = len(log.created_article_ids)
+            log.created_article_count = counts.get(log.id, 0)
 
     def action_view_created_articles(self):
         """Open the articles created by this job."""

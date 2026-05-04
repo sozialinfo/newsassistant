@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import re
 import time
 
 import requests
@@ -58,6 +59,7 @@ class StrategyDigest(models.Model):
     )
     brief = fields.Html(
         string="Strategy Brief",
+        sanitize=True,
         help="AI-generated executive brief for this period. Can be freely edited after generation.",
     )
     has_brief = fields.Boolean(
@@ -320,7 +322,6 @@ class StrategyDigest(models.Model):
             raise UserError(_("AI call failed: %s") % str(e)) from e
 
         # Strip any <think> blocks from AI output
-        import re
         brief_html = result["content"].strip()
         brief_html = re.sub(r"<think>.*?</think>", "", brief_html, flags=re.DOTALL).strip()
         # Strip markdown fences if present

@@ -1,6 +1,6 @@
 {
     "name": "News Assistant",
-    "version": "18.0.3.0.0",
+    "version": "18.0.3.0.1",
     "category": "Productivity",
     "summary": "Automated news capture and triage — base module",
     "description": """
@@ -32,8 +32,8 @@
         "views/news_source_views.xml",
         "views/news_article_stage_views.xml",
         "views/news_log_views.xml",
-        "views/menu.xml",
         "data/server_actions.xml",
+        "views/menu.xml",
     ],
     "demo": [
         "demo/news_source_demo.xml",

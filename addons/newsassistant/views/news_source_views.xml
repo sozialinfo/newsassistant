@@ -32,8 +32,7 @@
         <field name="model">news.source</field>
         <field name="arch" type="xml">
             <form>
-                <header>
-                </header>
+                <header/>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
                         <button name="%(newsassistant.news_article_action)d"

@@ -1,6 +1,6 @@
 {
     "name": "Newsassistant Blog",
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.0.1",
     "category": "Website",
     "summary": "AI-powered news curation and blog publishing",
     "description": """

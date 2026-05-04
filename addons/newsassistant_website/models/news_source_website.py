@@ -1,4 +1,5 @@
 """Website scraping extension for news.source."""
+import base64
 import json
 import logging
 import time
@@ -7,6 +8,7 @@ from urllib.parse import urljoin, urlparse
 from odoo import _, fields, models
 
 from odoo.addons.queue_job.exception import RetryableJobError
+from odoo.addons.newsassistant.models.news_source import normalize_url, parse_ai_json
 
 from .jina_utils import fetch_page, markdown_to_html
 from .image_utils import select_header_image
@@ -86,8 +88,6 @@ class NewsSourceWebsite(models.Model):
         article URLs, then creates one news.snapshot per article page (which
         auto-triggers extraction on each).
         """
-        from odoo.addons.newsassistant.models.news_source import normalize_url, parse_ai_json
-
         self.ensure_one()
         _logger.info("Scraping listing for source: %s (%s)", self.name, self.url)
 
@@ -359,12 +359,10 @@ class NewsSnapshotWebsite(models.Model):
 
         # Store the article URL (needed for dedup)
         if article_url and not article.url:
-            from odoo.addons.newsassistant.models.news_source import normalize_url
             vals["url"] = normalize_url(article_url)
 
         # Select header image
         if images_dict:
-            import base64
             image_data, filename = select_header_image(images_dict, base_url=article_url)
             if image_data:
                 vals["header_image"] = base64.b64encode(image_data).decode("utf-8")

@@ -1,5 +1,6 @@
 """Image selection and validation utilities for website article header images."""
 import logging
+from io import BytesIO
 from urllib.parse import urljoin, urlparse
 
 import requests
@@ -44,8 +45,6 @@ def validate_and_download_image(url, base_url=None, timeout=15):
     Returns:
         Tuple of (image_data, filename) if valid, or (None, None) if invalid.
     """
-    from io import BytesIO
-
     try:
         from PIL import Image
     except ImportError:

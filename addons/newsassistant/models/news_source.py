@@ -1,11 +1,15 @@
 import json
 import logging
+import os
+import re
+import time
 from urllib.parse import urlparse, urlunparse
 
 import requests
 from bs4 import BeautifulSoup
 
 from odoo import fields, models
+from odoo.exceptions import UserError
 
 from odoo.addons.queue_job.exception import RetryableJobError
 
@@ -86,7 +90,6 @@ def parse_ai_json(raw_text, expect_array=True):
     text = raw_text.strip()
 
     # Remove thinking blocks (qwen3 sometimes includes <think>...</think>)
-    import re
     text = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
 
     # Strip markdown code fences
@@ -227,22 +230,43 @@ class NewsSource(models.Model):
             source.is_scraping = source.id in scraping_ids
 
     def _compute_article_count(self):
-        for source in self:
-            source.article_count = self.env["news.article"].search_count(
-                [("source_id", "=", source.id)]
+        """Count articles per source using a single batched query."""
+        counts = {}
+        if self.ids:
+            result = self.env["news.article"].read_group(
+                [("source_id", "in", self.ids)],
+                ["source_id"],
+                ["source_id"],
             )
+            counts = {row["source_id"][0]: row["source_id_count"] for row in result}
+        for source in self:
+            source.article_count = counts.get(source.id, 0)
 
     def _compute_snapshot_count(self):
-        for source in self:
-            source.snapshot_count = self.env["news.snapshot"].search_count(
-                [("source_id", "=", source.id)]
+        """Count snapshots per source using a single batched query."""
+        counts = {}
+        if self.ids:
+            result = self.env["news.snapshot"].read_group(
+                [("source_id", "in", self.ids)],
+                ["source_id"],
+                ["source_id"],
             )
+            counts = {row["source_id"][0]: row["source_id_count"] for row in result}
+        for source in self:
+            source.snapshot_count = counts.get(source.id, 0)
 
     def _compute_log_count(self):
-        for source in self:
-            source.log_count = self.env["news.log"].search_count(
-                [("source_id", "=", source.id)]
+        """Count logs per source using a single batched query."""
+        counts = {}
+        if self.ids:
+            result = self.env["news.log"].read_group(
+                [("source_id", "in", self.ids)],
+                ["source_id"],
+                ["source_id"],
             )
+            counts = {row["source_id"][0]: row["source_id_count"] for row in result}
+        for source in self:
+            source.log_count = counts.get(source.id, 0)
 
     def _compute_job_count(self):
         """Count all queue jobs for this source."""
@@ -312,10 +336,9 @@ class NewsSource(models.Model):
 
     def _get_ai_api_key(self):
         """Get the Infomaniak AI API key from environment."""
-        import os
         api_key = os.environ.get("INFOMANIAK_AI_API_KEY")
         if not api_key:
-            raise models.UserError(
+            raise UserError(
                 "Infomaniak AI API key not configured. "
                 "Set the INFOMANIAK_AI_API_KEY environment variable."
             )
@@ -367,7 +390,7 @@ class NewsSource(models.Model):
             "Content-Type": "application/json",
         }
 
-        start_time = time.time()
+        t0 = time.time()
         try:
             response = requests.post(
                 url, json=payload, headers=headers, timeout=AI_TIMEOUT
@@ -382,7 +405,7 @@ class NewsSource(models.Model):
                 seconds=300,
                 ignore_retry=False,
             )
-        duration_ms = int((time.time() - start_time) * 1000)
+        duration_ms = int((time.time() - t0) * 1000)
 
         if response.status_code in TRANSIENT_HTTP_CODES:
             raise RetryableJobError(
