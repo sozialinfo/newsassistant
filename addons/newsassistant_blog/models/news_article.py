@@ -722,6 +722,7 @@ class NewsArticle(models.Model):
         discard_stage = self._get_pipeline_stage(
             "newsassistant_blog.discard_stage_id", "Discarded"
         )
+        self.write({"blog_reasoning": reasoning})
         if discard_stage:
             self.write({"stage_id": discard_stage.id})
             add_entry(
@@ -734,24 +735,22 @@ class NewsArticle(models.Model):
         _logger.info("Article discarded: %s - %s", self.title, reasoning)
 
     def _handle_uncertain(self, reasoning, log_entries, add_entry):
-        """Handle uncertain decision: leave in New stage for human review."""
-        add_entry(
-            "info",
-            f"Left in New stage for human review: {reasoning}",
-        )
-        _logger.info("Article uncertain: %s - %s", self.title, reasoning)
-
-    def _handle_shortlist(self, reasoning, log_entries, add_entry, job_id, start_time):
-        """Handle relevant decision: generate teaser, create blog post, move to Shortlist."""
-        # Move to configured shortlist stage
+        """Handle uncertain decision: move to Shortlist stage for human review."""
         shortlist_stage = self._get_pipeline_stage(
             "newsassistant_blog.shortlist_stage_id", "Shortlist"
         )
         if shortlist_stage:
             self.write({"stage_id": shortlist_stage.id, "blog_reasoning": reasoning})
-            add_entry("info", f"Moved to {shortlist_stage.name} stage: {reasoning}")
+            add_entry("info", f"Moved to {shortlist_stage.name} stage for human review: {reasoning}")
         else:
-            add_entry("warning", "Shortlist stage not found")
+            self.write({"blog_reasoning": reasoning})
+            add_entry("warning", f"Shortlist stage not found; reasoning stored: {reasoning}")
+        _logger.info("Article uncertain: %s - %s", self.title, reasoning)
+
+    def _handle_shortlist(self, reasoning, log_entries, add_entry, job_id, start_time):
+        """Handle relevant decision: store reasoning, generate teaser, create blog post, move directly to Published."""
+        self.write({"blog_reasoning": reasoning})
+        add_entry("info", f"Relevant: {reasoning}")
 
         # Generate teaser
         teaser_result = self._generate_teaser(log_entries, add_entry)
