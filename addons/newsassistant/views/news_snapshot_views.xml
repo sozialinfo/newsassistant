@@ -34,6 +34,9 @@
                         </group>
                     </group>
                     <notebook>
+                        <page string="Content">
+                            <field name="raw_content" nolabel="1" readonly="1" widget="html"/>
+                        </page>
                         <page string="Articles">
                             <field name="article_ids" nolabel="1" readonly="1">
                                 <list>
@@ -47,9 +50,6 @@
                                     <field name="scrape_date"/>
                                 </list>
                             </field>
-                        </page>
-                        <page string="Raw Content" groups="newsassistant.newsassistant_group_admin">
-                            <field name="raw_content" nolabel="1" readonly="1" widget="html"/>
                         </page>
                     </notebook>
                 </sheet>

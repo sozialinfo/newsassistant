@@ -86,8 +86,8 @@ msgid "Define how teasers should be written for relevant articles."
 msgstr "Definieren Sie, wie Teaser für relevante Artikel geschrieben werden sollen."
 
 #. module: newsassistant_blog
-msgid "Digest Now"
-msgstr "Jetzt verarbeiten"
+msgid "Evaluate"
+msgstr "Auswerten"
 
 #. module: newsassistant_blog
 msgid "Digest Pending"

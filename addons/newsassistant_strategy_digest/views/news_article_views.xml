@@ -40,29 +40,42 @@
         </field>
     </record>
 
-    <!-- Extend form view: add strategy labels field and re-evaluate button -->
+    <!-- Extend form view: add Strategy tab, remove main group and stat button -->
     <record id="news_article_view_form_strategy" model="ir.ui.view">
         <field name="name">news.article.form.strategy</field>
         <field name="model">news.article</field>
         <field name="inherit_id" ref="newsassistant.news_article_view_form"/>
+        <field name="priority">20</field>
         <field name="arch" type="xml">
-            <!-- Add re-evaluate button to button_box -->
-            <xpath expr="//div[@name='button_box']" position="inside">
-                <button name="action_reevaluate_strategy_labels"
-                        string="Re-evaluate Strategy Labels"
-                        type="object"
-                        class="oe_stat_button"
-                        icon="fa-tags"/>
-            </xpath>
-            <!-- Add strategy labels field in the main group -->
-            <xpath expr="//group/group[field[@name='source_id']]" position="after">
-                <group string="Strategy">
-                    <field name="strategy_label_ids" widget="many2many_tags"
-                           options="{'color_field': 'color'}"/>
-                    <field name="strategy_eval_state" widget="badge"
-                           decoration-muted="strategy_eval_state == 'pending'"
-                           decoration-success="strategy_eval_state == 'processed'"/>
-                </group>
+            <!-- Add Strategy tab after Full Content page (before Log).
+                 Priority 20 (> default 16) ensures this runs after newsassistant_blog
+                 inserts the Blog tab, so Strategy appears after Blog. -->
+            <xpath expr="//notebook/page[field[@name='content']]" position="after">
+                <page string="Strategy" name="strategy">
+                    <group>
+                        <div class="d-flex align-items-center gap-2">
+                            <field name="strategy_eval_state" widget="badge"
+                                   decoration-muted="strategy_eval_state == 'pending'"
+                                   decoration-success="strategy_eval_state == 'processed'"
+                                   nolabel="1"/>
+                            <button name="action_reevaluate_strategy_labels"
+                                    string="Evaluate"
+                                    type="object"
+                                    class="btn btn-secondary btn-sm"
+                                    style="min-width:100px"
+                                    invisible="state != 'scraped'"
+                                    title="Re-evaluate this article against all active strategies"/>
+                        </div>
+                    </group>
+                    <group invisible="not strategy_reasoning" string="Reasoning">
+                        <field name="strategy_reasoning" nolabel="1" readonly="1"/>
+                    </group>
+                    <group string="Labels">
+                        <field name="strategy_label_ids" nolabel="1"
+                               widget="many2many_tags"
+                               options="{'color_field': 'color'}"/>
+                    </group>
+                </page>
             </xpath>
         </field>
     </record>

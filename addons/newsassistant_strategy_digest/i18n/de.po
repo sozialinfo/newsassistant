@@ -409,8 +409,8 @@ msgstr "%d Artikel zur Strategie-Label-Auswertung in die Warteschlange gestellt.
 
 #. module: newsassistant_strategy_digest
 #: model_terms:ir.ui.view,arch_db:newsassistant_strategy_digest.news_article_view_form_strategy
-msgid "Re-evaluate Strategy Labels"
-msgstr "Strategie-Labels neu auswerten"
+msgid "Evaluate"
+msgstr "Auswerten"
 
 #. module: newsassistant_strategy_digest
 #: model_terms:ir.ui.view,arch_db:newsassistant_strategy_digest.report_strategy_digest

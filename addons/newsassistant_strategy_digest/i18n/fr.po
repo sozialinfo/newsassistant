@@ -409,8 +409,8 @@ msgstr "%d article(s) mis en file d'attente pour l'évaluation des labels strat�
 
 #. module: newsassistant_strategy_digest
 #: model_terms:ir.ui.view,arch_db:newsassistant_strategy_digest.news_article_view_form_strategy
-msgid "Re-evaluate Strategy Labels"
-msgstr "Réévaluer les labels stratégiques"
+msgid "Evaluate"
+msgstr "Évaluer"
 
 #. module: newsassistant_strategy_digest
 #: model_terms:ir.ui.view,arch_db:newsassistant_strategy_digest.report_strategy_digest

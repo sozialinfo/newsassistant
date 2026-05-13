@@ -6,14 +6,6 @@
         <field name="model">news.article</field>
         <field name="inherit_id" ref="newsassistant.news_article_view_form"/>
         <field name="arch" type="xml">
-            <!-- Add Digest Now button in header -->
-            <xpath expr="//header/field[@name='stage_id']" position="before">
-                <button name="action_digest_now" type="object"
-                        string="Digest Now" class="btn-secondary"
-                        invisible="state != 'scraped'"
-                        title="Process this article through the digest pipeline"/>
-            </xpath>
-
             <!-- Add blog post smart button into existing button_box -->
             <xpath expr="//div[@name='button_box']" position="inside">
                 <button name="action_view_blog_post" type="object"
@@ -26,9 +18,17 @@
             <xpath expr="//notebook/page[field[@name='content']]" position="after">
                 <page string="Blog" name="blog">
                     <group>
-                        <field name="digest_state" widget="badge"
-                               decoration-muted="digest_state == 'pending'"
-                               decoration-success="digest_state == 'processed'"/>
+                        <div class="d-flex align-items-center gap-2">
+                            <field name="digest_state" widget="badge"
+                                   decoration-muted="digest_state == 'pending'"
+                                   decoration-success="digest_state == 'processed'"
+                                   nolabel="1"/>
+                            <button name="action_digest_now" type="object"
+                                    string="Evaluate" class="btn btn-secondary btn-sm"
+                                    style="min-width:100px"
+                                    invisible="state != 'scraped'"
+                                    title="Process this article through the digest pipeline"/>
+                        </div>
                     </group>
                     <group invisible="not blog_reasoning" string="Reasoning">
                         <field name="blog_reasoning" nolabel="1" readonly="1"/>

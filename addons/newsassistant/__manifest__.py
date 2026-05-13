@@ -1,6 +1,6 @@
 {
     "name": "News Assistant",
-    "version": "18.0.3.0.1",
+    "version": "18.0.3.1.0",
     "category": "Productivity",
     "summary": "Automated news capture and triage — base module",
     "description": """

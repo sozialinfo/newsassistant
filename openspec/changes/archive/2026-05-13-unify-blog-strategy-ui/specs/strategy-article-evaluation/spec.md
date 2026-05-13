@@ -33,11 +33,3 @@ When a user triggers manual re-evaluation of strategy labels, the system SHALL c
 #### Scenario: Re-evaluate only available on scraped articles
 - **WHEN** an article has `state != 'scraped'`
 - **THEN** the Evaluate button on the Strategy tab SHALL NOT be visible
-
-### Requirement: HTML prompt conversion for article evaluation
-The system SHALL convert the HTML prompt of a strategy to plain text before including it in the LLM request for article evaluation. The conversion SHALL use the shared `html_to_markdown()` utility from the `newsassistant` base module.
-
-#### Scenario: HTML prompt converted to plain text before LLM call
-- **WHEN** an article is evaluated against a strategy whose prompt contains HTML markup
-- **THEN** the HTML SHALL be converted to plain text before being sent to the LLM
-- **THEN** the LLM SHALL NOT receive raw HTML tags in the prompt

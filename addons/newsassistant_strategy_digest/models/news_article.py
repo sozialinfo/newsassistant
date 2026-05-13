@@ -41,8 +41,13 @@ class NewsArticle(models.Model):
         default="pending",
         readonly=True,
         index=True,
-        string="Strategy Eval State",
+        string="Evaluation Status",
         help="Whether this article has been evaluated against active strategies.",
+    )
+    strategy_reasoning = fields.Text(
+        string="Reasoning",
+        readonly=True,
+        help="LLM reasoning for strategy label assignments, concatenated per strategy.",
     )
 
     # -------------------------------------------------------------------------
@@ -182,11 +187,14 @@ class NewsArticle(models.Model):
             return
 
         labels_to_add = self.env["strategy.label"]
+        reasoning_parts = []
 
         for strategy in active_strategies:
             try:
-                new_labels = self._evaluate_against_strategy(strategy)
+                new_labels, reasoning = self._evaluate_against_strategy(strategy)
                 labels_to_add |= new_labels
+                if reasoning:
+                    reasoning_parts.append(f"{strategy.name}: {reasoning}")
             except RetryableJobError:
                 raise
             except Exception as e:
@@ -197,12 +205,13 @@ class NewsArticle(models.Model):
                     e,
                 )
 
+        vals = {"strategy_eval_state": "processed"}
         if labels_to_add:
-            self.write({
-                "strategy_label_ids": [(4, label.id) for label in labels_to_add],
-            })
+            vals["strategy_label_ids"] = [(4, label.id) for label in labels_to_add]
+        if reasoning_parts:
+            vals["strategy_reasoning"] = "\n\n".join(reasoning_parts)
 
-        self.write({"strategy_eval_state": "processed"})
+        self.write(vals)
         _logger.info(
             "Strategy eval complete for '%s': assigned labels %s",
             self.title,
@@ -216,7 +225,8 @@ class NewsArticle(models.Model):
             strategy: strategy.strategy record with a non-empty prompt.
 
         Returns:
-            strategy.label recordset: Labels to assign (subset of strategy.label_ids).
+            tuple: (strategy.label recordset, reasoning str)
+                   Labels to assign (subset of strategy.label_ids) and LLM reasoning.
         """
         self.ensure_one()
 
@@ -231,6 +241,8 @@ class NewsArticle(models.Model):
             '- "is_relevant": true or false\n'
             '- "labels": list of label names to assign (must be from: '
             + json.dumps(label_names) + ")\n"
+            '- "reasoning": one or two sentences explaining why these labels apply '
+            "(or why the article is not relevant)\n"
             "Return ONLY valid JSON, no markdown, no explanation outside the JSON.\n"
             "Only include labels that clearly apply. Return an empty list if none apply."
         )
@@ -245,6 +257,7 @@ class NewsArticle(models.Model):
 
         ai_result = self._call_ai(system_prompt, article_content, temperature=0.1)
 
+        empty = self.env["strategy.label"]
         try:
             result = self._parse_ai_json(ai_result["content"])
         except (json.JSONDecodeError, ValueError) as e:
@@ -254,11 +267,12 @@ class NewsArticle(models.Model):
                 strategy.name,
                 e,
             )
-            return self.env["strategy.label"]
+            return empty, ""
 
+        reasoning = result.get("reasoning", "") or ""
         is_relevant = result.get("is_relevant", False)
         if not is_relevant:
-            return self.env["strategy.label"]
+            return empty, reasoning
 
         returned_label_names = result.get("labels", [])
         if not isinstance(returned_label_names, list):
@@ -278,7 +292,7 @@ class NewsArticle(models.Model):
                     strategy.name,
                 )
 
-        return matched_labels
+        return matched_labels, reasoning
 
     # -------------------------------------------------------------------------
     # Manual Trigger
@@ -288,7 +302,11 @@ class NewsArticle(models.Model):
         """Button action: reset strategy eval state and re-queue evaluation."""
         self.ensure_one()
 
-        self.write({"strategy_eval_state": "pending"})
+        self.write({
+            "strategy_eval_state": "pending",
+            "strategy_reasoning": False,
+            "strategy_label_ids": [(5, False, False)],
+        })
 
         self.with_delay(
             channel="root.newsassistant",

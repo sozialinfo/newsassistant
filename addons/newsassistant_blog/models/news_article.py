@@ -34,7 +34,7 @@ class NewsArticle(models.Model):
         default="pending",
         readonly=True,
         index=True,
-        string="Digest State",
+        string="Evaluation Status",
     )
     teaser = fields.Text(
         string="Teaser",
