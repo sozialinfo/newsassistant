@@ -152,10 +152,11 @@ class NewsSourceWebsite(models.Model):
             "- Category/topic index pages (URLs often ending in /news or /category/)\n"
             "- Links with generic titles like 'News', 'Aktuell', 'Blog' that lead to listing pages\n"
             "- Pagination, social media, and footer links\n\n"
-            "Return ONLY a JSON array of objects, each with "
-            '"title" (string) and "url" (string) fields. '
+            "Return ONLY a JSON object with two fields:\n"
+            '- "language": the ISO 639-1 language code of the page content (e.g. "de", "fr", "en")\n'
+            '- "articles": a JSON array of objects, each with "title" (string) and "url" (string) fields\n\n'
             "Extract URLs exactly as they appear in the markdown links [text](url). "
-            "Return a single valid JSON array like [{...}, {...}]. "
+            'Return a single valid JSON object like {"language": "de", "articles": [{...}, {...}]}. '
             "No markdown formatting, no explanation, no code fences."
         )
 
@@ -191,15 +192,26 @@ class NewsSourceWebsite(models.Model):
             return
 
         # Parse AI response
+        detected_language = None
         try:
-            articles_data = parse_ai_json(ai_response, expect_array=True)
+            parsed = parse_ai_json(ai_response, expect_array=False)
+            # New format: {"language": "de", "articles": [...]}
+            if isinstance(parsed, dict) and "articles" in parsed:
+                articles_data = parsed.get("articles", [])
+                detected_language = parsed.get("language") or None
+            elif isinstance(parsed, list):
+                # Fallback: old array format still accepted
+                articles_data = parsed
+            else:
+                raise ValueError("Expected a JSON object with 'articles' key or a JSON array")
             if not isinstance(articles_data, list):
-                raise ValueError("Expected a JSON array")
+                raise ValueError("'articles' must be a JSON array")
             discovered_urls = [item.get("url", "") for item in articles_data if item.get("url")]
             add_entry(
                 "info",
-                f"Parsed {len(articles_data)} article links from response",
-                metadata={"discovered_urls": discovered_urls},
+                f"Parsed {len(articles_data)} article links from response"
+                + (f" (language: {detected_language})" if detected_language else ""),
+                metadata={"discovered_urls": discovered_urls, "language": detected_language},
             )
         except (json.JSONDecodeError, ValueError) as e:
             error_msg = f"Invalid AI response (not valid JSON): {e}"
@@ -315,6 +327,7 @@ class NewsSourceWebsite(models.Model):
         snapshot = self.env["news.snapshot"].create({
             "source_id": self.id,
             "raw_content": html_content,
+            "url": article_url,
         })
 
         # Store images_dict on snapshot for later use by website-specific extraction
@@ -335,10 +348,10 @@ class NewsSnapshotWebsite(models.Model):
     _inherit = "news.snapshot"
 
     def _extract_articles_website(self):
-        """Website-specific extraction: calls base extraction then adds header image and URL.
+        """Website-specific extraction: calls base extraction then adds header image, URL, and language.
 
         This is called instead of the base _extract_articles() for website-sourced snapshots,
-        to add header image selection and URL tracking.
+        to add header image selection, URL tracking, and language detection.
         """
         self.ensure_one()
         article_url = self.env.context.get("website_article_url", "")

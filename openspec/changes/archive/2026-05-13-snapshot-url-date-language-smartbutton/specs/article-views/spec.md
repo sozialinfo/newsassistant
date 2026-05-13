@@ -34,19 +34,7 @@ The article form view SHALL display an admin-only SmartButton in the `button_box
 - **WHEN** a regular user opens an article form
 - **THEN** the snapshot SmartButton SHALL NOT be visible
 
-### Requirement: Article language
-The `news.article` model SHALL have a `lang_id` field (Many2one to `res.lang`, optional) recording the language of the article content.
-
-#### Scenario: Article with detected language
-- **WHEN** an article is extracted and the AI detects the language
-- **THEN** the `lang_id` field SHALL be set to the matching `res.lang` record
-
-#### Scenario: Article without detected language
-- **WHEN** the AI cannot determine the language of an article
-- **THEN** the `lang_id` field SHALL remain empty
-
 ### Requirement: Kanban header image layout
-
 The article kanban view SHALL display the header image as a small square (64x64 pixels) in the top-right corner of the card, using the Odoo 18 flex-row card pattern.
 
 #### Scenario: Article with header image in kanban
@@ -58,7 +46,6 @@ The article kanban view SHALL display the header image as a small square (64x64 
 - **THEN** the card SHALL display only the text content without an image placeholder
 
 ### Requirement: Form view header layout
-
 The article form view SHALL display all metadata fields (source, date, URL, scrape date) in the left column of the header group, with the header image alone in the right column without a label.
 
 #### Scenario: Article with header image in form view
@@ -70,7 +57,7 @@ The article form view SHALL display all metadata fields (source, date, URL, scra
 - **THEN** all metadata fields SHALL appear in the left column and the right column SHALL remain empty
 
 ### Requirement: Unified Blog and Strategy tab pattern
-The Blog tab and the Strategy tab in the article form view SHALL follow an identical UI pattern: an evaluation status badge and re-trigger button shown side-by-side, followed by a Reasoning block, followed by a result block. The evaluation status field label, the reasoning field label, and the button visibility rule SHALL be identical in both tabs. Only the result block differs (teaser text for Blog; label tags for Strategy).
+The Blog tab and the Strategy tab in the article form view SHALL follow an identical UI pattern: an evaluation status badge and re-trigger button shown side-by-side, followed by a Reasoning block, followed by a result block.
 
 #### Scenario: Evaluation status badge uses the same label in both tabs
 - **WHEN** a user opens the Blog tab or the Strategy tab

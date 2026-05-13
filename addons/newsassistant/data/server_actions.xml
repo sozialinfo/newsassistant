@@ -27,9 +27,9 @@ action = {
         </field>
     </record>
 
-    <!-- Article: Re-fetch Selected -->
+    <!-- Article: Re-extract Selected -->
     <record id="action_article_refetch_selected" model="ir.actions.server">
-        <field name="name">Re-fetch Selected</field>
+        <field name="name">Re-extract Selected</field>
         <field name="model_id" ref="model_news_article"/>
         <field name="binding_model_id" ref="model_news_article"/>
         <field name="binding_view_types">list</field>
@@ -38,17 +38,17 @@ action = {
         <field name="code">
 count = 0
 for article in records.filtered(lambda a: a.state != 'skipped'):
-    article.with_delay(
+    article.snapshot_id.with_delay(
         channel="root.newsassistant",
-        description=f"Bulk re-fetch: {article.title[:50]}",
-    )._fetch_and_extract()
+        description=f"Bulk re-extract: {article.title[:50]}",
+    )._extract_articles()
     count += 1
 action = {
     "type": "ir.actions.client",
     "tag": "display_notification",
     "params": {
-        "title": "Re-fetch Jobs Queued",
-        "message": f"{count} article(s) queued for re-fetching.",
+        "title": "Re-extract Jobs Queued",
+                "message": f"{count} article(s) queued for re-extraction.",
         "type": "info",
         "sticky": False,
     },
@@ -108,16 +108,16 @@ action = {
         </field>
     </record>
 
-    <!-- Article: Re-fetch (form view) -->
+    <!-- Article: Re-extract (form view) -->
     <record id="action_article_refetch_form" model="ir.actions.server">
-        <field name="name">Re-fetch</field>
+        <field name="name">Re-extract</field>
         <field name="model_id" ref="model_news_article"/>
         <field name="binding_model_id" ref="model_news_article"/>
         <field name="binding_view_types">form</field>
         <field name="groups_id" eval="[(4, ref('newsassistant.newsassistant_group_admin'))]"/>
         <field name="state">code</field>
         <field name="code">
-action = record.action_refetch()
+action = record.action_re_extract()
         </field>
     </record>
 

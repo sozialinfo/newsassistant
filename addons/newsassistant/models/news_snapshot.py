@@ -39,6 +39,11 @@ class NewsSnapshot(models.Model):
         ondelete="cascade",
         index=True,
     )
+    url = fields.Char(
+        string="URL",
+        index=True,
+        help="Exact URL of the web page that was fetched to produce this snapshot.",
+    )
     raw_content = fields.Html(
         string="Raw Content",
         sanitize=False,
@@ -119,6 +124,7 @@ class NewsSnapshot(models.Model):
         '  "is_article": true,\n'
         '  "title": "the article title (string)",\n'
         '  "date": "publication date YYYY-MM-DD or null",\n'
+        '  "language": "ISO 639-1 language code of the article (e.g. \\"de\\", \\"fr\\", \\"en\\")",\n'
         '  "summary": "2-3 sentence summary (string)",\n'
         '  "content": "full article as clean HTML"\n'
         "}\n\n"
@@ -295,11 +301,20 @@ class NewsSnapshot(models.Model):
                 datetime.strptime(article_data["date"], "%Y-%m-%d")
                 vals["date"] = article_data["date"]
             except (ValueError, TypeError):
-                pass
+                vals["date"] = fields.Date.today()
+        else:
+            vals["date"] = fields.Date.today()
         if article_data.get("summary"):
             vals["summary"] = article_data["summary"]
         if article_data.get("content"):
             vals["content"] = article_data["content"]
+        if article_data.get("language"):
+            lang_code = article_data["language"].strip().lower()[:2]
+            lang = self.env["res.lang"].with_context(active_test=False).search(
+                [("code", "=like", lang_code + "%")], limit=1
+            )
+            if lang:
+                vals["lang_id"] = lang.id
 
         # Avoid duplicate articles for the same snapshot
         existing = Article.search([("snapshot_id", "=", self.id)], limit=1)

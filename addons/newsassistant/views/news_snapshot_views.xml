@@ -30,6 +30,7 @@
                         <group>
                             <field name="source_id" widget="many2one_link"/>
                             <field name="captured_at"/>
+                            <field name="url" widget="url"/>
                             <field name="article_count"/>
                         </group>
                     </group>

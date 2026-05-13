@@ -28,7 +28,14 @@ class NewsArticle(models.Model):
         index=True,
     )
     url = fields.Char(index=True)
-    date = fields.Date()
+    date = fields.Date(required=True, default=fields.Date.today)
+    lang_id = fields.Many2one(
+        "res.lang",
+        string="Language",
+        context={"active_test": False},
+        help="Language of the article content. "
+             "Auto-detected by LLM during extraction; can be overridden manually.",
+    )
     summary = fields.Text()
     content = fields.Html(sanitize=True, sanitize_overridable=True)
     stage_id = fields.Many2one(
@@ -69,6 +76,10 @@ class NewsArticle(models.Model):
         compute="_compute_job_count",
         string="Queue Jobs",
     )
+    snapshot_count = fields.Integer(
+        compute="_compute_snapshot_count",
+        string="Snapshots",
+    )
 
     _sql_constraints = [
         ("url_unique", "UNIQUE(url)", "An article with this URL already exists."),
@@ -96,6 +107,11 @@ class NewsArticle(models.Model):
         """Always show all stages in kanban, even empty ones."""
         return self.env["news.article.stage"].search([])
 
+    def _compute_snapshot_count(self):
+        """Return 1 if this article has a linked snapshot, 0 otherwise."""
+        for article in self:
+            article.snapshot_count = 1 if article.snapshot_id else 0
+
     def _compute_job_count(self):
         """Count all queue jobs for this article."""
         counts = {}
@@ -112,6 +128,17 @@ class NewsArticle(models.Model):
             counts = {row[0]: row[1] for row in self.env.cr.fetchall()}
         for article in self:
             article.job_count = counts.get(article.id, 0)
+
+    def action_view_snapshot(self):
+        """Open the linked snapshot form."""
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Snapshot",
+            "res_model": "news.snapshot",
+            "view_mode": "form",
+            "res_id": self.snapshot_id.id,
+        }
 
     def action_view_jobs(self):
         """Open all queue jobs for this article."""

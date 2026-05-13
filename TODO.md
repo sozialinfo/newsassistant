@@ -1,20 +1,9 @@
-# Raw Content
-- In the snapshots, display the raw content as HTML and make it read-only
-- Rename to just "Content"
-- Rerder the tabs: Content first, then articles
-
 # Snapshot
-For snapshots from websites, include the exact URL of the website in the snapshot
+- Remove Chatter from Snapshot
 
-# Article Date
-Make the date of an article mandatory. If the LLM cannot find a date, assume [today] as the article's date. When creating a new article in the GUI, automatically prefill the date with [today]
-
-# Blog Post
-- When creating a blog post, the content must be in the language of the website, including the the "Read full article..." at the end
-- If a website is available in multiple languages, use the odoo standard translation infrastructure (attention: It changed for Version 18) to add the translations for all languages
-
-# SmartButton
-- Add a SmartButton (admin only) in news article to show the related snapshots
+# Blog Result
+- After processing an article for blog relevance, the user must see the result: irrelevant (move to verworfen), uncertain (move to shortlist), matching (create blog post and move to published)
+- The reasoning must always be visible to understand why an article was selected (nor not)
 
 
 
@@ -48,8 +37,7 @@ Use the same Odoo standard pattern as for other modules with submodules. In the 
 Refactor all prompts embedded in code to be standalone MD files in the same directory as the PY file using the prompt. I want the prompts the be human editable.
 
 # Cron-Job
-I only want one single cron job, defined in the base modul, which does all the work. When it runs, it scrapes all the sources, creates articles and then also calls the follow-up actions defined in the sub-modules (e.g. strategy check).
+I only want one single cron job, defined in the base module, which does _all_ the work. When it runs, it scrapes all the sources, creates articles and then also calls the follow-up actions defined in the sub-modules (e.g. strategy check, content relevance for blog post publishing, etc.). Make sure to keep the dependency tree clean and use an appropriate architectural patttern.
 
-# Auto-Refresh
-So: the button calls action_activate() which calls write({"state": "active"}) (which auto-distills if needed), and returns False. The form controller detects no action was returned and reloads the record, showing the updated state, prompt, and labels.
+
 

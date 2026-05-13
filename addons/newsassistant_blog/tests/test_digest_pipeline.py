@@ -112,30 +112,39 @@ class TestDigestPipeline(TransactionCase):
         self.assertEqual(article.stage_id, original_stage)
 
     def test_generate_teaser_success(self):
-        """_generate_teaser should store teaser on success."""
+        """_generate_teaser should store teaser on success and return dict."""
         article = self._create_article("teas-1")
         log_entries = []
         add = lambda l, m, **k: log_entries.append(m)
 
-        mock_result = self._mock_ai("A compelling two-sentence teaser for this article.")
-        mock_result["content"] = "A compelling two-sentence teaser for this article."
+        mock_result = self._mock_ai({
+            "teaser": "A compelling two-sentence teaser for this article.",
+            "read_more": "Ganzen Artikel lesen bei digest-test.example.com →",
+        })
 
         with patch.object(type(article), "_call_ai", return_value=mock_result):
-            teaser = article._generate_teaser(log_entries, add)
+            result = article._generate_teaser(log_entries, add)
 
-        self.assertEqual(teaser, "A compelling two-sentence teaser for this article.")
-        self.assertEqual(article.teaser, teaser)
+        self.assertIsInstance(result, dict)
+        self.assertEqual(result["teaser"], "A compelling two-sentence teaser for this article.")
+        self.assertEqual(result["read_more"], "Ganzen Artikel lesen bei digest-test.example.com →")
+        self.assertEqual(article.teaser, result["teaser"])
 
     def test_create_blog_post_success(self):
-        """_create_blog_post should create a blog post."""
+        """_create_blog_post should create a blog post with language-aware link text."""
         article = self._create_article("blog-1")
         log_entries = []
         add = lambda l, m, **k: log_entries.append(m)
 
-        post = article._create_blog_post("A great teaser!", log_entries, add)
+        teaser_result = {
+            "teaser": "A great teaser!",
+            "read_more": "Ganzen Artikel lesen bei digest-test.example.com →",
+        }
+        post = article._create_blog_post(teaser_result, log_entries, add)
         self.assertIsNotNone(post)
         self.assertEqual(post.blog_id, self.blog)
         self.assertEqual(post.news_article_id, article)
+        self.assertIn("Ganzen Artikel lesen", post.content)
 
     def test_create_blog_post_deduplication(self):
         """Creating blog post twice should return existing post."""

@@ -754,11 +754,11 @@ class NewsArticle(models.Model):
             add_entry("warning", "Shortlist stage not found")
 
         # Generate teaser
-        teaser = self._generate_teaser(log_entries, add_entry)
+        teaser_result = self._generate_teaser(log_entries, add_entry)
 
-        if teaser:
+        if teaser_result:
             # Create blog post
-            self._create_blog_post(teaser, log_entries, add_entry)
+            self._create_blog_post(teaser_result, log_entries, add_entry)
 
         # Create success log
         total_duration = time.time() - start_time
@@ -775,7 +775,8 @@ class NewsArticle(models.Model):
         """Generate teaser for relevant article.
 
         Returns:
-            str: Generated teaser or None on failure
+            dict: {"teaser": str, "read_more": str} or None on failure.
+                  "read_more" is the "Read full article…" link text in the article's language.
         """
         try:
             teaser_prompt = self._get_teaser_prompt()
@@ -784,11 +785,23 @@ class NewsArticle(models.Model):
             _logger.error("Teaser prompt error: %s", e)
             return None
 
+        source_language = self.lang_id.name or self.lang_id.code or ""
+        language_hint = (
+            f" The article is in language '{source_language}'."
+            if source_language
+            else ""
+        )
+
         system_prompt = (
             "/no_think\n"
             f"{teaser_prompt}\n\n"
-            "Generate a teaser for the following article. "
-            "Return ONLY the teaser text, no quotes, no explanation."
+            "Generate a teaser for the following article."
+            f"{language_hint}\n\n"
+            "Return a JSON object with exactly two fields:\n"
+            '- "teaser": the teaser text (in the article\'s language)\n'
+            '- "read_more": a short link text such as "Read the full article at {domain} →" '
+            "written in the same language as the article\n\n"
+            "Return ONLY valid JSON, no markdown, no code fences, no explanation."
         )
 
         article_content = f"Title: {self.title}\n\n"
@@ -808,7 +821,24 @@ class NewsArticle(models.Model):
                 article_content,
                 temperature=0.7,  # Higher temperature for creative output
             )
-            teaser = ai_result["content"].strip()
+            raw = ai_result["content"].strip()
+
+            # Parse JSON response
+            try:
+                parsed = self._parse_ai_json(raw)
+                teaser = parsed.get("teaser", "").strip()
+                read_more = parsed.get("read_more", "").strip()
+            except (json.JSONDecodeError, ValueError, AttributeError):
+                # Fallback: treat the whole response as teaser text (backward compat)
+                _logger.warning(
+                    "Teaser response was not JSON for %s, treating as plain text", self.url
+                )
+                teaser = raw
+                read_more = ""
+
+            if not teaser:
+                add_entry("error", "Teaser generation returned empty teaser")
+                return None
 
             # Store teaser
             self.write({"teaser": teaser})
@@ -819,10 +849,11 @@ class NewsArticle(models.Model):
                 duration=ai_result["duration_ms"] / 1000,
                 metadata={
                     "teaser": teaser,
+                    "read_more": read_more,
                     "usage": ai_result["usage"],
                 },
             )
-            return teaser
+            return {"teaser": teaser, "read_more": read_more}
 
         except RetryableJobError:
             raise
@@ -917,12 +948,24 @@ class NewsArticle(models.Model):
         )
         return None, None, None
 
-    def _create_blog_post(self, teaser, log_entries, add_entry):
+    def _create_blog_post(self, teaser_result, log_entries, add_entry):
         """Create blog post with teaser and source link.
+
+        Args:
+            teaser_result: dict with "teaser" (str) and "read_more" (str) keys,
+                           or a plain str for backward compatibility.
 
         Returns:
             blog.post: Created post or None on failure
         """
+        # Support both dict (new) and plain str (legacy/fallback)
+        if isinstance(teaser_result, dict):
+            teaser = teaser_result.get("teaser", "")
+            read_more = teaser_result.get("read_more", "")
+        else:
+            teaser = teaser_result
+            read_more = ""
+
         # Check for existing blog post (deduplication)
         existing = self.env["blog.post"].search([
             ("news_article_id", "=", self.id),
@@ -943,12 +986,15 @@ class NewsArticle(models.Model):
             return None
 
         # Format content with teaser and source link
-        domain = urlparse(self.url).netloc
+        domain = urlparse(self.url).netloc if self.url else ""
+        # Use AI-generated link text if available, else English fallback
+        if not read_more:
+            read_more = f"Read the full article at {domain} →" if domain else "Read the full article →"
 
         content = f"""
 <p>{teaser}</p>
 <p><a href="{self.url}" target="_blank" rel="noopener noreferrer">
-    Read the full article at {domain} →
+    {read_more}
 </a></p>
 """
 
