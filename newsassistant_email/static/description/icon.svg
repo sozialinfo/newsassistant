@@ -10,10 +10,10 @@
   <rect x="10" y="25" width="13" height="2" rx="1" fill="#fff" opacity="0.6"/>
   <rect x="10" y="30" width="15" height="2" rx="1" fill="#fff" opacity="0.6"/>
   <rect x="10" y="35" width="10" height="2" rx="1" fill="#fff" opacity="0.4"/>
-  <!-- Pencil badge (bottom-right) -->
-  <circle cx="38" cy="38" r="11" fill="#1AD3BB"/>
-  <!-- Pencil body -->
-  <rect x="33.5" y="30" width="5" height="10" rx="1" fill="#fff" transform="rotate(45 38 38)"/>
-  <!-- Pencil tip -->
-  <path d="M41.5 41.5 l-3 1 l1 -3 Z" fill="#1A6F66"/>
+  <!-- Envelope badge (bottom-right) -->
+  <circle cx="38" cy="38" r="11" fill="#FBB945"/>
+  <!-- Envelope body -->
+  <rect x="30" y="33" width="16" height="11" rx="1.5" fill="#fff"/>
+  <!-- Envelope flap (V shape) -->
+  <path d="M30 33 l8 6 l8 -6" fill="none" stroke="#FBB945" stroke-width="1.8" stroke-linejoin="round"/>
 </svg>
