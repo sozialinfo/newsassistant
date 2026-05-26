@@ -1,59 +1,127 @@
 # News Assistant — Website
 
-Website scraping extension for News Assistant. Fetches articles from news websites using the Jina Reader API.
+Website scraping extension for News Assistant.
+
+## Overview
+
+This addon adds website scraping to the News Assistant pipeline. It fetches listing pages daily,
+uses AI to discover article URLs, then fetches each article page and stores the raw content as a
+`news.snapshot` for extraction. It handles JavaScript-rendered pages, bot protection (Cloudflare),
+PDFs, and validates header images automatically.
+
+Requires `newsassistant` (base module).
 
 ## Features
 
-- Jina Reader API integration for JavaScript-rendered pages (bypasses bot protection)
 - AI-powered article URL discovery from listing pages
-- Per-article snapshot creation with Markdown→HTML conversion
-- Header image selection: landscape validation (min 800×400), format check (JPEG/PNG/WebP)
-- Deduplication by normalized URL
+- Jina Reader API integration for JavaScript-rendered pages (bypasses Cloudflare and similar bot protection)
+- PDF support: text extracted via `pdfminer`, then sent to AI
+- Header image selection with validation: landscape orientation (min 800×400 px), JPEG/PNG/WebP only
+- Deduplication by normalized URL — known articles are never re-fetched
 - Daily cron job for all active website sources
-- Manual scrape trigger from the source form view
+- Manual "Scrape Now" button on the source form view
 
-## Models
+## Pipeline
 
-### news.source (extended)
+```
+ir.cron (daily)
+    └─▶ news.source._cron_scrape_all()
+            └─▶ [per active website source]
+                    └─▶ source.with_delay()._scrape_listing()        [Stage 1]
+                            └─▶ [per new article URL]
+                                    └─▶ source.with_delay()._fetch_and_create_snapshot()  [Stage 2]
+                                            └─▶ snapshot.with_delay()._extract_articles_website()
+```
 
-| Method | Description |
-|--------|-------------|
-| `action_scrape_now()` | Manual trigger: queue a scrape job for this source |
-| `_cron_scrape_all()` | Cron entry point: queue all active website sources |
-| `_scrape_listing()` | Queue job: fetch listing page and discover article URLs |
-| `_fetch_and_create_snapshot()` | Queue job: fetch article page and create snapshot |
+**Stage 1 — Listing discovery**: Fetches the source listing page via Jina Reader, pre-cleans the
+HTML (strips nav/footer/script/style, removes attributes except `href` and `src`), and asks the AI
+to return a JSON array of `{title, url}` objects. Known URLs are filtered out before Stage 2 jobs
+are queued.
 
-### news.snapshot (extended)
+**Stage 2 — Snapshot creation**: Fetches each article page. Detects content type:
+- **HTML** — fetched directly; falls back to Jina Reader on HTTP 403
+- **PDF** — text extracted via `pdfminer`
+- **Jina Reader** — used directly when the source URL requires it
 
-| Method | Description |
-|--------|-------------|
-| `_extract_articles_website()` | Website-specific extraction with URL and image handling |
+The raw content is stored as a `news.snapshot`. A queue job on the base module then extracts
+the structured article (`news.article`) from the snapshot.
+
+## Configuration
+
+### Environment variables
+
+| Variable | Required | Description |
+|---|---|---|
+| `JINA_API_KEY` | Yes | Jina Reader API key for page fetching |
+| `INFOMANIAK_AI_API_KEY` | Yes | Infomaniak AI key for URL discovery and extraction |
+
+### Adding website sources
+
+1. Go to **News Assistant → Sources**.
+2. Click **New**.
+3. Set **Type** to `Website`.
+4. Enter the **Name** and the **URL** of the listing/news page.
+5. Leave **Active** enabled to include it in the daily scrape.
+
+### Scraping schedule
+
+The daily cron job is registered at installation. Adjust timing at
+**Settings → Technical → Automation → Scheduled Actions** →
+"News Assistant: Scrape All Website Sources".
+
+## Usage
+
+### Trigger a scrape manually
+
+Open a source record and click **Scrape Now**. A queue job is enqueued immediately.
+Monitor progress at **Settings → Technical → Queue → Jobs**.
+
+### Monitor sources
+
+**News Assistant → Sources** shows:
+
+- Last scrape date per source
+- Error state (`ok` / `error`) with error detail
+- Snapshot and article counts
+
+### Check for errors
+
+If a source shows `error` state, open the source record and read the **Error Message** field.
+For more detail, click the **Logs** smart button to see the full LLM request/response trace.
+
+## Error Handling
+
+| Condition | Behaviour |
+|---|---|
+| HTTP 403 (bot protection) | Automatic retry via Jina Reader API |
+| Transient HTTP errors (408, 429, 5xx) | `RetryableJobError` — retried up to 3 times with escalating delay |
+| HTTP 404 | Logged on source; no retry |
+| PDF extraction failure | Error logged on snapshot; article marked as `error` |
+| Header image fails validation | Image discarded silently; article saved without header image |
+| AI returns no URLs | Empty result logged; no snapshots created for this run |
+| Malformed AI JSON | Robust parser retries with relaxed parsing before failing |
 
 ## Security
 
 | Group | Access |
-|-------|--------|
-| `newsassistant.newsassistant_group_user` | Trigger manual scrapes, view sources |
+|---|---|
+| `newsassistant.newsassistant_group_user` | Trigger manual scrapes, view sources and articles |
 | `newsassistant.newsassistant_group_admin` | Full access |
 
-No additional models or access rules beyond base module.
-
-## Configuration
-
-The following environment variables must be set:
-
-| Variable | Description |
-|----------|-------------|
-| `JINA_API_KEY` | Jina Reader API key (required for website scraping) |
-| `INFOMANIAK_AI_API_KEY` | Infomaniak AI API key (required for URL discovery) |
-
-Add website sources in **News Assistant → Sources** with `Type = Website`.
+No additional models or access rules beyond the base module.
 
 ## Dependencies
 
-- `newsassistant` — base module
+- `newsassistant` — base module (required)
 - `queue_job` — OCA background job processing
 - `JINA_API_KEY` — environment variable (required)
+- `INFOMANIAK_AI_API_KEY` — environment variable (required)
+
+## Testing
+
+```bash
+make test-module MODULE=newsassistant_website
+```
 
 ## License
 
