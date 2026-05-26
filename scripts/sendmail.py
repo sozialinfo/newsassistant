@@ -26,7 +26,7 @@ def main():
 
     domain = sender.split("@")[-1] if "@" in sender else sender
     pub_name = domain.split(".")[0].capitalize()
-    alias = f"newsassistant@{db}.opencode.bruehlmeier.com"
+    alias = f"newsassistant@{db}.opencode.socialcloud.ch"
 
     now = datetime.now(timezone.utc)
     ts = now.strftime("%a, %d %b %Y %H:%M:%S +0000")
@@ -84,7 +84,7 @@ def main():
         "message_id": str(parsed["Message-ID"] or ""),
     }
 
-    url = f"https://{db}.opencode.bruehlmeier.com/xmlrpc/2"
+    url = f"https://{db}.opencode.socialcloud.ch/xmlrpc/2"
     try:
         common = xmlrpc.client.ServerProxy(f"{url}/common")
         uid = common.authenticate(db, user, pwd, {})

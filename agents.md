@@ -10,7 +10,7 @@ News Assistant is an Odoo 18 addon system that automatically scrapes news source
 
 | Item | Value |
 |------|-------|
-| URL | https://newsassistant.opencode.bruehlmeier.com |
+| URL | https://newsassistant.opencode.socialcloud.ch |
 | Username | `admin` |
 | Password | `admin` |
 | Database | `newsassistant` |

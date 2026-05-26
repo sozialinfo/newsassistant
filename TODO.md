@@ -1,12 +1,3 @@
-# Snapshot
-- Remove Chatter from Snapshot
-
-# Blog Result
-- After processing an article for blog relevance, the user must see the result: irrelevant (move to verworfen), uncertain (move to shortlist), matching (create blog post and move to published)
-- The reasoning must always be visible to understand why an article was selected (nor not)
-
-
-
 # Mass Mailing
 - Add a new module ``newsassistant_mass_mailing``. The purpose of this module is to select news articles for publication in a newsletter. It depends on ``mass_mailing``
 - On the news article, add a new flag ``newsletter_relevant``. It must be possible to set/unset this flag in the detail view, but also in the list view

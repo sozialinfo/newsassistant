@@ -23,7 +23,7 @@ DOCKER_RUN = docker run --rm --network opencode \
 # ─────────────────────────────────────────────
 .PHONY: rebuild
 rebuild: down drop-db clear-filestore init start post-setup smoke
-	@echo "Rebuild complete. URL: https://$(DB).opencode.bruehlmeier.com"
+	@echo "Rebuild complete. URL: https://$(DB).opencode.socialcloud.ch"
 
 # ────────────────────
 # Individual targets
@@ -71,7 +71,7 @@ post-setup:
 .PHONY: smoke
 smoke:
 	@HTTP=$$(curl -s -o /dev/null -w "%{http_code}" \
-		https://$(DB).opencode.bruehlmeier.com/web/login); \
+		https://$(DB).opencode.socialcloud.ch/web/login); \
 	if [ "$$HTTP" = "200" ]; then \
 		echo "Smoke test: OK ($$HTTP)"; \
 	else \
