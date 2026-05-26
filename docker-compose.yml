@@ -16,7 +16,7 @@ services:
       - INFOMANIAK_AI_API_KEY=${INFOMANIAK_AI_API_KEY}
       - JINA_API_KEY=${JINA_API_KEY}
     volumes:
-      - ./addons:/mnt/extra-addons
+      - .:/mnt/extra-addons
       - ./odoo.conf:/etc/odoo/odoo.conf:ro
       - odoo-data:/var/lib/odoo
       - /home/debian/shared/odoo-src/18.0/oca/web:/mnt/oca/web:ro

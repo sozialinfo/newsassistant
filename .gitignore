@@ -9,3 +9,4 @@ build/
 .opencode/
 .env
 *.pot
+TODO.md

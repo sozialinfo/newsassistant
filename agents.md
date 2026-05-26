@@ -84,65 +84,64 @@ _digest_article()
 ## Codebase Map
 
 ```
-newsassistant/
+newsassistant/                # project root = git repo root
 ├── agents.md                 # THIS FILE - project-level guidance
 ├── docker-compose.yml        # Container setup (Odoo 18 + volumes)
 ├── odoo.conf                 # Odoo config (queue_job channels, workers)
 ├── .env                      # API keys (INFOMANIAK_AI_API_KEY, JINA_API_KEY)
 ├── news_source.csv           # Source URLs for import
-└── addons/
-    ├── newsassistant/        # Core addon v18.0.2.1.0 — scraping & triage kanban
-    │   ├── __manifest__.py       # Dependencies: base, queue_job
-    │   ├── README.md             # User-facing documentation
-    │   ├── agents.md             # Addon-level coding standards & DoD
-    │   ├── models/
-    │   │   ├── news_source.py    # Source model + AI service + HTML cleaner + Stage 1
-    │   │   ├── news_article.py   # Article model + Stage 2 extraction
-    │   │   ├── news_article_stage.py  # Kanban stages
-    │   │   ├── news_log.py       # Unified operation log
-    │   │   └── news_log_entry.py # Detail entries per log (LLM request/response metadata)
-    │   ├── views/
-    │   │   ├── news_source_views.xml   # Source list/form views
-    │   │   ├── news_article_views.xml  # Article kanban/form views
-    │   │   └── menu.xml                # Menu structure
-    │   ├── data/
-    │   │   ├── news_article_stage_data.xml   # Default kanban stages
-    │   │   ├── queue_job_data.xml            # Queue channel config
-    │   │   ├── ir_cron_data.xml              # Daily scrape cron
-    │   │   └── ir_config_parameter_data.xml  # Default product ID
-    │   ├── demo/
-    │   │   └── news_source_demo.xml    # Sample sources for testing
-    │   ├── security/
-    │   │   └── ir.model.access.csv     # Access rights
-    │   └── tests/
-    │       ├── test_news_source.py       # Source model tests
-    │       ├── test_html_cleaner.py      # HTML pre-cleaning tests
-    │       ├── test_url_normalization.py # URL dedup logic tests
-    │       ├── test_scraping_pipeline.py # End-to-end pipeline tests (mocked)
-    │       ├── test_queue_jobs.py        # Job creation tests with trap_jobs()
-    │       ├── test_kanban.py            # Stage workflow tests
-    │       ├── test_article_state.py     # Article state machine tests
-    │       └── test_header_image.py      # Header image selection tests
-    └── newsassistant_blog/   # Extension addon v18.0.1.0.0 — digest & blog publishing
-        ├── __manifest__.py       # Dependencies: newsassistant, website_blog
-        ├── models/
-        │   ├── news_article.py   # Extends news.article: digest pipeline + Pixabay
-        │   ├── blog_post.py      # Extends blog.post: adds news_article_id backlink
-        │   ├── news_log.py       # Extends news.log: adds "digest" category
-        │   └── res_config_settings.py  # Blog settings (strategy, blog, Pixabay key)
-        ├── views/
-        │   ├── news_article_views.xml      # Digest state + teaser in article views
-        │   ├── blog_post_views.xml         # Source article link in blog post views
-        │   ├── res_config_settings_views.xml  # Blog settings UI
-        │   └── menu.xml                    # Additional menu items
-        ├── data/
-        │   ├── ir_config_parameter_data.xml  # Default prompts
-        │   └── ir_cron_data.xml              # Daily digest cron
-        ├── security/
-        │   └── ir.model.access.csv
-        └── tests/
-            ├── test_blog_header_image.py   # Blog header image logic tests
-            └── test_pixabay.py             # Pixabay API integration tests
+├── newsassistant/            # Core addon v18.0.2.1.0 — scraping & triage kanban
+│   ├── __manifest__.py       # Dependencies: base, queue_job
+│   ├── README.md             # User-facing documentation
+│   ├── agents.md             # Addon-level coding standards & DoD
+│   ├── models/
+│   │   ├── news_source.py    # Source model + AI service + HTML cleaner + Stage 1
+│   │   ├── news_article.py   # Article model + Stage 2 extraction
+│   │   ├── news_article_stage.py  # Kanban stages
+│   │   ├── news_log.py       # Unified operation log
+│   │   └── news_log_entry.py # Detail entries per log (LLM request/response metadata)
+│   ├── views/
+│   │   ├── news_source_views.xml   # Source list/form views
+│   │   ├── news_article_views.xml  # Article kanban/form views
+│   │   └── menu.xml                # Menu structure
+│   ├── data/
+│   │   ├── news_article_stage_data.xml   # Default kanban stages
+│   │   ├── queue_job_data.xml            # Queue channel config
+│   │   ├── ir_cron_data.xml              # Daily scrape cron
+│   │   └── ir_config_parameter_data.xml  # Default product ID
+│   ├── demo/
+│   │   └── news_source_demo.xml    # Sample sources for testing
+│   ├── security/
+│   │   └── ir.model.access.csv     # Access rights
+│   └── tests/
+│       ├── test_news_source.py       # Source model tests
+│       ├── test_html_cleaner.py      # HTML pre-cleaning tests
+│       ├── test_url_normalization.py # URL dedup logic tests
+│       ├── test_scraping_pipeline.py # End-to-end pipeline tests (mocked)
+│       ├── test_queue_jobs.py        # Job creation tests with trap_jobs()
+│       ├── test_kanban.py            # Stage workflow tests
+│       ├── test_article_state.py     # Article state machine tests
+│       └── test_header_image.py      # Header image selection tests
+└── newsassistant_blog/       # Extension addon v18.0.1.0.0 — digest & blog publishing
+    ├── __manifest__.py       # Dependencies: newsassistant, website_blog
+    ├── models/
+    │   ├── news_article.py   # Extends news.article: digest pipeline + Pixabay
+    │   ├── blog_post.py      # Extends blog.post: adds news_article_id backlink
+    │   ├── news_log.py       # Extends news.log: adds "digest" category
+    │   └── res_config_settings.py  # Blog settings (strategy, blog, Pixabay key)
+    ├── views/
+    │   ├── news_article_views.xml      # Digest state + teaser in article views
+    │   ├── blog_post_views.xml         # Source article link in blog post views
+    │   ├── res_config_settings_views.xml  # Blog settings UI
+    │   └── menu.xml                    # Additional menu items
+    ├── data/
+    │   ├── ir_config_parameter_data.xml  # Default prompts
+    │   └── ir_cron_data.xml              # Daily digest cron
+    ├── security/
+    │   └── ir.model.access.csv
+    └── tests/
+        ├── test_blog_header_image.py   # Blog header image logic tests
+        └── test_pixabay.py             # Pixabay API integration tests
 ```
 
 ## Key Technologies
@@ -476,11 +475,11 @@ Before marking work complete, verify:
 | View logs | `docker logs -f odoo-newsassistant` |
 | Restart (view/Python-only) | `docker compose restart odoo-newsassistant` |
 | Upgrade after model/view changes | `docker compose stop && docker run ... odoo -u newsassistant -d newsassistant --stop-after-init && docker compose start` |
-| Source model | `addons/newsassistant/models/news_source.py` |
-| Article model (scrape) | `addons/newsassistant/models/news_article.py` |
-| Article model (digest) | `addons/newsassistant_blog/models/news_article.py` |
-| Blog post model | `addons/newsassistant_blog/models/blog_post.py` |
-| Settings model | `addons/newsassistant_blog/models/res_config_settings.py` |
+| Source model | `newsassistant/models/news_source.py` |
+| Article model (scrape) | `newsassistant/models/news_article.py` |
+| Article model (digest) | `newsassistant_blog/models/news_article.py` |
+| Blog post model | `newsassistant_blog/models/blog_post.py` |
+| Settings model | `newsassistant_blog/models/res_config_settings.py` |
 | AI call (scraping) | `news.source._call_infomaniak_ai(system_prompt, content)` |
 | AI call (digest) | `news.article._call_ai(system_prompt, content, temperature=0.1)` |
 | Page fetch | `fetch_page(url)` → `(content, images_dict)` in `news_source.py` |

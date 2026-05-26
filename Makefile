@@ -11,7 +11,7 @@ ODOO_CONF = /etc/odoo/odoo.conf
 ODOO_PORT = 18069
 
 DOCKER_RUN = docker run --rm --network opencode \
-	-v $(PWD)/addons:/mnt/extra-addons \
+	-v $(PWD):/mnt/extra-addons \
 	-v $(PWD)/odoo.conf:$(ODOO_CONF):ro \
 	-v /home/debian/shared/odoo-src/18.0/oca/queue:/mnt/oca/queue:ro \
 	-v /home/debian/shared/odoo-src/18.0/oca/web:/mnt/oca/web:ro \
