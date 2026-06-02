@@ -136,13 +136,16 @@ class TestEmailInbound(TransactionCase):
             "source_type": "email",
             "sender_domain": "queuetest.example.com",
         })
-        # Use env without queue_job__no_delay so trap_jobs catches the enqueued job
         plain_env = self.env(context={})
         with trap_jobs() as trap:
-            plain_env["news.snapshot"].message_new({
-                "email_from": "news@queuetest.example.com",
-                "body": "<p>Content</p>",
-                "subject": "Newsletter",
-            })
+            with patch.object(
+                type(plain_env["news.snapshot"]), "_ai_get_source_name",
+                return_value="Queue Test"
+            ):
+                plain_env["news.snapshot"].message_new({
+                    "email_from": "news@queuetest.example.com",
+                    "body": "<p>Content</p>",
+                    "subject": "Newsletter",
+                })
             jobs = [j for j in trap.enqueued_jobs if j.method_name == "_extract_articles"]
             self.assertTrue(len(jobs) >= 1)

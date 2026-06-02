@@ -1,7 +1,7 @@
 DB        = newsassistant
 CONTAINER = odoo-newsassistant
 SERVICE   = odoo
-MODULES   = newsassistant,newsassistant_website,newsassistant_email,newsassistant_blog,newsassistant_strategy_digest
+MODULES   = newsassistant,newsassistant_website,newsassistant_email,newsassistant_blog,newsassistant_strategy,newsassistant_strategy_digest,newsassistant_strategy_watch
 LANGUAGE  = de_CH
 ADMIN_LANG = de_CH
 

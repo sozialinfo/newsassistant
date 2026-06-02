@@ -1,6 +1,6 @@
 {
     "name": "Newsassistant Blog",
-    "version": "18.0.1.2.0",
+    "version": "18.0.1.2.1",
     "category": "Website",
     "summary": "AI-powered news curation and blog publishing",
     "description": """
@@ -23,13 +23,11 @@
         "website_blog",
     ],
     "data": [
-        "security/ir.model.access.csv",
         "data/ir_config_parameter_data.xml",
         "data/ir_cron_data.xml",
         "views/news_article_views.xml",
         "views/blog_post_views.xml",
         "views/res_config_settings_views.xml",
-        "views/menu.xml",
     ],
     "demo": [
         "demo/demo_data.xml",

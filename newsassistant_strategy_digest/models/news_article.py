@@ -50,97 +50,15 @@ class NewsArticle(models.Model):
         help="LLM reasoning for strategy label assignments, concatenated per strategy.",
     )
 
-    # -------------------------------------------------------------------------
-    # AI Infrastructure (self-contained)
-    # -------------------------------------------------------------------------
-
     def _call_ai(self, system_prompt, user_content, temperature=0.1):
-        """Call the Infomaniak AI chat completion API."""
-        api_key = os.environ.get("INFOMANIAK_AI_API_KEY")
-        if not api_key:
-            raise UserError(
-                _("Infomaniak AI API key not configured. "
-                  "Set the INFOMANIAK_AI_API_KEY environment variable.")
-            )
-
-        product_id = self.env["ir.config_parameter"].sudo().get_param(
-            "newsassistant.infomaniak_product_id", default="103794"
+        """Delegate AI call to the shared StrategyAiMixin via strategy.strategy."""
+        return self.env["strategy.strategy"]._call_ai(
+            system_prompt, user_content, temperature=temperature
         )
-        url = f"https://api.infomaniak.com/2/ai/{product_id}/openai/v1/chat/completions"
-
-        model = "qwen3"
-        payload = {
-            "model": model,
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_content},
-            ],
-            "temperature": temperature,
-        }
-        headers = {
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
-        }
-
-        start_time = time.time()
-        try:
-            response = requests.post(
-                url, json=payload, headers=headers, timeout=AI_TIMEOUT
-            )
-        except requests.exceptions.Timeout:
-            raise RetryableJobError(
-                "Infomaniak AI API timeout", seconds=300, ignore_retry=False
-            )
-        except requests.exceptions.ConnectionError as e:
-            raise RetryableJobError(
-                f"Infomaniak AI API connection error: {e}",
-                seconds=300,
-                ignore_retry=False,
-            )
-        duration_ms = int((time.time() - start_time) * 1000)
-
-        if response.status_code in TRANSIENT_HTTP_CODES:
-            raise RetryableJobError(
-                f"Infomaniak AI API returned {response.status_code}",
-                seconds=300,
-                ignore_retry=False,
-            )
-
-        if response.status_code != 200:
-            raise ValueError(
-                f"Infomaniak AI API error {response.status_code}: {response.text[:500]}"
-            )
-
-        data = response.json()
-        try:
-            content = data["choices"][0]["message"]["content"]
-        except (KeyError, IndexError) as e:
-            raise ValueError(f"Unexpected AI response structure: {e}")
-
-        usage = data.get("usage", {})
-        return {
-            "content": content,
-            "usage": {
-                "prompt_tokens": usage.get("prompt_tokens", 0),
-                "completion_tokens": usage.get("completion_tokens", 0),
-                "total_tokens": usage.get("total_tokens", 0),
-            },
-            "duration_ms": duration_ms,
-        }
 
     def _parse_ai_json(self, raw_text):
-        """Parse JSON from AI response, handling markdown fences and thinking blocks."""
-        text = raw_text.strip()
-        text = re.sub(r"\s*thinking.*? response", "", text, flags=re.DOTALL).strip()
-
-        if text.startswith("```"):
-            first_newline = text.find("\n")
-            if first_newline != -1:
-                text = text[first_newline + 1:]
-        if text.endswith("```"):
-            text = text[:-3].strip()
-
-        return json.loads(text)
+        """Delegate JSON parsing to the shared StrategyAiMixin via strategy.strategy."""
+        return self.env["strategy.strategy"]._parse_ai_json(raw_text)
 
     # -------------------------------------------------------------------------
     # Strategy Label Evaluation (overrides base no-op)

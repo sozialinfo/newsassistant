@@ -130,7 +130,7 @@ GDPR/FADP compliant). Prompts begin with `/no_think` to suppress Qwen3's thinkin
 ## Testing
 
 ```bash
-make test-module MODULE=newsassistant
+docker exec odoo-newsassistant odoo --test-tags newsassistant --stop-after-init -d newsassistant
 ```
 
 ## License

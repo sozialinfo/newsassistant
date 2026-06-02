@@ -124,12 +124,12 @@ No additional record rules. Blog post access follows `website_blog` access contr
 - `newsassistant` — base module (required)
 - `website_blog` — Odoo blog system (required)
 - `INFOMANIAK_AI_API_KEY` — environment variable (required)
-- `PIXABAY_API_KEY` — system parameter (optional, also set via Settings UI)
+- `Pixabay API Key` — set via Settings UI (News Assistant → Configuration → Settings); stored as system parameter `newsassistant_blog.pixabay_api_key` (optional)
 
 ## Testing
 
 ```bash
-make test-module MODULE=newsassistant_blog
+docker exec odoo-newsassistant odoo --test-tags newsassistant_blog --stop-after-init -d newsassistant
 ```
 
 ## License

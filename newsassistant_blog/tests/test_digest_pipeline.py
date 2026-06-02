@@ -3,6 +3,8 @@ import json
 from unittest.mock import patch
 
 from odoo.tests.common import TransactionCase, tagged
+from odoo.exceptions import UserError
+from odoo.addons.queue_job.tests.common import trap_jobs
 
 
 @tagged("post_install", "-at_install")
@@ -158,7 +160,6 @@ class TestDigestPipeline(TransactionCase):
 
     def test_cron_digest_all_impl_queues_jobs(self):
         """_cron_digest_all_impl should queue jobs for pending articles."""
-        from odoo.addons.queue_job.tests.common import trap_jobs
         article = self._create_article("cron-1")
         article.write({"state": "scraped", "digest_state": "pending"})
 
@@ -221,7 +222,6 @@ class TestDigestPipeline(TransactionCase):
 
     def test_get_content_strategy_raises_when_not_configured(self):
         """_get_content_strategy should raise UserError when not set."""
-        from odoo.exceptions import UserError
         self.env["ir.config_parameter"].sudo().set_param(
             "newsassistant_blog.content_strategy", ""
         )

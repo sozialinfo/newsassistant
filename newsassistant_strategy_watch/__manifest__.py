@@ -1,6 +1,6 @@
 {
     "name": "News Assistant - Strategy Watch",
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.0.1",
     "category": "Productivity",
     "summary": "Strategy impact detection: flag articles with strategic watch relevance",
     "description": """
@@ -24,6 +24,9 @@
         "views/strategy_strategy_views.xml",
         "views/news_article_views.xml",
         "views/menu.xml",
+    ],
+    "demo": [
+        "demo/strategy_watch_demo.xml",
     ],
     "assets": {
         "web.assets_backend": [

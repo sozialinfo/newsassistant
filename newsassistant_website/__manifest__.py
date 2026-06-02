@@ -1,7 +1,7 @@
 {
     "name": "News Assistant — Website",
-    "version": "18.0.1.0.1",
-    "category": "Productivity",
+    "version": "18.0.1.0.2",
+    "category": "Marketing",
     "summary": "Website scraping for News Assistant",
     "description": """
         Extends News Assistant with website scraping capabilities:
@@ -19,14 +19,12 @@
         "queue_job",
     ],
     "data": [
-        "security/ir.model.access.csv",
         "data/queue_job_data.xml",
         "data/ir_cron_data.xml",
         "views/news_source_website_views.xml",
     ],
     "demo": [
         "demo/demo_setup.xml",
-        "demo/news_snapshot_demo.xml",
     ],
     "installable": True,
     "application": False,

@@ -3,8 +3,6 @@ import logging
 from odoo import _, fields, models
 from odoo.exceptions import UserError
 
-from odoo.addons.newsassistant.models.utils import html_to_markdown
-
 from odoo.addons.queue_job.exception import RetryableJobError
 
 _logger = logging.getLogger(__name__)

@@ -29,7 +29,7 @@ Inbound email → Odoo mail router
             │       └─▶ _ai_get_source_name()   [AI lookup: domain → publication name]
             ├─▶ Sanitise email HTML
             ├─▶ Create news.snapshot (raw_content = sanitised HTML)
-            └─▶ snapshot.with_delay()._extract_articles_email()   [extraction queue job]
+            └─▶ snapshot.with_delay()._extract_articles()   [extraction queue job]
 ```
 
 The extraction job sends the sanitised email HTML to the AI and creates `news.article` records,
@@ -115,7 +115,7 @@ No additional record rules beyond the base module.
 ## Testing
 
 ```bash
-make test-module MODULE=newsassistant_email
+docker exec odoo-newsassistant odoo --test-tags newsassistant_email --stop-after-init -d newsassistant
 ```
 
 To test the end-to-end inbound flow manually:

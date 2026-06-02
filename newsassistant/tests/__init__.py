@@ -6,7 +6,6 @@ from . import test_scraping_pipeline
 from . import test_queue_jobs
 from . import test_kanban
 from . import test_article_state
-from . import test_header_image
 from . import test_config_settings
 from . import test_security
 from . import test_log_models

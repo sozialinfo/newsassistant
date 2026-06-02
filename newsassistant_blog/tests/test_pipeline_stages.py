@@ -1,3 +1,7 @@
+from unittest.mock import patch
+import time
+
+from odoo import fields as odoo_fields
 from odoo.tests.common import TransactionCase, tagged
 
 
@@ -115,9 +119,6 @@ class TestPipelineStages(TransactionCase):
         article = self._create_article("hs-1")
         entries = []
 
-        import time
-        from odoo import fields as odoo_fields
-
         def add(level, message, duration=None, metadata=None):
             entries.append({
                 "timestamp": odoo_fields.Datetime.now(),
@@ -127,11 +128,6 @@ class TestPipelineStages(TransactionCase):
                 "metadata": metadata,
             })
 
-        # _handle_shortlist moves to shortlist stage, then tries teaser generation
-        # (which will fail due to missing AI key — that's OK, we only check stage)
-        # We need to ensure _create_digest_log doesn't crash with our entry format.
-        # Patch _generate_teaser to avoid actual AI calls.
-        from unittest.mock import patch
         with patch.object(type(article), '_generate_teaser', return_value=None):
             article._handle_shortlist("Very relevant", entries, add, job_id=None, start_time=time.time())
 

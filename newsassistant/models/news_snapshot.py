@@ -79,8 +79,17 @@ class NewsSnapshot(models.Model):
                 snapshot.name = "Snapshot"
 
     def _compute_article_count(self):
+        """Count articles per snapshot using a single batched query."""
+        counts = {}
+        if self.ids:
+            result = self.env["news.article"].read_group(
+                [("snapshot_id", "in", self.ids)],
+                ["snapshot_id"],
+                ["snapshot_id"],
+            )
+            counts = {row["snapshot_id"][0]: row["snapshot_id_count"] for row in result}
         for snapshot in self:
-            snapshot.article_count = len(snapshot.article_ids)
+            snapshot.article_count = counts.get(snapshot.id, 0)
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -265,7 +274,7 @@ class NewsSnapshot(models.Model):
             if not isinstance(article_data, dict):
                 raise ValueError("Expected a JSON object")
             return article_data
-        except (ValueError, Exception) as e:
+        except Exception as e:
             add_entry(
                 "error",
                 f"Failed to parse AI response: {e}",

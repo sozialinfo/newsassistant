@@ -17,9 +17,8 @@ from odoo.addons.queue_job.exception import RetryableJobError
 
 _logger = logging.getLogger(__name__)
 
-# AI configuration
-AI_TIMEOUT = 120
 TRANSIENT_HTTP_CODES = {408, 429, 500, 502, 503, 504}
+AI_TIMEOUT = 120
 
 
 class NewsArticle(models.Model):
@@ -339,7 +338,7 @@ class NewsArticle(models.Model):
 
         # Reset digest state if already processed (allow re-processing)
         if self.digest_state == "processed":
-            self.write({"digest_state": "pending", "teaser": False})
+            self.write({"digest_state": "pending", "teaser": ""})
 
         self.with_delay(
             channel="root.newsassistant",
@@ -408,21 +407,8 @@ class NewsArticle(models.Model):
     def _call_ai(self, system_prompt, user_content, temperature=0.1):
         """Call the Infomaniak AI chat completion API.
 
-        Args:
-            system_prompt: The system prompt instructing the AI.
-            user_content: The user message content.
-            temperature: Temperature for response generation (default 0.1).
-
         Returns:
-            dict with keys:
-                - content: The parsed content string from the AI response
-                - usage: Token usage dict
-                - request: Original request details for logging
-                - duration_ms: Response time in milliseconds
-
-        Raises:
-            RetryableJobError: On transient API errors.
-            ValueError: On malformed AI response.
+            dict with keys: content, usage, request, response, duration_ms
         """
         api_key = os.environ.get("INFOMANIAK_AI_API_KEY")
         if not api_key:
@@ -508,21 +494,10 @@ class NewsArticle(models.Model):
         }
 
     def _parse_ai_json(self, raw_text):
-        """Parse JSON from AI response, handling markdown fences and thinking blocks."""
-        text = raw_text.strip()
+        """Parse JSON from AI response using the core module's robust parser."""
+        from odoo.addons.newsassistant.models.news_source import parse_ai_json
 
-        # Remove thinking blocks
-        text = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
-
-        # Strip markdown code fences
-        if text.startswith("```"):
-            first_newline = text.find("\n")
-            if first_newline != -1:
-                text = text[first_newline + 1:]
-        if text.endswith("```"):
-            text = text[:-3].strip()
-
-        return json.loads(text)
+        return parse_ai_json(raw_text, expect_array=False)
 
     # -------------------------------------------------------------------------
     # Digest Pipeline
@@ -569,6 +544,7 @@ class NewsArticle(models.Model):
             job_id = job.id if job else None
 
         def add_entry(level, message, duration=None, metadata=None):
+            """Append a structured log entry to the log_entries list."""
             log_entries.append({
                 "timestamp": fields.Datetime.now(),
                 "level": level,
@@ -636,6 +612,20 @@ class NewsArticle(models.Model):
             job_id=job_id,
         )
 
+    def _clean_article_content(self, max_chars=None):
+        """Return cleaned article text: stripped HTML, decoded entities, collapsed whitespace."""
+        article_content = f"Title: {self.title}\n\n"
+        if self.summary:
+            article_content += f"Summary: {self.summary}\n\n"
+        if self.content:
+            clean_content = re.sub(r"<[^>]+>", " ", self.content)
+            clean_content = unescape(clean_content)
+            clean_content = re.sub(r"\s+", " ", clean_content).strip()
+            if max_chars:
+                clean_content = clean_content[:max_chars]
+            article_content += f"Content: {clean_content}"
+        return article_content
+
     def _evaluate_relevance(self, content_strategy, log_entries, add_entry):
         """Evaluate article relevance using AI.
 
@@ -653,15 +643,7 @@ class NewsArticle(models.Model):
         )
 
         # Prepare article content for evaluation
-        article_content = f"Title: {self.title}\n\n"
-        if self.summary:
-            article_content += f"Summary: {self.summary}\n\n"
-        if self.content:
-            # Strip HTML tags for cleaner input
-            clean_content = re.sub(r"<[^>]+>", " ", self.content)
-            clean_content = unescape(clean_content)
-            clean_content = re.sub(r"\s+", " ", clean_content).strip()
-            article_content += f"Content: {clean_content[:5000]}"
+        article_content = self._clean_article_content(max_chars=5000)
 
         add_entry("info", "Calling LLM for relevance evaluation")
 
@@ -803,14 +785,7 @@ class NewsArticle(models.Model):
             "Return ONLY valid JSON, no markdown, no code fences, no explanation."
         )
 
-        article_content = f"Title: {self.title}\n\n"
-        if self.summary:
-            article_content += f"Summary: {self.summary}\n\n"
-        if self.content:
-            clean_content = re.sub(r"<[^>]+>", " ", self.content)
-            clean_content = unescape(clean_content)
-            clean_content = re.sub(r"\s+", " ", clean_content).strip()
-            article_content += f"Content: {clean_content[:3000]}"
+        article_content = self._clean_article_content(max_chars=3000)
 
         add_entry("info", "Calling LLM for teaser generation")
 
@@ -1060,17 +1035,21 @@ class NewsArticle(models.Model):
         })
 
         if entries:
+            now = fields.Datetime.now()
+            entry_vals = []
             for entry_data in entries:
                 metadata = entry_data.get("metadata")
                 if metadata and not isinstance(metadata, str):
                     metadata = json.dumps(metadata, ensure_ascii=False)
-                LogEntry.create({
+                entry_vals.append({
                     "log_id": log.id,
-                    "timestamp": entry_data.get("timestamp", fields.Datetime.now()),
+                    "timestamp": entry_data.get("timestamp", now),
                     "level": entry_data.get("level", "info"),
                     "message": entry_data.get("message", ""),
                     "duration": entry_data.get("duration"),
                     "metadata": metadata,
                 })
+            if entry_vals:
+                LogEntry.create(entry_vals)
 
         return log

@@ -5,6 +5,7 @@ import re
 from bs4 import BeautifulSoup
 
 from odoo import fields, models
+from odoo.addons.queue_job.exception import RetryableJobError
 
 _logger = logging.getLogger(__name__)
 
@@ -205,8 +206,6 @@ class NewsSnapshotEmail(models.Model):
         Returns:
             A human-readable publication name string.
         """
-        # Use a temporary source record for the AI call
-        # We call the AI via a dummy source or directly
         try:
             system_prompt = (
                 "/no_think\n"
@@ -216,17 +215,15 @@ class NewsSnapshotEmail(models.Model):
             )
             user_content = f"Email domain: {domain}"
 
-            # Call AI via a minimal news.source record context
-            # We use an existing source or create temp env
-            dummy = self.env["news.source"].new({"name": domain, "source_type": "email"})
-            result = dummy._call_infomaniak_ai(system_prompt, user_content)
+            result = self.source_id._call_infomaniak_ai(system_prompt, user_content)
             name = result.get("content", "").strip()
 
-            # Clean up the name
             name = name.strip('"\'').strip()
             if name and len(name) <= 100:
                 return name
-        except Exception as e:
+        except RetryableJobError:
+            raise
+        except (KeyError, AttributeError) as e:
             _logger.warning("AI source naming failed for domain %s: %s", domain, e)
 
         # Fallback: use domain

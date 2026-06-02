@@ -1,7 +1,7 @@
 {
     "name": "News Assistant",
-    "version": "18.0.3.1.0",
-    "category": "Productivity",
+    "version": "18.0.3.2.0",
+    "category": "Marketing",
     "summary": "Automated news capture and triage — base module",
     "description": """
         News Assistant base module. Provides the core data model:
@@ -26,13 +26,13 @@
         "data/news_article_stage_data.xml",
         "data/ir_config_parameter_data.xml",
         "data/queue_job_data.xml",
+        "data/server_actions.xml",
         "views/res_config_settings_views.xml",
         "views/news_snapshot_views.xml",
         "views/news_article_views.xml",
         "views/news_source_views.xml",
         "views/news_article_stage_views.xml",
         "views/news_log_views.xml",
-        "data/server_actions.xml",
         "views/menu.xml",
     ],
     "demo": [

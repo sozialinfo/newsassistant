@@ -499,7 +499,7 @@ msgstr "Dieser Artikel wurde bereits übersprungen."
 #: model:news.article.stage,name:newsassistant.news_article_stage_shortlist
 #: model_terms:ir.ui.view,arch_db:newsassistant.news_article_view_search
 msgid "Shortlist"
-msgstr "Shortlist"
+msgstr "Auswahlliste"
 
 #. module: newsassistant
 #: model:news.article.stage,name:newsassistant.news_article_stage_published
@@ -792,13 +792,13 @@ msgstr "Absender-Domain"
 #. module: newsassistant
 #: model:ir.model.fields,field_description:newsassistant.field_news_snapshot__name
 msgid "Snapshot"
-msgstr "Snapshot"
+msgstr "Momentaufnahme"
 
 #. module: newsassistant
 #: model:ir.actions.act_window,name:newsassistant.news_snapshot_action
 #: model:ir.model.fields,field_description:newsassistant.field_news_source__snapshot_ids
 msgid "Snapshots"
-msgstr "Snapshots"
+msgstr "Momentaufnahmen"
 
 #. module: newsassistant
 #: model:ir.model.fields,field_description:newsassistant.field_news_source__source_type

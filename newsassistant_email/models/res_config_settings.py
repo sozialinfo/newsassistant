@@ -14,14 +14,12 @@ class ResConfigSettings(models.TransientModel):
     def set_values(self):
         super().set_values()
         alias_name = self.newsassistant_email_alias_name
-        if alias_name:
-            # Update the mail.alias record for news.snapshot
-            model = self.env["ir.model"]._get("news.snapshot")
-            alias = self.env["mail.alias"].search(
-                [("alias_model_id", "=", model.id)], limit=1
-            )
-            if alias:
-                alias.write({"alias_name": alias_name})
+        model = self.env["ir.model"]._get("news.snapshot")
+        alias = self.env["mail.alias"].search(
+            [("alias_model_id", "=", model.id)], limit=1
+        )
+        if alias and alias_name:
+            alias.write({"alias_name": alias_name})
 
     @api.model
     def get_values(self):

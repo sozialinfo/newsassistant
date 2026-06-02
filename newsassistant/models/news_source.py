@@ -9,7 +9,7 @@ import requests
 from bs4 import BeautifulSoup
 
 from odoo import fields, models
-from odoo.exceptions import UserError
+from odoo.exceptions import ValidationError
 
 from odoo.addons.queue_job.exception import RetryableJobError
 
@@ -207,13 +207,19 @@ class NewsSource(models.Model):
     )
 
     def _compute_is_scraping(self):
-        """Check if this source has any running scrape jobs."""
+        """Check if this source has any running scrape jobs.
+
+        Queries the queue_job model's JSONB ``records`` column directly because
+        the OCA queue_job API does not expose a query method for filtering by
+        referenced record IDs.  This is intentionally fragile — if the queue_job
+        module changes its internal serialisation format, this query must be
+        updated.
+        """
         if not self.ids:
             for source in self:
                 source.is_scraping = False
             return
 
-        # records is stored as a JSONB string, so double-parse: (records#>>'{}')::jsonb
         self.env.cr.execute("""
             SELECT DISTINCT (elem.value)::int AS source_id
             FROM queue_job,
@@ -269,10 +275,13 @@ class NewsSource(models.Model):
             source.log_count = counts.get(source.id, 0)
 
     def _compute_job_count(self):
-        """Count all queue jobs for this source."""
+        """Count all queue jobs for this source.
+
+        Queries the queue_job model's JSONB ``records`` column directly (see
+        _compute_is_scraping for rationale).
+        """
         counts = {}
         if self.ids:
-            # records is stored as a JSONB string, so double-parse: (records#>>'{}')::jsonb
             self.env.cr.execute("""
                 SELECT (elem.value)::int AS source_id, COUNT(*) AS cnt
                 FROM queue_job,
@@ -310,9 +319,12 @@ class NewsSource(models.Model):
         }
 
     def action_view_jobs(self):
-        """Open all queue jobs for this source."""
+        """Open all queue jobs for this source.
+
+        Queries the queue_job model's JSONB ``records`` column directly (see
+        _compute_is_scraping for rationale).
+        """
         self.ensure_one()
-        # records is stored as a JSONB string, so double-parse: (records#>>'{}')::jsonb
         self.env.cr.execute("""
             SELECT DISTINCT q.uuid
             FROM queue_job q,
@@ -338,7 +350,7 @@ class NewsSource(models.Model):
         """Get the Infomaniak AI API key from environment."""
         api_key = os.environ.get("INFOMANIAK_AI_API_KEY")
         if not api_key:
-            raise UserError(
+            raise ValidationError(
                 "Infomaniak AI API key not configured. "
                 "Set the INFOMANIAK_AI_API_KEY environment variable."
             )
@@ -350,33 +362,31 @@ class NewsSource(models.Model):
             "newsassistant.infomaniak_product_id", default="103794"
         )
 
-    def _call_infomaniak_ai(self, system_prompt, user_content):
+    def _call_infomaniak_ai(self, system_prompt, user_content, temperature=0.1):
         """Call the Infomaniak AI chat completion API.
 
         Args:
             system_prompt: The system prompt instructing the AI.
             user_content: The user message content (typically cleaned HTML).
+            temperature: Model temperature (default 0.1 for deterministic output).
 
         Returns:
             dict with keys:
                 - content: The parsed content string from the AI response
                 - usage: Token usage dict with prompt_tokens, completion_tokens, total_tokens
                 - request: Original request details for logging
+                - response: Response content and status code
                 - duration_ms: Response time in milliseconds
-                - status_code: HTTP status code
 
         Raises:
             RetryableJobError: On transient API errors (rate limit, timeout, 5xx).
             ValueError: On malformed AI response.
         """
-        import time
-
         api_key = self._get_ai_api_key()
         product_id = self._get_ai_product_id()
         url = f"https://api.infomaniak.com/2/ai/{product_id}/openai/v1/chat/completions"
 
         model = "qwen3"
-        temperature = 0.1
         payload = {
             "model": model,
             "messages": [
@@ -384,6 +394,68 @@ class NewsSource(models.Model):
                 {"role": "user", "content": user_content},
             ],
             "temperature": temperature,
+        }
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        }
+
+        t0 = time.time()
+        try:
+            response = requests.post(
+                url, json=payload, headers=headers, timeout=AI_TIMEOUT
+            )
+        except requests.exceptions.Timeout:
+            raise RetryableJobError(
+                "Infomaniak AI API timeout", seconds=300, ignore_retry=False
+            )
+        except requests.exceptions.ConnectionError as e:
+            raise RetryableJobError(
+                f"Infomaniak AI API connection error: {e}",
+                seconds=300,
+                ignore_retry=False,
+            )
+        duration_ms = int((time.time() - t0) * 1000)
+
+        if response.status_code in TRANSIENT_HTTP_CODES:
+            raise RetryableJobError(
+                f"Infomaniak AI API returned {response.status_code}",
+                seconds=300,
+                ignore_retry=False,
+            )
+
+        if response.status_code != 200:
+            raise ValueError(
+                f"Infomaniak AI API error {response.status_code}: {response.text[:500]}"
+            )
+
+        data = response.json()
+        try:
+            content = data["choices"][0]["message"]["content"]
+        except (KeyError, IndexError) as e:
+            raise ValueError(f"Unexpected AI response structure: {e}")
+
+        # Extract usage information if available
+        usage = data.get("usage", {})
+
+        return {
+            "content": content,
+            "usage": {
+                "prompt_tokens": usage.get("prompt_tokens", 0),
+                "completion_tokens": usage.get("completion_tokens", 0),
+                "total_tokens": usage.get("total_tokens", 0),
+            },
+            "request": {
+                "model": model,
+                "temperature": temperature,
+                "system_prompt": system_prompt,
+                "user_content": user_content,
+            },
+            "response": {
+                "content": content,
+                "status_code": response.status_code,
+            },
+            "duration_ms": duration_ms,
         }
         headers = {
             "Authorization": f"Bearer {api_key}",

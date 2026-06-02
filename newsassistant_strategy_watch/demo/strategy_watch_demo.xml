@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Demo strategy with watch prompt for testing -->
+    <record id="demo_strategy_watch_test" model="strategy.strategy">
+        <field name="name">Watch Demo Strategy</field>
+        <field name="state">active</field>
+        <field name="description">Demo strategy for testing watch evaluation.</field>
+    </record>
+</odoo>

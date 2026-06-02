@@ -27,8 +27,113 @@ TRANSIENT_HTTP_CODES = {408, 429, 500, 502, 503, 504}
 MAX_PDF_TEXT_CHARS = 8000
 
 
+class StrategyAiMixin(models.AbstractModel):
+    """Shared AI infrastructure for all strategy modules.
+
+    Provides _call_ai() and _parse_ai_json() to any model that inherits
+    this mixin. Avoids duplication across strategy_strategy, strategy_digest,
+    and news_article (newsassistant_strategy_digest / newsassistant_strategy_watch).
+    """
+
+    _name = "strategy.ai.mixin"
+    _description = "Strategy AI Mixin"
+
+    def _call_ai(self, system_prompt, user_content, temperature=0.1):
+        """Call the Infomaniak AI chat completion API.
+
+        Returns:
+            dict with keys: content, usage, duration_ms
+        """
+        api_key = os.environ.get("INFOMANIAK_AI_API_KEY")
+        if not api_key:
+            raise UserError(
+                _("Infomaniak AI API key not configured. "
+                  "Set the INFOMANIAK_AI_API_KEY environment variable.")
+            )
+
+        product_id = self.env["ir.config_parameter"].sudo().get_param(
+            "newsassistant.infomaniak_product_id", default="103794"
+        )
+        url = f"https://api.infomaniak.com/2/ai/{product_id}/openai/v1/chat/completions"
+
+        model = "qwen3"
+        payload = {
+            "model": model,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_content},
+            ],
+            "temperature": temperature,
+        }
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        }
+
+        start_time = time.time()
+        try:
+            response = requests.post(
+                url, json=payload, headers=headers, timeout=AI_TIMEOUT
+            )
+        except requests.exceptions.Timeout:
+            raise RetryableJobError(
+                "Infomaniak AI API timeout", seconds=300, ignore_retry=False
+            )
+        except requests.exceptions.ConnectionError as e:
+            raise RetryableJobError(
+                f"Infomaniak AI API connection error: {e}",
+                seconds=300,
+                ignore_retry=False,
+            )
+        duration_ms = int((time.time() - start_time) * 1000)
+
+        if response.status_code in TRANSIENT_HTTP_CODES:
+            raise RetryableJobError(
+                f"Infomaniak AI API returned {response.status_code}",
+                seconds=300,
+                ignore_retry=False,
+            )
+
+        if response.status_code != 200:
+            raise ValueError(
+                f"Infomaniak AI API error {response.status_code}: {response.text[:500]}"
+            )
+
+        data = response.json()
+        try:
+            content = data["choices"][0]["message"]["content"]
+        except (KeyError, IndexError) as e:
+            raise ValueError(f"Unexpected AI response structure: {e}")
+
+        usage = data.get("usage", {})
+        return {
+            "content": content,
+            "usage": {
+                "prompt_tokens": usage.get("prompt_tokens", 0),
+                "completion_tokens": usage.get("completion_tokens", 0),
+                "total_tokens": usage.get("total_tokens", 0),
+            },
+            "duration_ms": duration_ms,
+        }
+
+    def _parse_ai_json(self, raw_text):
+        """Parse JSON from AI response, handling markdown fences and thinking blocks."""
+        text = raw_text.strip()
+        text = re.sub(r"\s*thinking.*? response", "", text, flags=re.DOTALL).strip()
+
+        if text.startswith("```"):
+            first_newline = text.find("\n")
+            if first_newline != -1:
+                text = text[first_newline + 1:]
+        if text.endswith("```"):
+            text = text[:-3].strip()
+
+        return json.loads(text)
+
+
 class StrategyStrategy(models.Model):
     _name = "strategy.strategy"
+    _inherit = ["strategy.ai.mixin"]
     _description = "Strategy"
     _order = "name"
 
@@ -39,6 +144,7 @@ class StrategyStrategy(models.Model):
     name = fields.Char(
         string="Name",
         required=True,
+        index=True,
     )
     state = fields.Selection(
         [
@@ -169,102 +275,6 @@ class StrategyStrategy(models.Model):
             return ""
 
     # -------------------------------------------------------------------------
-    # AI Infrastructure (shared by sister modules)
-    # -------------------------------------------------------------------------
-
-    def _call_ai(self, system_prompt, user_content, temperature=0.1):
-        """Call the Infomaniak AI chat completion API.
-
-        Returns:
-            dict with keys: content, usage, duration_ms
-        """
-        api_key = os.environ.get("INFOMANIAK_AI_API_KEY")
-        if not api_key:
-            raise UserError(
-                _("Infomaniak AI API key not configured. "
-                  "Set the INFOMANIAK_AI_API_KEY environment variable.")
-            )
-
-        product_id = self.env["ir.config_parameter"].sudo().get_param(
-            "newsassistant.infomaniak_product_id", default="103794"
-        )
-        url = f"https://api.infomaniak.com/2/ai/{product_id}/openai/v1/chat/completions"
-
-        model = "qwen3"
-        payload = {
-            "model": model,
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_content},
-            ],
-            "temperature": temperature,
-        }
-        headers = {
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
-        }
-
-        start_time = time.time()
-        try:
-            response = requests.post(
-                url, json=payload, headers=headers, timeout=AI_TIMEOUT
-            )
-        except requests.exceptions.Timeout:
-            raise RetryableJobError(
-                "Infomaniak AI API timeout", seconds=300, ignore_retry=False
-            )
-        except requests.exceptions.ConnectionError as e:
-            raise RetryableJobError(
-                f"Infomaniak AI API connection error: {e}",
-                seconds=300,
-                ignore_retry=False,
-            )
-        duration_ms = int((time.time() - start_time) * 1000)
-
-        if response.status_code in TRANSIENT_HTTP_CODES:
-            raise RetryableJobError(
-                f"Infomaniak AI API returned {response.status_code}",
-                seconds=300,
-                ignore_retry=False,
-            )
-
-        if response.status_code != 200:
-            raise ValueError(
-                f"Infomaniak AI API error {response.status_code}: {response.text[:500]}"
-            )
-
-        data = response.json()
-        try:
-            content = data["choices"][0]["message"]["content"]
-        except (KeyError, IndexError) as e:
-            raise ValueError(f"Unexpected AI response structure: {e}")
-
-        usage = data.get("usage", {})
-        return {
-            "content": content,
-            "usage": {
-                "prompt_tokens": usage.get("prompt_tokens", 0),
-                "completion_tokens": usage.get("completion_tokens", 0),
-                "total_tokens": usage.get("total_tokens", 0),
-            },
-            "duration_ms": duration_ms,
-        }
-
-    def _parse_ai_json(self, raw_text):
-        """Parse JSON from AI response, handling markdown fences and thinking blocks."""
-        text = raw_text.strip()
-        text = re.sub(r"\s*thinking.*? response", "", text, flags=re.DOTALL).strip()
-
-        if text.startswith("```"):
-            first_newline = text.find("\n")
-            if first_newline != -1:
-                text = text[first_newline + 1:]
-        if text.endswith("```"):
-            text = text[:-3].strip()
-
-        return json.loads(text)
-
-    # -------------------------------------------------------------------------
     # Content gathering (shared by sister module distillations)
     # -------------------------------------------------------------------------
 
@@ -381,6 +391,7 @@ class StrategyDistillConfirm(models.TransientModel):
 
     _name = "strategy.distill.confirm"
     _description = "Confirm Prompt Overwrite"
+    _order = "id"
 
     strategy_id = fields.Many2one(
         "strategy.strategy",
@@ -408,6 +419,7 @@ class StrategyDistillConfirm(models.TransientModel):
     )
 
     def _compute_confirm_text(self):
+        """Compute confirm_title and confirm_body based on is_plural flag."""
         for wizard in self:
             if wizard.is_plural:
                 wizard.confirm_title = "Overwrite All Prompts?"
@@ -425,7 +437,7 @@ class StrategyDistillConfirm(models.TransientModel):
                 )
 
     def action_confirm_distill(self):
-        """User confirmed overwrite — run distillation, return form reload action."""
+        """Confirm overwrite and run distillation; return form reload action."""
         self.ensure_one()
         if self.method_name and hasattr(self.strategy_id, self.method_name):
             getattr(self.strategy_id, self.method_name)()

@@ -1,0 +1,128 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* newsassistant_strategy_watch
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-06-02 12:00+0000\n"
+"PO-Revision-Date: 2026-06-02 12:00+0000\n"
+"Language-Team: German\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. module: newsassistant_strategy_watch
+#: model:ir.model,name:newsassistant_strategy_watch.model_news_article
+msgid "News Article"
+msgstr "Nachrichtenartikel"
+
+#. module: newsassistant_strategy_watch
+#: model:ir.model.fields,field_description:newsassistant_strategy_watch.field_news_article__strategy_watch
+msgid "Strategy Watch"
+msgstr "Strategie-Watch"
+
+#. module: newsassistant_strategy_watch
+#: model:ir.model.fields,field_description:newsassistant_strategy_watch.field_news_article__strategy_watch_state
+msgid "Watch State"
+msgstr "Watch-Status"
+
+#. module: newsassistant_strategy_watch
+#: model:ir.model.fields,field_description:newsassistant_strategy_watch.field_news_article__strategy_watch_reasoning
+msgid "Watch Reasoning"
+msgstr "Watch-Begründung"
+
+#. module: newsassistant_strategy_watch
+#: model:ir.model.fields,field_description:newsassistant_strategy_watch.field_strategy_strategy__watch_prompt
+msgid "Watch Prompt"
+msgstr "Watch-Prompt"
+
+#. module: newsassistant_strategy_watch
+#: model:ir.model.fields,field_description:newsassistant_strategy_watch.field_strategy_strategy__watch_prompt_distilled
+msgid "Watch Prompt Distilled"
+msgstr "Watch-Prompt generiert"
+
+#. module: newsassistant_strategy_watch
+#: model:ir.model.fields.selection,name:newsassistant_strategy_watch.selection__news_article__strategy_watch_state__pending
+msgid "Pending"
+msgstr "Ausstehend"
+
+#. module: newsassistant_strategy_watch
+#: model:ir.model.fields.selection,name:newsassistant_strategy_watch.selection__news_article__strategy_watch_state__processed
+msgid "Processed"
+msgstr "Verarbeitet"
+
+#. module: newsassistant_strategy_watch
+#: model_terms:ir.ui.view,arch_db:newsassistant_strategy_watch.news_article_view_search
+msgid "On Watch"
+msgstr "Auf Watch"
+
+#. module: newsassistant_strategy_watch
+#: model_terms:ir.ui.view,arch_db:newsassistant_strategy_watch.news_article_view_search
+msgid "Watch Pending"
+msgstr "Watch ausstehend"
+
+#. module: newsassistant_strategy_watch
+#: model:ir.actions.server,name:newsassistant_strategy_watch.action_article_toggle_watch
+msgid "Toggle Strategy Watch"
+msgstr "Strategie-Watch umschalten"
+
+#. module: newsassistant_strategy_watch
+#: model:ir.actions.server,name:newsassistant_strategy_watch.action_article_watch_evaluate
+msgid "Watch Evaluate"
+msgstr "Watch auswerten"
+
+#. module: newsassistant_strategy_watch
+#: model_terms:ir.ui.view,arch_db:newsassistant_strategy_watch.strategy_strategy_view_form
+msgid "Watch Prompt"
+msgstr "Watch-Prompt"
+
+#. module: newsassistant_strategy_watch
+#: model_terms:ir.ui.view,arch_db:newsassistant_strategy_watch.strategy_strategy_view_form
+msgid "Distill Watch Prompt"
+msgstr "Watch-Prompt generieren"
+
+#. module: newsassistant_strategy_watch
+#. odoo-python
+#: code:addons/newsassistant_strategy_watch/models/news_article.py:0
+msgid "Watch Evaluation Queued"
+msgstr "Watch-Auswertung eingereiht"
+
+#. module: newsassistant_strategy_watch
+#. odoo-python
+#: code:addons/newsassistant_strategy_watch/models/news_article.py:0
+msgid "Strategy watch evaluation has been queued for this article."
+msgstr "Die Strategie-Watch-Auswertung wurde für diesen Artikel eingereiht."
+
+#. module: newsassistant_strategy_watch
+#. odoo-python
+#: code:addons/newsassistant_strategy_watch/models/news_article.py:0
+msgid "Watch Prompt Distilled"
+msgstr "Watch-Prompt generiert"
+
+#. module: newsassistant_strategy_watch
+#. odoo-python
+#: code:addons/newsassistant_strategy_watch/models/news_article.py:0
+msgid "The watch prompt has been generated and saved."
+msgstr "Der Watch-Prompt wurde generiert und gespeichert."
+
+#. module: newsassistant_strategy_watch
+#. odoo-python
+#: code:addons/newsassistant_strategy_watch/models/news_article.py:0
+msgid "Add to Strategy Watch"
+msgstr "Zur Strategie-Watch hinzufügen"
+
+#. module: newsassistant_strategy_watch
+#. odoo-python
+#: code:addons/newsassistant_strategy_watch/models/news_article.py:0
+msgid "Remove from Strategy Watch"
+msgstr "Von Strategie-Watch entfernen"
+
+#. module: newsassistant_strategy_watch
+#. odoo-python
+#: code:addons/newsassistant_strategy_watch/models/news_article.py:0
+msgid "No articles on strategy watch"
+msgstr "Keine Artikel auf der Strategie-Watch"

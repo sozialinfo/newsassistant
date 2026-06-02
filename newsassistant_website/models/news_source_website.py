@@ -5,7 +5,7 @@ import logging
 import time
 from urllib.parse import urljoin, urlparse
 
-from odoo import _, fields, models
+from odoo import _, api, fields, models
 
 from odoo.addons.queue_job.exception import RetryableJobError
 from odoo.addons.newsassistant.models.news_source import normalize_url, parse_ai_json
@@ -39,6 +39,7 @@ class NewsSourceWebsite(models.Model):
             },
         }
 
+    @api.model
     def _cron_scrape_all(self):
         """Cron entry point: enqueue a scrape job for each active website source."""
         sources = self.search([("active", "=", True), ("source_type", "=", "website")])
@@ -48,7 +49,7 @@ class NewsSourceWebsite(models.Model):
                 description=f"Scrape listing: {source.name}",
             )._scrape_listing()
 
-    def _create_listing_log(self, level, message, duration=None, entries=None, job_id=None, created_snapshot_ids=None):
+    def _create_listing_log(self, level, message, duration=None, entries=None, job_id=None):
         """Create a news.log record for a listing scrape operation."""
         Log = self.env["news.log"]
         LogEntry = self.env["news.log.entry"]

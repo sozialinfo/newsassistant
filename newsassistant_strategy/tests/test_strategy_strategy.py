@@ -112,7 +112,7 @@ class TestStrategyStrategy(TransactionCase):
     def test_distill_prompt_no_content_raises_user_error(self):
         strategy = self.StrategyStrategy.create({"name": "Empty Distill Test"})
         with self.assertRaises(UserError):
-            strategy.action_distill_prompt()
+            strategy._distill_gather_content()
 
     def test_distill_prompt_no_sisters_raises_user_error(self):
         """Distill raises UserError when no sister modules are installed."""

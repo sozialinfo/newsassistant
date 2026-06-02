@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <data noupdate="1">
     <!-- Source: Scrape Selected -->
     <record id="action_source_scrape_selected" model="ir.actions.server">
         <field name="name">Scrape Selected</field>
@@ -146,4 +147,5 @@ action = record.action_skip()
 action = record.action_reset()
         </field>
     </record>
+    </data>
 </odoo>
