@@ -25,15 +25,12 @@ class NewsArticle(models.Model):
     # Fields
     # -------------------------------------------------------------------------
 
-    strategy_label_ids = fields.Many2many(
-        "strategy.label",
-        "news_article_strategy_label_rel",
-        "article_id",
-        "label_id",
-        string="Strategy Labels",
-        help="Labels assigned to this article based on strategy evaluation.",
+    strategy_watch = fields.Boolean(
+        string="Strategy Watch",
+        default=False,
+        help="Flagged when AI detects strategic impact in this article.",
     )
-    strategy_eval_state = fields.Selection(
+    strategy_watch_state = fields.Selection(
         [
             ("pending", "Pending"),
             ("processed", "Processed"),
@@ -41,13 +38,13 @@ class NewsArticle(models.Model):
         default="pending",
         readonly=True,
         index=True,
-        string="Evaluation Status",
-        help="Whether this article has been evaluated against active strategies.",
+        string="Watch Evaluation",
+        help="Whether this article has been evaluated for strategic watch.",
     )
-    strategy_reasoning = fields.Text(
-        string="Reasoning",
+    strategy_watch_reasoning = fields.Text(
+        string="Watch Reasoning",
         readonly=True,
-        help="LLM reasoning for strategy label assignments, concatenated per strategy.",
+        help="LLM reasoning for the strategy watch decision.",
     )
 
     # -------------------------------------------------------------------------
@@ -55,7 +52,6 @@ class NewsArticle(models.Model):
     # -------------------------------------------------------------------------
 
     def _call_ai(self, system_prompt, user_content, temperature=0.1):
-        """Call the Infomaniak AI chat completion API."""
         api_key = os.environ.get("INFOMANIAK_AI_API_KEY")
         if not api_key:
             raise UserError(
@@ -129,7 +125,6 @@ class NewsArticle(models.Model):
         }
 
     def _parse_ai_json(self, raw_text):
-        """Parse JSON from AI response, handling markdown fences and thinking blocks."""
         text = raw_text.strip()
         text = re.sub(r"\s*thinking.*? response", "", text, flags=re.DOTALL).strip()
 
@@ -143,91 +138,89 @@ class NewsArticle(models.Model):
         return json.loads(text)
 
     # -------------------------------------------------------------------------
-    # Strategy Label Evaluation (overrides base no-op)
+    # Strategy Watch Evaluation (overrides base no-op)
     # -------------------------------------------------------------------------
 
-    def _evaluate_strategy_labels(self):
-        """Evaluate this article against all active strategies with digest prompts.
+    def _evaluate_strategy_watch(self):
+        """Evaluate this article against all active strategies with watch prompts.
 
-        For each active strategy with a non-empty digest_prompt, calls the AI and
-        assigns matching labels. Sets strategy_eval_state to processed when done.
+        For each active strategy with a non-empty watch_prompt, calls the AI
+        and sets strategy_watch = True if any strategy flags the article.
+        Sets strategy_watch_state to processed when done.
         """
         self.ensure_one()
-        if self.strategy_eval_state == "processed":
+        if self.strategy_watch_state == "processed":
             return
 
-        _logger.info("Evaluating strategy labels for article: %s", self.title)
+        _logger.info("Evaluating strategy watch for article: %s", self.title)
 
         today = fields.Date.today()
         strategies = self.env["strategy.strategy"].search([("state", "=", "active")])
         active_strategies = strategies.filtered(
             lambda s: s._is_active_for_period(today, today)
-            and s.digest_prompt and s.digest_prompt.strip()
+            and s.watch_prompt and s.watch_prompt.strip()
         )
 
         if not active_strategies:
-            _logger.info("No active strategies with digest prompts — marking article as processed")
-            self.write({"strategy_eval_state": "processed"})
+            _logger.info("No active strategies with watch prompts — marking article as processed")
+            self.write({"strategy_watch_state": "processed"})
             return
 
-        labels_to_add = self.env["strategy.label"]
+        is_watched = False
         reasoning_parts = []
 
         for strategy in active_strategies:
             try:
-                new_labels, reasoning = self._evaluate_against_strategy(strategy)
-                labels_to_add |= new_labels
+                relevant, reasoning = self._evaluate_watch_against_strategy(strategy)
+                if relevant:
+                    is_watched = True
                 if reasoning:
                     reasoning_parts.append(f"{strategy.name}: {reasoning}")
             except RetryableJobError:
                 raise
             except Exception as e:
                 _logger.warning(
-                    "Strategy eval failed for article %s against strategy %s: %s",
+                    "Strategy watch eval failed for article %s against strategy %s: %s",
                     self.title,
                     strategy.name,
                     e,
                 )
 
-        vals = {"strategy_eval_state": "processed"}
-        if labels_to_add:
-            vals["strategy_label_ids"] = [(4, label.id) for label in labels_to_add]
+        vals = {
+            "strategy_watch_state": "processed",
+            "strategy_watch": is_watched,
+        }
         if reasoning_parts:
-            vals["strategy_reasoning"] = "\n\n".join(reasoning_parts)
+            vals["strategy_watch_reasoning"] = "\n\n".join(reasoning_parts)
 
         self.write(vals)
         _logger.info(
-            "Strategy eval complete for '%s': assigned labels %s",
+            "Strategy watch eval complete for '%s': watched=%s",
             self.title,
-            [l.name for l in labels_to_add],
+            is_watched,
         )
 
-    def _evaluate_against_strategy(self, strategy):
-        """Evaluate this article against a single strategy.
+    def _evaluate_watch_against_strategy(self, strategy):
+        """Evaluate this article against a single strategy's watch prompt.
 
         Args:
-            strategy: strategy.strategy record with a non-empty digest_prompt.
+            strategy: strategy.strategy record with a non-empty watch_prompt.
 
         Returns:
-            tuple: (strategy.label recordset, reasoning str)
+            tuple: (is_watch_relevant bool, reasoning str)
         """
         self.ensure_one()
 
-        label_names = [label.name for label in strategy.label_ids]
-
-        prompt_text = html_to_markdown(strategy.digest_prompt)
+        prompt_text = html_to_markdown(strategy.watch_prompt)
         system_prompt = (
             "/no_think\n"
             f"{prompt_text}\n\n"
-            "Based on the above strategy, evaluate the following news article.\n"
+            "Based on the above strategy watch criteria, evaluate the following news article.\n"
             "Return a JSON object with exactly these fields:\n"
-            '- "is_relevant": true or false\n'
-            '- "labels": list of label names to assign (must be from: '
-            + json.dumps(label_names) + ")\n"
-            '- "reasoning": one or two sentences explaining why these labels apply '
-            "(or why the article is not relevant)\n"
-            "Return ONLY valid JSON, no markdown, no explanation outside the JSON.\n"
-            "Only include labels that clearly apply. Return an empty list if none apply."
+            '- "is_watch_relevant": true or false\n'
+            '- "reasoning": one or two sentences explaining why this article should '
+            "or should not be flagged for strategy watch\n"
+            "Return ONLY valid JSON, no markdown, no explanation outside the JSON."
         )
 
         article_content = f"Title: {self.title}\n\n"
@@ -239,108 +232,46 @@ class NewsArticle(models.Model):
 
         ai_result = self._call_ai(system_prompt, article_content, temperature=0.1)
 
-        empty = self.env["strategy.label"]
         try:
             result = self._parse_ai_json(ai_result["content"])
         except (json.JSONDecodeError, ValueError) as e:
             _logger.warning(
-                "Failed to parse AI response for article %s / strategy %s: %s",
+                "Failed to parse watch AI response for article %s / strategy %s: %s",
                 self.title,
                 strategy.name,
                 e,
             )
-            return empty, ""
+            return False, ""
 
         reasoning = result.get("reasoning", "") or ""
-        is_relevant = result.get("is_relevant", False)
-        if not is_relevant:
-            return empty, reasoning
-
-        returned_label_names = result.get("labels", [])
-        if not isinstance(returned_label_names, list):
-            returned_label_names = []
-
-        matched_labels = self.env["strategy.label"]
-        for label_name in returned_label_names:
-            label = strategy.label_ids.filtered(
-                lambda l: l.name.strip().lower() == str(label_name).strip().lower()
-            )
-            if label:
-                matched_labels |= label
-            else:
-                _logger.warning(
-                    "AI returned unknown label '%s' for strategy '%s' — skipping",
-                    label_name,
-                    strategy.name,
-                )
-
-        return matched_labels, reasoning
+        is_watch_relevant = result.get("is_watch_relevant", False)
+        return is_watch_relevant, reasoning
 
     # -------------------------------------------------------------------------
     # Manual Trigger
     # -------------------------------------------------------------------------
 
-    def action_reevaluate_strategy_labels(self):
-        """Button action: reset strategy eval state and re-queue evaluation."""
+    def action_reevaluate_strategy_watch(self):
+        """Button action: reset watch eval state and re-queue evaluation."""
         self.ensure_one()
 
         self.write({
-            "strategy_eval_state": "pending",
-            "strategy_reasoning": False,
-            "strategy_label_ids": [(5, False, False)],
+            "strategy_watch_state": "pending",
+            "strategy_watch_reasoning": False,
+            "strategy_watch": False,
         })
 
         self.with_delay(
             channel="root.newsassistant",
-            description=f"Strategy eval (manual): {self.title[:50]}",
+            description=f"Strategy watch eval (manual): {self.title[:50]}",
         )._evaluate_strategies()
 
         return {
             "type": "ir.actions.client",
             "tag": "display_notification",
             "params": {
-                "title": _("Evaluation Queued"),
-                "message": _("Strategy label evaluation has been queued for this article."),
-                "type": "info",
-                "sticky": False,
-            },
-        }
-
-    def action_reevaluate_strategy_labels_bulk(self):
-        """Server action: re-evaluate strategy labels for selected articles."""
-        articles = self.filtered(lambda a: a.state == "scraped")
-        skipped = len(self) - len(articles)
-
-        if not articles:
-            return {
-                "type": "ir.actions.client",
-                "tag": "display_notification",
-                "params": {
-                    "title": _("No Articles to Evaluate"),
-                    "message": _("None of the selected articles are in 'Scraped' state."),
-                    "type": "warning",
-                    "sticky": False,
-                },
-            }
-
-        articles.write({"strategy_eval_state": "pending"})
-
-        for article in articles:
-            article.with_delay(
-                channel="root.newsassistant",
-                description=f"Strategy eval (manual): {article.title[:50]}",
-            )._evaluate_strategies()
-
-        message = _("Queued %d article(s) for strategy label evaluation.") % len(articles)
-        if skipped:
-            message += _(" Skipped %d article(s) not in 'Scraped' state.") % skipped
-
-        return {
-            "type": "ir.actions.client",
-            "tag": "display_notification",
-            "params": {
-                "title": _("Evaluation Queued"),
-                "message": message,
+                "title": _("Watch Evaluation Queued"),
+                "message": _("Strategy watch evaluation has been queued for this article."),
                 "type": "info",
                 "sticky": False,
             },

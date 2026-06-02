@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Extend kanban view: add strategy_watch star in top-right corner -->
+    <record id="news_article_view_kanban_watch" model="ir.ui.view">
+        <field name="name">news.article.kanban.watch</field>
+        <field name="model">news.article</field>
+        <field name="inherit_id" ref="newsassistant.news_article_view_kanban"/>
+        <field name="arch" type="xml">
+            <!-- Add watch star to the top row, right-aligned -->
+            <xpath expr="//div[hasclass('d-flex', 'align-items-start')]" position="attributes">
+                <attribute name="class">d-flex align-items-start gap-2 mb-2 justify-content-between</attribute>
+            </xpath>
+            <xpath expr="//div[hasclass('d-flex', 'align-items-start')]/div" position="after">
+                <field name="strategy_watch" widget="strategy_watch" nolabel="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Extend search view: add watch filters -->
+    <record id="news_article_view_search_watch" model="ir.ui.view">
+        <field name="name">news.article.search.watch</field>
+        <field name="model">news.article</field>
+        <field name="inherit_id" ref="newsassistant.news_article_view_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='filter_state_skipped']" position="after">
+                <separator/>
+                <filter name="filter_watch_pending"
+                        string="Watch: Pending"
+                        domain="[('strategy_watch_state', '=', 'pending')]"/>
+                <filter name="filter_watch_processed"
+                        string="Watch: Processed"
+                        domain="[('strategy_watch_state', '=', 'processed')]"/>
+                <filter name="filter_strategy_watch"
+                        string="Strategy Watch"
+                        domain="[('strategy_watch', '=', True)]"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Extend form view: add Watch tab -->
+    <record id="news_article_view_form_watch" model="ir.ui.view">
+        <field name="name">news.article.form.watch</field>
+        <field name="model">news.article</field>
+        <field name="inherit_id" ref="newsassistant.news_article_view_form"/>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook/page[field[@name='content']]" position="after">
+                <page string="Watch" name="watch">
+                    <group>
+                        <div class="d-flex align-items-center gap-2">
+                            <field name="strategy_watch_state" widget="badge"
+                                   decoration-muted="strategy_watch_state == 'pending'"
+                                   decoration-success="strategy_watch_state == 'processed'"
+                                   nolabel="1"/>
+                            <button name="action_reevaluate_strategy_watch"
+                                    string="Watch Evaluate"
+                                    type="object"
+                                    class="btn btn-secondary btn-sm"
+                                    style="min-width:100px"
+                                    invisible="state != 'scraped'"
+                                    title="Re-evaluate this article for strategic watch"/>
+                        </div>
+                    </group>
+                    <group>
+                        <field name="strategy_watch" widget="boolean_toggle"
+                               invisible="strategy_watch_state == 'pending'"/>
+                    </group>
+                    <group invisible="not strategy_watch_reasoning" string="Watch Reasoning">
+                        <field name="strategy_watch_reasoning" nolabel="1" readonly="1"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Extend list view: add strategy_watch column -->
+    <record id="news_article_view_list_watch" model="ir.ui.view">
+        <field name="name">news.article.list.watch</field>
+        <field name="model">news.article</field>
+        <field name="inherit_id" ref="newsassistant.news_article_view_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='stage_id']" position="after">
+                <field name="strategy_watch" widget="strategy_watch"/>
+                <field name="strategy_watch_state" widget="badge" optional="hide"
+                       decoration-muted="strategy_watch_state == 'pending'"
+                       decoration-success="strategy_watch_state == 'processed'"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

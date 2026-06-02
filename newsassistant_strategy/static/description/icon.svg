@@ -1,0 +1,17 @@
+<svg width="50" height="50" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
+  <!-- Back page -->
+  <rect x="13" y="4" width="26" height="33" rx="3" fill="#712258"/>
+  <!-- Middle page -->
+  <rect x="9" y="8" width="26" height="33" rx="3" fill="#985184"/>
+  <!-- Front page -->
+  <rect x="5" y="12" width="26" height="33" rx="3" fill="#FC868B"/>
+  <!-- Text lines on front page -->
+  <rect x="10" y="19" width="16" height="3" rx="1.5" fill="#fff" opacity="0.9"/>
+  <rect x="10" y="25" width="13" height="2" rx="1" fill="#fff" opacity="0.6"/>
+  <rect x="10" y="30" width="15" height="2" rx="1" fill="#fff" opacity="0.6"/>
+  <rect x="10" y="35" width="10" height="2" rx="1" fill="#fff" opacity="0.4"/>
+  <!-- Star badge (bottom-right) -->
+  <circle cx="38" cy="38" r="11" fill="#F78613"/>
+  <!-- 5-point star -->
+  <path d="M38 30 l1.8 5.5 h5.8 l-4.7 3.4 1.8 5.5 -4.7-3.4 -4.7 3.4 1.8-5.5 -4.7-3.4 h5.8 Z" fill="#fff"/>
+</svg>

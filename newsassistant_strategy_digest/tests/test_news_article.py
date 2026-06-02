@@ -47,7 +47,7 @@ class TestNewsArticleStrategyEval(TransactionCase):
         cls.strategy = cls.env["strategy.strategy"].create({
             "name": "EvalTestStrategy",
             "state": "active",
-            "prompt": "<p>Evaluate articles about technology.</p>",
+            "digest_prompt": "<p>Evaluate articles about technology.</p>",
             "label_ids": [(4, cls.label.id)],
         })
 
@@ -88,7 +88,7 @@ class TestNewsArticleStrategyEval(TransactionCase):
         }
 
         with patch.object(self.article.__class__, "_call_ai", return_value=mock_result):
-            labels = self.article._evaluate_against_strategy(self.strategy)
+            labels, reasoning = self.article._evaluate_against_strategy(self.strategy)
 
         self.assertIn(self.label, labels)
 
@@ -105,7 +105,7 @@ class TestNewsArticleStrategyEval(TransactionCase):
         }
 
         with patch.object(self.article.__class__, "_call_ai", return_value=mock_result):
-            labels = self.article._evaluate_against_strategy(self.strategy)
+            labels, reasoning = self.article._evaluate_against_strategy(self.strategy)
 
         self.assertFalse(labels)
 
@@ -122,7 +122,7 @@ class TestNewsArticleStrategyEval(TransactionCase):
         }
 
         with patch.object(self.article.__class__, "_call_ai", return_value=mock_result):
-            labels = self.article._evaluate_against_strategy(self.strategy)
+            labels, reasoning = self.article._evaluate_against_strategy(self.strategy)
 
         self.assertEqual(len(labels), 1)
         self.assertIn(self.label, labels)
@@ -161,10 +161,10 @@ class TestNewsArticleStrategyEval(TransactionCase):
         article = _make_source_and_article(self.env, suffix="noprompt")
         # Ensure this specific test has no strategies with prompts
         strategies_with_prompts = self.env["strategy.strategy"].search([
-            ("prompt", "!=", False),
-            ("prompt", "!=", ""),
+            ("digest_prompt", "!=", False),
+            ("digest_prompt", "!=", ""),
         ])
-        strategies_with_prompts.write({"prompt": ""})
+        strategies_with_prompts.write({"digest_prompt": ""})
 
         article._evaluate_strategy_labels()
         self.assertEqual(article.strategy_eval_state, "processed")
@@ -343,7 +343,7 @@ class TestNewsArticleEvalCoverage(TransactionCase):
         cls.strategy = cls.env["strategy.strategy"].create({
             "name": "CoverageStrategy",
             "state": "active",
-            "prompt": "<p>Evaluate for coverage.</p>",
+            "digest_prompt": "<p>Evaluate for coverage.</p>",
             "label_ids": [(4, cls.label.id)],
         })
         # Article with summary and content
@@ -375,7 +375,7 @@ class TestNewsArticleEvalCoverage(TransactionCase):
             "duration_ms": 100,
         }
         with patch.object(self.article_with_content.__class__, "_call_ai", return_value=mock_result):
-            labels = self.article_with_content._evaluate_against_strategy(self.strategy)
+            labels, reasoning = self.article_with_content._evaluate_against_strategy(self.strategy)
         self.assertIn(self.label, labels)
 
     def test_evaluate_json_parse_error_returns_empty(self):
@@ -386,7 +386,7 @@ class TestNewsArticleEvalCoverage(TransactionCase):
             "duration_ms": 50,
         }
         with patch.object(self.article_with_content.__class__, "_call_ai", return_value=mock_result):
-            labels = self.article_with_content._evaluate_against_strategy(self.strategy)
+            labels, reasoning = self.article_with_content._evaluate_against_strategy(self.strategy)
         self.assertFalse(labels)
 
     def test_evaluate_labels_exception_in_strategy_eval(self):
@@ -425,7 +425,7 @@ class TestNewsArticleEvalCoverage(TransactionCase):
             "duration_ms": 80,
         }
         with patch.object(self.article_with_content.__class__, "_call_ai", return_value=mock_result):
-            labels = self.article_with_content._evaluate_against_strategy(self.strategy)
+            labels, reasoning = self.article_with_content._evaluate_against_strategy(self.strategy)
         # Non-list labels should result in empty matched set
         self.assertFalse(labels)
 
@@ -491,7 +491,7 @@ class TestNewsArticleHtmlConversion(TransactionCase):
         cls.strategy_html = cls.env["strategy.strategy"].create({
             "name": "HtmlConvEvalStrategy",
             "state": "active",
-            "prompt": "<h2>Strategy Focus</h2><p>Evaluate articles about <strong>technology</strong>.</p>",
+            "digest_prompt": "<h2>Strategy Focus</h2><p>Evaluate articles about <strong>technology</strong>.</p>",
             "label_ids": [(4, cls.label.id)],
         })
         source = cls.env["news.source"].create({

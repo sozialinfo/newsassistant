@@ -50,7 +50,7 @@ class TestStrategyDigest(TransactionCase):
         cls.strategy_eternal = cls.StrategyStrategy.create({
             "name": "EternalDigestStrategy",
             "state": "active",
-            "prompt": "<p>Test prompt for strategy evaluation.</p>",
+            "digest_prompt": "<p>Test prompt for strategy evaluation.</p>",
             "label_ids": [(4, cls.label.id)],
         })
         cls.strategy_2026 = cls.StrategyStrategy.create({
@@ -58,7 +58,7 @@ class TestStrategyDigest(TransactionCase):
             "state": "active",
             "date_from": date(2026, 1, 1),
             "date_to": date(2026, 12, 31),
-            "prompt": "<p>Test prompt for 2026 strategy.</p>",
+            "digest_prompt": "<p>Test prompt for 2026 strategy.</p>",
             "label_ids": [(4, cls.label.id)],
         })
         cls.strategy_2025 = cls.StrategyStrategy.create({
@@ -66,7 +66,7 @@ class TestStrategyDigest(TransactionCase):
             "state": "active",
             "date_from": date(2025, 1, 1),
             "date_to": date(2025, 12, 31),
-            "prompt": "<p>Old prompt.</p>",
+            "digest_prompt": "<p>Old prompt.</p>",
         })
 
         cls.article_in_period = _make_article_with_label(
@@ -501,7 +501,7 @@ class TestStrategyDigestHtmlConversion(TransactionCase):
         cls.strategy_html = cls.StrategyStrategy.create({
             "name": "HtmlConvTestStrategy",
             "state": "active",
-            "prompt": "<h2>Focus Areas</h2><p>Evaluate articles about <strong>innovation</strong>.</p>",
+            "digest_prompt": "<h2>Focus Areas</h2><p>Evaluate articles about <strong>innovation</strong>.</p>",
             "label_ids": [(4, cls.label.id)],
         })
 

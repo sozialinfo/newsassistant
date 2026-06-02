@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Real strategy document: Strategische Handlungsfelder SAVOIRSOCIAL
+         Source: https://www.savoirsocial.ch/s01/Dokumente/Organisation/Strategie-Broschuere-d.pdf
+         Published by: SAVOIRSOCIAL – Schweizerischer Dachverband für die Berufsbildung im Sozialbereich
+         Private association (Verein), social sector, German language -->
+    <record id="attachment_savoirsocial_strategie" model="ir.attachment">
+        <field name="name">SAVOIRSOCIAL_Strategie_Handlungsfelder.pdf</field>
+        <field name="datas">JVBERi0xLjcNJeLjz9MNCjYyIDAgb2JqDTw8L0xpbmVhcml6ZWQgMS9MIDExMTI2NC9PIDY1L0UgMTEwMTcvTiA4L1QgMTEwODM3L0ggWyA0NjYgMjc3XT4+DWVuZG9iag0gICAgICAgICAgICAgICAgDQo3MSAwIG9iag08PC9EZWNvZGVQYXJtczw8L0NvbHVtbnMgNC9QcmVkaWN0b3IgMTI+Pi9GaWx0ZXIvRmxhdGVEZWNvZGUvSURbPDY1OTdFNzVDQ0I4MzQ5RUU4MEY0NUY0MUREOTAyNjNFPjw1OEY5REY4MEJBQTdGQjQzOEQ2QTVGMURGRDM0Qzg2Qj5dL0luZGV4WzYyIDE2XS9JbmZvIDYxIDAgUi9MZW5ndGggNjIvUHJldiAxMTA4MzgvUm9vdCA2MyAwIFIvU2l6ZSA3OC9UeXBlL1hSZWYvV1sxIDIgMV0+PnN0cmVhbQ0KaN5iYmQQYGBiYLoOJBgXAwkGCyDBMhdIMAeCxBhBrAIgwRUJJF78YmBiZDgHUsfAiE78Z5zwByDAADAuCPUNCmVuZHN0cmVhbQ1lbmRvYmoNc3RhcnR4cmVmDQowDQolJUVPRg0KICAgICAgICANCjc3IDAgb2JqDTw8L0ZpbHRlci9GbGF0ZURlY29kZS9JIDI0NS9MIDIyOS9MZW5ndGggMTc3L08gMjEzL1MgMTIwL1QgMTYzPj5zdHJlYW0NCmjeYmBgYAKitQzMDAzsPxkEGBBAACjGAoQcPQws8n687gwMwleYL7FKsOo+/df//w8Dg6SjZUu48AzXwskQCsRzZepgaGDg6GBg6ECi2DrQDQCaL8bAWMEFpNmAGEQzMDIy8Io8mAKU+bLGzUJozQ+OB/McwE6RZmDs3QakOcDKdMA0IwMmOBGuJSTgywJkSQF1GEBVtQGxMgPjjEtQ/lYgVmNg3MAO5X8ECDAAhx0rfg0KZW5kc3RyZWFtDWVuZG9iag02MyAwIG9iag08PC9MYW5nKGRlLURFKS9NZXRhZGF0YSAzNiAwIFIvT3BlbkFjdGlvbiA2NCAwIFIvT3V0bGluZXMgNTUgMCBSL1BhZ2VMYWJlbHMgNTYgMCBSL1BhZ2VzIDYwIDAgUi9UeXBlL0NhdGFsb2cvVmlld2VyUHJlZmVyZW5jZXM8PC9EaXJlY3Rpb24vTDJSPj4+Pg1lbmRvYmoNNjQgMCBvYmoNPDwvRFs2NSAwIFIvWFlaIG51bGwgbnVsbCAxLjBdL1MvR29Ubz4+DWVuZG9iag02NSAwIG9iag08PC9BcnRCb3hbMC4wIDAuMCA0MTkuNTI4IDU5NS4yNzZdL0JsZWVkQm94WzAuMCAwLjAgNDE5LjUyOCA1OTUuMjc2XS9Db250ZW50cyA2NyAwIFIvQ3JvcEJveFswLjAgMC4wIDQxOS41MjggNTk1LjI3Nl0vTWVkaWFCb3hbMC4wIDAuMCA0MTkuNTI4IDU5NS4yNzZdL1BhcmVudCA2MCAwIFIvUGllY2VJbmZvPDwvSW5EZXNpZ248PC9Eb2N1bWVudElEKP7/AHgAbQBwAC4AZABpAGQAOgBkADkANAA4ADUAOAA4ADQALQA5ADAAYwA0AC0ANAA1ADMANAAtAGIANwA5AGYALQA3ADkANQA2ADYAMQBmADgAMgBiADkANykvTGFzdE1vZGlmaWVkKP7/AEQAOgAyADAAMgAyADEAMAAyADAAMQAyADUANQAwADYAWikvTnVtYmVyT2ZQYWdlSXRlbXNJblBhZ2UgMS9OdW1iZXJvZlBhZ2VzIDEvT3JpZ2luYWxEb2N1bWVudElEKP7/AHgAbQBwAC4AZABpAGQAOgA2ADIANAA1AGMAZABhAGUALQA5AGUAZgBhAC0AMwBiADQAYwAtAGEAYgA3ADgALQA2ADYAZgA2ADIANgBjADQAMQAyADQAMikvUGFnZUl0ZW1VSURU... (line truncated to 2000 chars)</field>
+        <field name="mimetype">application/pdf</field>
+        <field name="res_model">strategy.strategy</field>
+    </record>
+
+    <record id="strategy_fachkraefte_sozialbereich" model="strategy.strategy">
+        <field name="name">Berufsbildung &amp; Fachkräfte im Sozialbereich</field>
+        <field name="state">draft</field>
+        <field name="description">Strategie von SAVOIRSOCIAL – Schweizerischer Dachverband für die Berufsbildung im Sozialbereich.</field>
+        <field name="document_ids" eval="[(4, ref('attachment_savoirsocial_strategie'))]"/>
+    </record>
+</odoo>

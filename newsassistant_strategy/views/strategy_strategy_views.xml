@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Form view -->
+    <record id="strategy_strategy_view_form" model="ir.ui.view">
+        <field name="name">strategy.strategy.form</field>
+        <field name="model">strategy.strategy</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_activate"
+                            string="Activate"
+                            type="object"
+                            class="oe_highlight"
+                            invisible="state != 'draft'"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,active,archived"
+                           options="{'clickable': '1'}"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Strategy name..."/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Date Range">
+                            <field name="date_from"/>
+                            <field name="date_to"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Description">
+                            <field name="description" nolabel="1"
+                                   placeholder="Describe the strategy in your own words (used alongside PDF documents for prompt distillation)..."/>
+                        </page>
+                        <page string="Documents">
+                            <field name="document_ids" widget="many2many_binary" nolabel="1"/>
+                        </page>
+                        <page string="Prompt" name="prompt">
+                            <div class="mb-4">
+                                <button name="action_distill_prompt"
+                                        string="Distill All Prompts"
+                                        type="object"
+                                        class="btn btn-secondary"/>
+                            </div>
+                            <div name="prompt_sections"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- List view -->
+    <record id="strategy_strategy_view_list" model="ir.ui.view">
+        <field name="name">strategy.strategy.list</field>
+        <field name="model">strategy.strategy</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="date_from"/>
+                <field name="date_to"/>
+                <field name="state" widget="badge"
+                       decoration-muted="state == 'draft'"
+                       decoration-success="state == 'active'"
+                       decoration-danger="state == 'archived'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Search view -->
+    <record id="strategy_strategy_view_search" model="ir.ui.view">
+        <field name="name">strategy.strategy.search</field>
+        <field name="model">strategy.strategy</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <filter string="Draft" name="draft" domain="[('state','=','draft')]"/>
+                <filter string="Active" name="active" domain="[('state','=','active')]"/>
+                <filter string="Archived" name="archived" domain="[('state','=','archived')]"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Wizard: Distill Confirm (overwrite) -->
+    <record id="strategy_distill_confirm_view_form" model="ir.ui.view">
+        <field name="name">strategy.distill.confirm.form</field>
+        <field name="model">strategy.distill.confirm</field>
+        <field name="arch" type="xml">
+            <form string="Overwrite Prompt?">
+                <field name="is_plural" invisible="1"/>
+                <field name="method_name" invisible="1"/>
+                <sheet>
+                    <div class="alert alert-warning" role="alert">
+                        <field name="confirm_body" nolabel="1"/>
+                        <br/><br/>
+                        Do you want to continue?
+                    </div>
+                </sheet>
+                <footer>
+                    <button name="action_confirm_distill"
+                            string="Distill &amp; Overwrite"
+                            type="object"
+                            class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Window action -->
+    <record id="strategy_strategy_action" model="ir.actions.act_window">
+        <field name="name">Strategies</field>
+        <field name="res_model">strategy.strategy</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="strategy_strategy_view_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No strategies defined yet
+            </p>
+            <p>
+                Create a strategy to start labelling articles by strategic relevance.
+                Upload PDF documents and click "Distill All Prompts" to generate
+                the AI prompts for installed modules.
+            </p>
+        </field>
+    </record>
+</odoo>

@@ -1,8 +1,5 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_strategy_label_user,strategy.label.user,model_strategy_label,newsassistant.newsassistant_group_user,1,0,0,0
-access_strategy_label_admin,strategy.label.admin,model_strategy_label,newsassistant.newsassistant_group_admin,1,1,1,1
-access_strategy_strategy_user,strategy.strategy.user,model_strategy_strategy,newsassistant.newsassistant_group_user,1,1,1,0
-access_strategy_strategy_admin,strategy.strategy.admin,model_strategy_strategy,newsassistant.newsassistant_group_admin,1,1,1,1
+access_strategy_label_user,strategy.label.user,newsassistant_strategy_digest.model_strategy_label,newsassistant.newsassistant_group_user,1,0,0,0
+access_strategy_label_admin,strategy.label.admin,newsassistant_strategy_digest.model_strategy_label,newsassistant.newsassistant_group_admin,1,1,1,1
 access_strategy_digest_user,strategy.digest.user,model_strategy_digest,newsassistant.newsassistant_group_user,1,1,1,0
 access_strategy_digest_admin,strategy.digest.admin,model_strategy_digest,newsassistant.newsassistant_group_admin,1,1,1,1
-access_strategy_distill_confirm_user,strategy.distill.confirm.user,model_strategy_distill_confirm,newsassistant.newsassistant_group_user,1,1,1,1

@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_strategy_strategy_user,strategy.strategy.user,newsassistant_strategy.model_strategy_strategy,newsassistant.newsassistant_group_user,1,1,1,0
+access_strategy_strategy_admin,strategy.strategy.admin,newsassistant_strategy.model_strategy_strategy,newsassistant.newsassistant_group_admin,1,1,1,1
+access_strategy_distill_confirm_user,strategy.distill.confirm.user,newsassistant_strategy.model_strategy_distill_confirm,newsassistant.newsassistant_group_user,1,1,1,1

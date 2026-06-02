@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="news_article_action_watch" model="ir.actions.act_window">
+        <field name="name">Strategy Watch</field>
+        <field name="res_model">news.article</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="domain">[("strategy_watch", "=", True)]</field>
+        <field name="search_view_id" ref="newsassistant.news_article_view_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No articles on strategy watch
+            </p>
+            <p>
+                Articles flagged with strategic impact will appear here.
+            </p>
+        </field>
+    </record>
+
+    <menuitem id="menu_strategy_watch"
+              name="Watch"
+              parent="newsassistant_strategy.menu_strategy_root"
+              action="news_article_action_watch"
+              sequence="20"/>
+</odoo>

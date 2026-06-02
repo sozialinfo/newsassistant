@@ -251,8 +251,8 @@ class StrategyDigest(models.Model):
                 date_range = f"{strategy.date_from or '∞'} – {strategy.date_to or '∞'}"
                 strategies_text += f"Date range: {date_range}\n"
             strategies_text += f"Labels: {label_names}\n"
-            if strategy.prompt:
-                prompt_md = html_to_markdown(strategy.prompt)
+            if strategy.digest_prompt:
+                prompt_md = html_to_markdown(strategy.digest_prompt)
                 strategies_text += f"Focus: {prompt_md[:500]}\n"
 
         # Articles section — numbered for footnote referencing

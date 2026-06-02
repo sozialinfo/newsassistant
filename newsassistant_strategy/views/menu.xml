@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Strategy root menu under News Assistant -->
+    <menuitem id="menu_strategy_root"
+              name="Strategy"
+              parent="newsassistant.menu_news_assistant_root"
+              sequence="30"/>
+
+    <menuitem id="menu_strategy_strategies"
+              name="Strategies"
+              parent="menu_strategy_root"
+              action="strategy_strategy_action"
+              sequence="10"/>
+</odoo>

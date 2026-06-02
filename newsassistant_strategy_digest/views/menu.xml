@@ -1,24 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Strategy Digest submenu under News Assistant root -->
-    <menuitem id="menu_strategy_digest_root"
-              name="Strategy Digest"
-              parent="newsassistant.menu_news_assistant_root"
-              sequence="30"/>
-
     <menuitem id="menu_strategy_digest"
               name="Digest"
-              parent="menu_strategy_digest_root"
+              parent="newsassistant_strategy.menu_strategy_root"
               action="strategy_digest_action"
-              sequence="10"/>
+              sequence="15"/>
 
-    <menuitem id="menu_strategy_strategies"
-              name="Strategies"
-              parent="menu_strategy_digest_root"
-              action="strategy_strategy_action"
-              sequence="20"/>
-
-    <!-- Strategy Labels under the existing Configuration menu -->
     <menuitem id="menu_strategy_labels"
               name="Strategy Labels"
               parent="newsassistant.menu_news_configuration"
