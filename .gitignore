@@ -10,3 +10,6 @@ build/
 .env
 *.pot
 TODO.md
+odoo.conf
+caddy.conf
+test-results/

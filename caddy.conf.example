@@ -1,0 +1,4 @@
+YOUR_DOMAIN_HERE {
+    reverse_proxy /websocket odoo-newsassistant:8072
+    reverse_proxy odoo-newsassistant:8069
+}
