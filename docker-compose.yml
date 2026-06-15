@@ -3,6 +3,14 @@ networks:
     external: true
 
 services:
+  crawl4ai:
+    image: unclecode/crawl4ai:latest
+    container_name: crawl4ai-newsassistant
+    restart: unless-stopped
+    shm_size: 1g
+    networks:
+      - opencode
+
   odoo:
     image: odoo:18.0
     container_name: odoo-newsassistant
@@ -14,7 +22,6 @@ services:
       - USER=opencode
       - PASSWORD=${POSTGRES_PASSWORD}
       - INFOMANIAK_AI_API_KEY=${INFOMANIAK_AI_API_KEY}
-      - JINA_API_KEY=${JINA_API_KEY}
     volumes:
       - .:/mnt/extra-addons
       - ./odoo.conf:/etc/odoo/odoo.conf:ro

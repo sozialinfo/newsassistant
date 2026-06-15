@@ -102,7 +102,7 @@ def select_header_image(images_dict, base_url=None):
     """Select the first suitable header image from a dictionary of images.
 
     Args:
-        images_dict: Dictionary of {label: url} from Jina response.
+        images_dict: Dictionary of {label: url} from crawl4ai response.
         base_url: Optional base URL for resolving relative URLs.
 
     Returns:

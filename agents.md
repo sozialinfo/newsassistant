@@ -69,14 +69,14 @@ _digest_article()
 
 ### Content Processing Flow (Stages 1 & 2)
 
-1. **Fetch** → `fetch_page()` via Jina Reader API (returns markdown + images dict)
+1. **Fetch** → `fetch_page()` via crawl4ai REST API (returns markdown + images dict)
 2. **Pre-clean** → BeautifulSoup strips nav/footer/script/style tags + removes attributes
 3. **AI Extract** → Send cleaned content to Infomaniak AI, parse JSON response
 4. **Store** → Write to Odoo database
 
 ### Fallback Mechanisms
 
-- **HTTP 403 (bot protection)** → Automatic fallback to Jina Reader API
+- **HTTP errors from crawl4ai** → `RetryableJobError` with escalating retry (5min → 15min → 1hr)
 - **PDF documents** → Text extracted via `pdfminer`, then sent to AI
 - **Transient errors** → `RetryableJobError` with escalating retry (5min → 15min → 1hr)
 - **Missing header image** → Pixabay API search using article title as query
@@ -88,7 +88,7 @@ newsassistant/                # project root = git repo root
 ├── agents.md                 # THIS FILE - project-level guidance
 ├── docker-compose.yml        # Container setup (Odoo 18 + volumes)
 ├── odoo.conf                 # Odoo config (queue_job channels, workers)
-├── .env                      # API keys (INFOMANIAK_AI_API_KEY, JINA_API_KEY)
+├── .env                      # API keys (INFOMANIAK_AI_API_KEY)
 ├── news_source.csv           # Source URLs for import
 ├── newsassistant/            # Core addon v18.0.2.1.0 — scraping & triage kanban
 │   ├── __manifest__.py       # Dependencies: base, queue_job
@@ -172,23 +172,23 @@ payload = {
 
 **Important**: Prompts start with `/no_think` to disable qwen3's thinking mode (prevents `<think>...</think>` blocks in output).
 
-### Jina Reader API
+### crawl4ai (Self-Hosted)
 
-Headless browser service that bypasses bot protection (Cloudflare, etc.) and returns clean content + image metadata. The **primary** fetch mechanism for all page fetching.
+Headless browser service (Chromium) that bypasses bot protection (Cloudflare, etc.) and returns clean content + image metadata. Runs as a Docker container alongside Odoo. The **primary** fetch mechanism for all page fetching.
 
 | Item | Value |
 |------|-------|
-| Endpoint | `https://r.jina.ai/{target_url}` |
-| Auth | Bearer token via `JINA_API_KEY` env var |
-| Timeout | 60 seconds (longer due to browser rendering) |
-| Output | JSON with `data.content` (markdown) and `data.images` (dict) |
-| Header | `X-With-Images-Summary: all` (to receive image metadata) |
+| Endpoint | `POST http://crawl4ai:11235/crawl` (configurable via Settings UI) |
+| Auth | None (internal Docker network) |
+| Timeout | 120 seconds |
+| Output | JSON with `results[0].markdown` and `results[0].media.images` |
+| Payload | `{"urls": [target_url]}` |
 
-**`fetch_page(url)` signature** (module-level function in `news_source.py`):
+**`fetch_page(url)` signature** (module-level function in `crawl4ai_utils.py`):
 ```python
 content, images_dict = fetch_page(url)
 # content: cleaned markdown string (truncated to 30000 chars)
-# images_dict: {caption: url, ...} from Jina's image extraction
+# images_dict: {alt: src, ...} from crawl4ai's image extraction
 ```
 
 ### OCA queue_job
@@ -238,14 +238,14 @@ Required in `.env` file (loaded via docker-compose):
 | Variable | Required | Purpose |
 |----------|----------|---------|
 | `INFOMANIAK_AI_API_KEY` | Yes | AI extraction API key (Stages 1, 2, 3) |
-| `JINA_API_KEY` | Yes | Jina Reader API for page fetching |
+| `CRAWL4AI_URL` | No | crawl4ai server URL (default: http://crawl4ai:11235, configurable via Settings UI) |
 | `POSTGRES_PASSWORD` | Yes | Database connection |
 
 **Pixabay API key** is configured via the Odoo Settings UI (not an env var), stored as `ir.config_parameter` key `newsassistant_blog.pixabay_api_key`.
 
 **Verify env vars are set**:
 ```bash
-docker exec odoo-newsassistant env | grep -E "(INFOMANIAK|JINA)"
+docker exec odoo-newsassistant env | grep -E "(INFOMANIAK|CRAWL4AI)"
 ```
 
 ## Development Workflow
@@ -350,7 +350,7 @@ def _make_mock_response(status_code=200, text="", json_data=None):
         response.json.return_value = json_data
     return response
 
-# Mock fetch_page (Jina — returns tuple)
+# Mock fetch_page (crawl4ai — returns tuple)
 @patch("odoo.addons.newsassistant.models.news_source.fetch_page")
 def test_something(self, mock_fetch):
     mock_fetch.return_value = ("<html>...</html>", {})

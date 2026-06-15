@@ -14,7 +14,7 @@ Requires `newsassistant` (base module).
 ## Features
 
 - AI-powered article URL discovery from listing pages
-- Jina Reader API integration for JavaScript-rendered pages (bypasses Cloudflare and similar bot protection)
+- crawl4ai integration for JavaScript-rendered pages (bypasses Cloudflare and similar bot protection)
 - PDF support: text extracted via `pdfminer`, then sent to AI
 - Header image selection with validation: landscape orientation (min 800×400 px), JPEG/PNG/WebP only
 - Deduplication by normalized URL — known articles are never re-fetched
@@ -33,18 +33,14 @@ ir.cron (daily)
                                             └─▶ snapshot.with_delay()._extract_articles_website()
 ```
 
-**Stage 1 — Listing discovery**: Fetches the source listing page via Jina Reader, pre-cleans the
+**Stage 1 — Listing discovery**: Fetches the source listing page via crawl4ai, pre-cleans the
 HTML (strips nav/footer/script/style, removes attributes except `href` and `src`), and asks the AI
 to return a JSON array of `{title, url}` objects. Known URLs are filtered out before Stage 2 jobs
 are queued.
 
-**Stage 2 — Snapshot creation**: Fetches each article page. Detects content type:
-- **HTML** — fetched directly; falls back to Jina Reader on HTTP 403
-- **PDF** — text extracted via `pdfminer`
-- **Jina Reader** — used directly when the source URL requires it
-
-The raw content is stored as a `news.snapshot`. A queue job on the base module then extracts
-the structured article (`news.article`) from the snapshot.
+**Stage 2 — Snapshot creation**: Fetches each article page via crawl4ai. The raw content is stored
+as a `news.snapshot`. A queue job on the base module then extracts the structured article
+(`news.article`) from the snapshot.
 
 ## Configuration
 
@@ -52,8 +48,12 @@ the structured article (`news.article`) from the snapshot.
 
 | Variable | Required | Description |
 |---|---|---|
-| `JINA_API_KEY` | Yes | Jina Reader API key for page fetching |
 | `INFOMANIAK_AI_API_KEY` | Yes | Infomaniak AI key for URL discovery and extraction |
+
+### crawl4ai server
+
+crawl4ai runs as a separate Docker container. It is configured via **Settings → News Assistant**
+under the "Scraping" section. The default URL is `http://crawl4ai:11235`.
 
 ### Adding website sources
 
@@ -93,8 +93,9 @@ For more detail, click the **Logs** smart button to see the full LLM request/res
 
 | Condition | Behaviour |
 |---|---|
-| HTTP 403 (bot protection) | Automatic retry via Jina Reader API |
-| Transient HTTP errors (408, 429, 5xx) | `RetryableJobError` — retried up to 3 times with escalating delay |
+| crawl4ai server unreachable | `RetryableJobError` — retried up to 3 times with escalating delay |
+| Non-200 response from crawl4ai | `RetryableJobError` — retried up to 3 times with escalating delay |
+| crawl4ai returns `success: false` | Error logged on source; no retry |
 | HTTP 404 | Logged on source; no retry |
 | PDF extraction failure | Error logged on snapshot; article marked as `error` |
 | Header image fails validation | Image discarded silently; article saved without header image |
@@ -114,8 +115,8 @@ No additional models or access rules beyond the base module.
 
 - `newsassistant` — base module (required)
 - `queue_job` — OCA background job processing
-- `JINA_API_KEY` — environment variable (required)
 - `INFOMANIAK_AI_API_KEY` — environment variable (required)
+- crawl4ai — self-hosted Docker container (required)
 
 ## Testing
 

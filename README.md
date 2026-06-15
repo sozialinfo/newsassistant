@@ -16,7 +16,7 @@ selectors, no breakage when websites redesign.
 | Addon | Description | Required? |
 |---|---|---|
 | `newsassistant` | Base: shared models, kanban UI, logging, security groups | Yes |
-| `newsassistant_website` | Scrapes news websites via Jina Reader + AI | Optional |
+| `newsassistant_website` | Scrapes news websites via crawl4ai + AI | Optional |
 | `newsassistant_email` | Captures inbound email newsletters via mail alias | Optional |
 | `newsassistant_blog` | AI triage (relevant/uncertain/discard) + blog publishing | Optional |
 | `newsassistant_strategy_digest` | Strategy labels, article evaluation, executive PDF briefs | Optional |
@@ -48,14 +48,12 @@ cp .env.example .env   # if it exists, otherwise create manually
 ```ini
 # .env
 INFOMANIAK_AI_API_KEY=your-infomaniak-key   # required — all AI calls
-JINA_API_KEY=your-jina-key                  # required — website scraping
 PIXABAY_API_KEY=your-pixabay-key            # optional — blog header images
 ```
 
 | Variable | Required | Purpose |
 |---|---|---|
 | `INFOMANIAK_AI_API_KEY` | Yes | AI extraction, triage, digest, strategy evaluation |
-| `JINA_API_KEY` | Yes | Headless-browser page fetching (bypasses bot protection) |
 | `POSTGRES_PASSWORD` | Yes | Postgres connection (empty string if no password) |
 | `PIXABAY_API_KEY` | No | Fallback blog header images (also settable via Odoo Settings UI) |
 
@@ -197,7 +195,7 @@ Open the source record and read the `error_message` field. Common causes:
 |---|---|
 | HTTP 404 | Source URL has changed — update the URL |
 | AI parse error | Page returned unexpected structure — check the log entries |
-| Timeout | Website is slow or blocking — Jina fallback may help |
+| Timeout | Website is slow or blocking — crawl4ai retry may help |
 
 ### Articles not appearing after scraping
 

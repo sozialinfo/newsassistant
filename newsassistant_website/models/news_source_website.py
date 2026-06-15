@@ -10,7 +10,7 @@ from odoo import _, api, fields, models
 from odoo.addons.queue_job.exception import RetryableJobError
 from odoo.addons.newsassistant.models.news_source import normalize_url, parse_ai_json
 
-from .jina_utils import fetch_page, markdown_to_html
+from .crawl4ai_utils import fetch_page, markdown_to_html
 from .image_utils import select_header_image
 
 _logger = logging.getLogger(__name__)
@@ -82,10 +82,18 @@ class NewsSourceWebsite(models.Model):
 
         return log
 
+    def _get_crawl4ai_url(self):
+        """Get the configured crawl4ai server URL from settings or fallback to default."""
+        ICP = self.env["ir.config_parameter"].sudo()
+        return ICP.get_param(
+            "newsassistant_website.crawl4ai_url",
+            default="http://crawl4ai:11235",
+        )
+
     def _scrape_listing(self):
         """Queue job: fetch the listing page and discover article URLs.
 
-        Stage 1: Fetches the listing page via Jina Reader API, uses AI to extract
+        Stage 1: Fetches the listing page via crawl4ai, uses AI to extract
         article URLs, then creates one news.snapshot per article page (which
         auto-triggers extraction on each).
         """
@@ -97,6 +105,7 @@ class NewsSourceWebsite(models.Model):
 
         job_id_ctx = self.env.context.get("job_uuid")
         job_id = None
+
         if job_id_ctx:
             job = self.env["queue.job"].search([("uuid", "=", job_id_ctx)], limit=1)
             job_id = job.id if job else None
@@ -112,22 +121,22 @@ class NewsSourceWebsite(models.Model):
 
         add_entry("info", f"Starting listing scrape for {self.name}", metadata={"url": self.url})
 
-        # Fetch listing page via Jina
-        jina_start = time.time()
+        # Fetch listing page via crawl4ai
+        fetch_start = time.time()
         try:
-            content, _ = fetch_page(self.url)
-            jina_duration = time.time() - jina_start
+            content, _ = fetch_page(self.url, crawl4ai_url=self._get_crawl4ai_url())
+            fetch_duration = time.time() - fetch_start
             add_entry(
                 "info",
-                f"Jina fetch complete ({len(content)} chars)",
-                duration=jina_duration,
+                f"crawl4ai fetch complete ({len(content)} chars)",
+                duration=fetch_duration,
                 metadata={"url": self.url, "content_length": len(content)},
             )
         except RetryableJobError:
             raise
         except ValueError as e:
-            jina_duration = time.time() - jina_start
-            add_entry("error", f"Jina fetch failed: {e}", duration=jina_duration)
+            fetch_duration = time.time() - fetch_start
+            add_entry("error", f"crawl4ai fetch failed: {e}", duration=fetch_duration)
             self.write({"state": "error", "error_message": str(e)})
             self._create_listing_log(
                 level="error",
@@ -298,7 +307,7 @@ class NewsSourceWebsite(models.Model):
         _logger.info("Source %s: discovered %d articles, %d new", self.name, len(articles_data), new_count)
 
     def _fetch_and_create_snapshot(self, article_url, title=""):
-        """Queue job: fetch an article page via Jina and create a news.snapshot.
+        """Queue job: fetch an article page via crawl4ai and create a news.snapshot.
 
         The snapshot creation auto-triggers AI extraction via news.snapshot.create().
 
@@ -310,15 +319,15 @@ class NewsSourceWebsite(models.Model):
         _logger.info("Fetching article page for snapshot: %s", article_url)
 
         try:
-            markdown_content, images_dict = fetch_page(article_url)
+            markdown_content, images_dict = fetch_page(article_url, crawl4ai_url=self._get_crawl4ai_url())
         except RetryableJobError:
             raise
         except ValueError as e:
-            _logger.warning("Jina fetch failed for %s: %s", article_url, e)
+            _logger.warning("crawl4ai fetch failed for %s: %s", article_url, e)
             return
 
         if not markdown_content or not markdown_content.strip():
-            _logger.warning("No content returned from Jina for %s", article_url)
+            _logger.warning("No content returned from crawl4ai for %s", article_url)
             return
 
         # Convert Markdown → HTML (canonical format for snapshots)

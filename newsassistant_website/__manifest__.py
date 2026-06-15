@@ -1,11 +1,11 @@
 {
     "name": "News Assistant — Website",
-    "version": "18.0.1.0.2",
+    "version": "18.0.2.0.0",
     "category": "Marketing",
     "summary": "Website scraping for News Assistant",
     "description": """
         Extends News Assistant with website scraping capabilities:
-        - Jina Reader API integration for JavaScript-rendered pages
+        - crawl4ai integration for JavaScript-rendered pages
         - AI-powered article URL discovery from listing pages
         - Per-article snapshot creation with Markdown→HTML conversion
         - Header image selection and validation
@@ -22,6 +22,7 @@
         "data/queue_job_data.xml",
         "data/ir_cron_data.xml",
         "views/news_source_website_views.xml",
+        "views/res_config_settings_views.xml",
     ],
     "demo": [
         "demo/demo_setup.xml",

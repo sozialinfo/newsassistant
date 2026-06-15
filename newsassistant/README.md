@@ -108,7 +108,7 @@ GDPR/FADP compliant). Prompts begin with `/no_think` to suppress Qwen3's thinkin
 | Condition | Behaviour |
 |---|---|
 | Transient HTTP errors (408, 429, 5xx) | `RetryableJobError` with escalating retry (5 min → 15 min → 1 hr) |
-| HTTP 403 (bot protection) | Automatic fallback to Jina Reader API |
+| HTTP 403 (bot protection) | crawl4ai handles JavaScript rendering automatically |
 | HTTP 404 | Logged on source; no retry |
 | AI rate limit | `RetryableJobError` |
 | Malformed AI response | Robust JSON parser handles JSONL, markdown fences, thinking blocks |
