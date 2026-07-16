@@ -53,18 +53,24 @@ class TestWebsiteListingScrape(TransactionCase):
             "url": "https://example.com/news",
         })
 
-    @patch("odoo.addons.newsassistant.models.news_source.requests.post")
     @patch("odoo.addons.newsassistant_website.models.news_source_website.fetch_page")
-    def test_scrape_listing_enqueues_snapshot_jobs(self, mock_fetch, mock_ai):
-        """Listing scrape enqueues _fetch_and_create_snapshot jobs for each new URL."""
+    def test_scrape_listing_creates_listing_snapshot(self, mock_fetch):
+        """Listing scrape creates a listing snapshot and enqueues _discover_articles."""
         mock_fetch.return_value = (LISTING_MARKDOWN, {})
-        mock_ai.return_value = _make_mock_response(200, json_data=_make_ai_response(AI_LISTING_RESPONSE))
 
         with trap_jobs() as trap:
             source = self.source.with_env(self.env(context=dict(self.env.context, queue_job__no_delay=False)))
             source._scrape_listing()
-            jobs = [j for j in trap.enqueued_jobs if j.method_name == "_fetch_and_create_snapshot"]
-            self.assertEqual(len(jobs), 2)
+
+        # Check listing snapshot was created
+        snapshots = self.env["news.snapshot"].search([("source_id", "=", self.source.id)])
+        self.assertEqual(len(snapshots), 1)
+        self.assertTrue(snapshots.is_listing)
+        self.assertEqual(snapshots.raw_content, LISTING_MARKDOWN)
+
+        # Check _discover_articles was enqueued
+        discover_jobs = [j for j in trap.enqueued_jobs if j.method_name == "_discover_articles"]
+        self.assertEqual(len(discover_jobs), 1)
 
     @patch("odoo.addons.newsassistant_website.models.news_source_website.fetch_page")
     def test_scrape_listing_crawl4ai_error_raises_retryable(self, mock_fetch):
@@ -73,24 +79,20 @@ class TestWebsiteListingScrape(TransactionCase):
         with self.assertRaises(RetryableJobError):
             self.source._scrape_listing()
 
-    @patch("odoo.addons.newsassistant.models.news_source.requests.post")
     @patch("odoo.addons.newsassistant_website.models.news_source_website.fetch_page")
-    def test_scrape_listing_updates_source_state(self, mock_fetch, mock_ai):
+    def test_scrape_listing_updates_source_state(self, mock_fetch):
         """Successful listing scrape updates source state and last_scrape_date."""
-        mock_fetch.return_value = (LISTING_MARKDOWN, {})
-        mock_ai.return_value = _make_mock_response(200, json_data=_make_ai_response("[]"))
+        mock_fetch.return_value = ("# empty", {})
 
         self.source._scrape_listing()
 
         self.assertEqual(self.source.state, "ok")
         self.assertTrue(self.source.last_scrape_date)
 
-    @patch("odoo.addons.newsassistant.models.news_source.requests.post")
     @patch("odoo.addons.newsassistant_website.models.news_source_website.fetch_page")
-    def test_scrape_listing_creates_log(self, mock_fetch, mock_ai):
+    def test_scrape_listing_creates_log(self, mock_fetch):
         """Listing scrape creates a news.log record."""
         mock_fetch.return_value = ("# empty", {})
-        mock_ai.return_value = _make_mock_response(200, json_data=_make_ai_response("[]"))
 
         with trap_jobs():
             self.source._scrape_listing()
@@ -100,29 +102,6 @@ class TestWebsiteListingScrape(TransactionCase):
             ("category", "=", "listing"),
         ])
         self.assertTrue(len(logs) >= 1)
-
-    @patch("odoo.addons.newsassistant.models.news_source.requests.post")
-    @patch("odoo.addons.newsassistant_website.models.news_source_website.fetch_page")
-    def test_scrape_listing_deduplicates_known_urls(self, mock_fetch, mock_ai):
-        """Known article URLs are not re-queued."""
-        mock_fetch.return_value = (LISTING_MARKDOWN, {})
-        mock_ai.return_value = _make_mock_response(200, json_data=_make_ai_response(AI_LISTING_RESPONSE))
-
-        snapshot = self.env["news.snapshot"].create({
-            "source_id": self.source.id,
-            "raw_content": "<p>pre-existing</p>",
-        })
-        self.env["news.article"].create({
-            "title": "Existing",
-            "snapshot_id": snapshot.id,
-            "url": "https://example.com/article/1",
-        })
-
-        with trap_jobs() as trap:
-            source = self.source.with_env(self.env(context=dict(self.env.context, queue_job__no_delay=False)))
-            source._scrape_listing()
-            fetch_jobs = [j for j in trap.enqueued_jobs if j.method_name == "_fetch_and_create_snapshot"]
-            self.assertEqual(len(fetch_jobs), 1)
 
     def test_cron_skips_email_sources(self):
         """_cron_scrape_all should not queue email sources."""
@@ -137,3 +116,62 @@ class TestWebsiteListingScrape(TransactionCase):
             plain_env["news.source"]._cron_scrape_all()
             job_record_ids = [j.recordset.id for j in trap.enqueued_jobs if j.method_name == "_scrape_listing"]
             self.assertNotIn(email_source.id, job_record_ids)
+
+
+@tagged("post_install", "-at_install")
+class TestWebsiteDiscoverArticles(TransactionCase):
+    """Tests for NewsSnapshotWebsite._discover_articles()."""
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.source = cls.env["news.source"].create({
+            "name": "Test Source",
+            "source_type": "website",
+            "url": "https://example.com/news",
+        })
+
+    @patch("odoo.addons.newsassistant.models.news_source.requests.post")
+    @patch("odoo.addons.newsassistant_website.models.news_source_website.fetch_page")
+    def test_discover_articles_enqueues_fetch_jobs(self, mock_fetch, mock_ai):
+        """_discover_articles enqueues _fetch_and_create_snapshot jobs for each URL."""
+        mock_fetch.return_value = (LISTING_MARKDOWN, {})
+        mock_ai.return_value = _make_mock_response(200, json_data=_make_ai_response(AI_LISTING_RESPONSE))
+
+        listing = self.env["news.snapshot"].with_context(skip_snapshot_extraction=True).create({
+            "source_id": self.source.id,
+            "raw_content": LISTING_MARKDOWN,
+            "is_listing": True,
+        })
+
+        with trap_jobs() as trap:
+            listing._discover_articles()
+            fetch_jobs = [j for j in trap.enqueued_jobs if j.method_name == "_fetch_and_create_snapshot"]
+            self.assertEqual(len(fetch_jobs), 2)
+
+    @patch("odoo.addons.newsassistant.models.news_source.requests.post")
+    def test_discover_articles_deduplicates_known_urls(self, mock_ai):
+        """Known article URLs are not re-queued."""
+        mock_ai.return_value = _make_mock_response(200, json_data=_make_ai_response(AI_LISTING_RESPONSE))
+
+        listing = self.env["news.snapshot"].with_context(skip_snapshot_extraction=True).create({
+            "source_id": self.source.id,
+            "raw_content": LISTING_MARKDOWN,
+            "is_listing": True,
+        })
+
+        # Create pre-existing article and snapshot
+        existing_snapshot = self.env["news.snapshot"].with_context(skip_snapshot_extraction=True).create({
+            "source_id": self.source.id,
+            "raw_content": "<p>existing</p>",
+        })
+        self.env["news.article"].create({
+            "title": "Existing Article",
+            "snapshot_id": existing_snapshot.id,
+            "url": "https://example.com/article/1",
+        })
+
+        with trap_jobs() as trap:
+            listing._discover_articles()
+            fetch_jobs = [j for j in trap.enqueued_jobs if j.method_name == "_fetch_and_create_snapshot"]
+            self.assertEqual(len(fetch_jobs), 1)

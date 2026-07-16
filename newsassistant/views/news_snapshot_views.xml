@@ -8,6 +8,8 @@
             <list>
                 <field name="name"/>
                 <field name="source_id" widget="many2one_link"/>
+                <field name="is_listing" optional="show"/>
+                <field name="parent_id" optional="hidden"/>
                 <field name="captured_at"/>
                 <field name="article_count"/>
             </list>
@@ -31,14 +33,32 @@
                             <field name="source_id" widget="many2one_link"/>
                             <field name="captured_at"/>
                             <field name="url" widget="url"/>
+                            <field name="is_listing"/>
                             <field name="article_count"/>
+                        </group>
+                        <group>
+                            <field name="parent_id" widget="many2one_link"
+                                   invisible="not parent_id"/>
+                            <field name="child_ids" widget="many2many_tags"
+                                   invisible="not child_ids"/>
                         </group>
                     </group>
                     <notebook>
                         <page string="Content">
                             <field name="raw_content" nolabel="1" readonly="1" widget="html"/>
                         </page>
-                        <page string="Articles">
+                        <page string="Child Snapshots"
+                              invisible="not is_listing">
+                            <field name="child_ids" nolabel="1" readonly="1">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="captured_at"/>
+                                    <field name="article_count"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Articles"
+                              invisible="is_listing">
                             <field name="article_ids" nolabel="1" readonly="1">
                                 <list>
                                     <field name="title"/>

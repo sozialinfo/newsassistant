@@ -18,8 +18,7 @@ class TestQueueJobs(TransactionCase):
         })
 
     def test_snapshot_create_enqueues_extract_job(self):
-        """Creating a snapshot should enqueue _extract_articles."""
-        # Don't use queue_job__no_delay so trap_jobs can catch the job
+        """Creating a non-listing snapshot should enqueue _extract_articles."""
         plain_env = self.env(context={})
         with trap_jobs() as trap:
             plain_env["news.snapshot"].create({
@@ -29,6 +28,19 @@ class TestQueueJobs(TransactionCase):
             trap.assert_jobs_count(1)
             job = trap.enqueued_jobs[0]
             self.assertEqual(job.method_name, "_extract_articles")
+
+    def test_listing_snapshot_enqueues_discover_job(self):
+        """Creating a listing snapshot should enqueue _discover_articles."""
+        plain_env = self.env(context={})
+        with trap_jobs() as trap:
+            plain_env["news.snapshot"].create({
+                "source_id": self.source.id,
+                "raw_content": "<p>Listing</p>",
+                "is_listing": True,
+            })
+            trap.assert_jobs_count(1)
+            job = trap.enqueued_jobs[0]
+            self.assertEqual(job.method_name, "_discover_articles")
 
     def test_snapshot_create_multiple_each_enqueues_job(self):
         """Creating multiple snapshots enqueues one job per snapshot."""

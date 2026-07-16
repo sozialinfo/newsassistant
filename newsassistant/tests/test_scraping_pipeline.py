@@ -160,8 +160,7 @@ class TestSnapshotExtraction(TransactionCase):
         self.assertEqual(logs[0].level, "error")
 
     def test_snapshot_create_enqueues_extract_job(self):
-        """Snapshot creation should enqueue _extract_articles job."""
-        # Use env WITHOUT queue_job__no_delay so trap_jobs can catch the job
+        """Non-listing snapshot creation should enqueue _extract_articles job."""
         plain_env = self.env(context={k: v for k, v in self.env.context.items() if k != "queue_job__no_delay"})
         with trap_jobs() as trap:
             plain_env["news.snapshot"].create({
@@ -171,6 +170,50 @@ class TestSnapshotExtraction(TransactionCase):
             trap.assert_jobs_count(1)
             job = trap.enqueued_jobs[0]
             self.assertEqual(job.method_name, "_extract_articles")
+
+    def test_listing_snapshot_create_enqueues_discover_job(self):
+        """Listing snapshot creation should enqueue _discover_articles job."""
+        plain_env = self.env(context={k: v for k, v in self.env.context.items() if k != "queue_job__no_delay"})
+        with trap_jobs() as trap:
+            plain_env["news.snapshot"].create({
+                "source_id": self.source.id,
+                "raw_content": "<p>listing content</p>",
+                "is_listing": True,
+            })
+            trap.assert_jobs_count(1)
+            job = trap.enqueued_jobs[0]
+            self.assertEqual(job.method_name, "_discover_articles")
+
+    def test_listing_snapshot_has_is_listing_flag(self):
+        """Listing snapshot should have is_listing=True."""
+        snapshot = self.env["news.snapshot"].with_context(skip_snapshot_extraction=True).create({
+            "source_id": self.source.id,
+            "raw_content": "<p>listing</p>",
+            "is_listing": True,
+        })
+        self.assertTrue(snapshot.is_listing)
+        self.assertFalse(snapshot.parent_id)
+
+    def test_child_snapshot_links_to_parent(self):
+        """Child snapshot should have parent_id pointing to parent."""
+        parent = self.env["news.snapshot"].with_context(skip_snapshot_extraction=True).create({
+            "source_id": self.source.id,
+            "raw_content": "<p>parent</p>",
+            "is_listing": True,
+        })
+        child = self.env["news.snapshot"].with_context(skip_snapshot_extraction=True).create({
+            "source_id": self.source.id,
+            "raw_content": "<p>child</p>",
+            "parent_id": parent.id,
+        })
+        self.assertTrue(child.parent_id, parent.id)
+        self.assertIn(child, parent.child_ids)
+
+    def test_base_discover_articles_raises_not_implemented(self):
+        """Base _discover_articles should raise NotImplementedError."""
+        snapshot = self._create_snapshot(content="<p>test</p>")
+        with self.assertRaises(NotImplementedError):
+            snapshot._discover_articles()
 
     @patch("odoo.addons.newsassistant.models.news_source.requests.post")
     def test_extracted_article_source_id_is_computed(self, mock_post):

@@ -65,6 +65,27 @@ class NewsSnapshot(models.Model):
         string="Article Count",
     )
 
+    # Listing snapshot hierarchy
+    is_listing = fields.Boolean(
+        string="Listing/Overview",
+        default=False,
+        help="If True, this snapshot contains a listing page or newsletter "
+             "with multiple discoverable articles rather than a single article.",
+    )
+    parent_id = fields.Many2one(
+        "news.snapshot",
+        string="Parent Listing",
+        index=True,
+        ondelete="cascade",
+        help="The listing snapshot that this article snapshot was discovered from.",
+    )
+    child_ids = fields.One2many(
+        "news.snapshot",
+        "parent_id",
+        string="Child Snapshots",
+        help="Article snapshots discovered from this listing snapshot.",
+    )
+
     @api.depends("source_id", "captured_at")
     def _compute_name(self):
         for snapshot in self:
@@ -93,7 +114,14 @@ class NewsSnapshot(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        """Create snapshots and auto-enqueue article extraction for each.
+        """Create snapshots and auto-enqueue article extraction or discovery.
+
+        For non-listing snapshots (default): enqueues ``_extract_articles()``
+        so the single-article AI extraction runs on the content.
+
+        For listing snapshots (``is_listing=True``): enqueues
+        ``_discover_articles()`` instead, which finds child articles inside the
+        listing content.
 
         Enqueueing is suppressed when context key ``skip_snapshot_extraction=True``
         is set (used in test fixtures and demo data loading to avoid unwanted AI calls).
@@ -104,11 +132,45 @@ class NewsSnapshot(models.Model):
         snapshots = super().create(vals_list)
         if not self.env.context.get("skip_snapshot_extraction"):
             for snapshot in snapshots:
-                snapshot.with_delay(
-                    channel="root.newsassistant",
-                    description=f"Extract articles: {snapshot.name}",
-                )._extract_articles()
+                if snapshot.is_listing:
+                    snapshot.with_delay(
+                        channel="root.newsassistant",
+                        description=f"Discover articles: {snapshot.name}",
+                    )._discover_articles()
+                else:
+                    snapshot.with_delay(
+                        channel="root.newsassistant",
+                        description=f"Extract articles: {snapshot.name}",
+                    )._extract_articles()
         return snapshots
+
+    # -------------------------------------------------------------------------
+    # Article Discovery (listing snapshots)
+    # -------------------------------------------------------------------------
+
+    def _discover_articles(self):
+        """Discover child articles within a listing snapshot's content.
+
+        Listing snapshots (newsletters, website overview pages) contain
+        multiple article items. This method identifies them and creates
+        a child snapshot for each.
+
+        Dispatches to the source-type-specific implementation based on
+        ``self.source_id.source_type``. Each module (website, email)
+        implements its own ``_discover_articles_<type>()`` method.
+        """
+        self.ensure_one()
+        method_map = {
+            "website": self._discover_articles_website,
+            "email": self._discover_articles_email,
+        }
+        method = method_map.get(self.source_id.source_type)
+        if method:
+            return method()
+        raise NotImplementedError(
+            f"_discover_articles() must be implemented for source type "
+            f"'{self.source_id.source_type}' (snapshot {self.id})"
+        )
 
     # -------------------------------------------------------------------------
     # Article Extraction

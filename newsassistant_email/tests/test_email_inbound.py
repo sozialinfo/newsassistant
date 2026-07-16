@@ -129,8 +129,8 @@ class TestEmailInbound(TransactionCase):
             snapshot = self.env["news.snapshot"].message_new(msg_dict)
         self.assertEqual(snapshot.source_id.name, "fallback.example.com")
 
-    def test_snapshot_creation_enqueues_extraction(self):
-        """Snapshot created via email triggers extraction job."""
+    def test_snapshot_creation_enqueues_discovery(self):
+        """Snapshot created via email triggers discovery job."""
         self.env["news.source"].create({
             "name": "Queue Test",
             "source_type": "email",
@@ -147,5 +147,15 @@ class TestEmailInbound(TransactionCase):
                     "body": "<p>Content</p>",
                     "subject": "Newsletter",
                 })
-            jobs = [j for j in trap.enqueued_jobs if j.method_name == "_extract_articles"]
+            jobs = [j for j in trap.enqueued_jobs if j.method_name == "_discover_articles"]
             self.assertTrue(len(jobs) >= 1)
+
+    def test_listing_snapshot_is_listing(self):
+        """Email snapshot should have is_listing=True."""
+        snapshot = self._send_email("test@listing.example.com")
+        self.assertTrue(snapshot.is_listing)
+
+    def test_listing_snapshot_has_no_parent(self):
+        """Email listing snapshot should have no parent_id."""
+        snapshot = self._send_email("test@noparent.example.com")
+        self.assertFalse(snapshot.parent_id)
