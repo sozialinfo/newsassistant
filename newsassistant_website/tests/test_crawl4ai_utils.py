@@ -111,6 +111,24 @@ class TestCrawl4aiFetch(TransactionCase):
         with self.assertRaises(RetryableJobError):
             fetch_page("https://example.com/article/1")
 
+    @patch("odoo.addons.newsassistant_website.models.crawl4ai_utils.requests.post")
+    def test_fetch_page_sends_bearer_token(self, mock_post):
+        """When api_token is provided, Authorization header is sent."""
+        mock_post.return_value = _make_crawl4ai_response(markdown="content")
+        fetch_page("https://example.com/article/1", crawl4ai_api_token="my-token")
+        call_kwargs = mock_post.call_args[1]
+        headers = call_kwargs.get("headers", {})
+        self.assertEqual(headers.get("Authorization"), "Bearer my-token")
+
+    @patch("odoo.addons.newsassistant_website.models.crawl4ai_utils.requests.post")
+    def test_fetch_page_no_token_no_auth_header(self, mock_post):
+        """When no api_token, no Authorization header is sent."""
+        mock_post.return_value = _make_crawl4ai_response(markdown="content")
+        fetch_page("https://example.com/article/1")
+        call_kwargs = mock_post.call_args[1]
+        headers = call_kwargs.get("headers", {}) or {}
+        self.assertNotIn("Authorization", headers)
+
 
 @tagged("post_install", "-at_install")
 class TestMarkdownToHtml(TransactionCase):

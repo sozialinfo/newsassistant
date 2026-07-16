@@ -111,6 +111,14 @@ class NewsSourceWebsite(models.Model):
             default="http://crawl4ai:11235",
         )
 
+    def _get_crawl4ai_api_token(self):
+        """Get the configured crawl4ai API token from settings or empty string."""
+        ICP = self.env["ir.config_parameter"].sudo()
+        return ICP.get_param(
+            "newsassistant_website.crawl4ai_api_token",
+            default="",
+        )
+
     def _scrape_listing(self):
         """Queue job: fetch the listing page, create a listing snapshot.
 
@@ -146,7 +154,7 @@ class NewsSourceWebsite(models.Model):
         # Fetch listing page via crawl4ai
         fetch_start = time.time()
         try:
-            content, _ = fetch_page(self.url, crawl4ai_url=self._get_crawl4ai_url())
+            content, _ = fetch_page(self.url, crawl4ai_url=self._get_crawl4ai_url(), crawl4ai_api_token=self._get_crawl4ai_api_token())
             fetch_duration = time.time() - fetch_start
             add_entry(
                 "info",
@@ -213,7 +221,7 @@ class NewsSourceWebsite(models.Model):
         _logger.info("Fetching article page for snapshot: %s", article_url)
 
         try:
-            markdown_content, images_dict = fetch_page(article_url, crawl4ai_url=self._get_crawl4ai_url())
+            markdown_content, images_dict = fetch_page(article_url, crawl4ai_url=self._get_crawl4ai_url(), crawl4ai_api_token=self._get_crawl4ai_api_token())
         except RetryableJobError:
             raise
         except ValueError as e:
@@ -458,4 +466,21 @@ class NewsSnapshotWebsite(models.Model):
             vals["title"] = article_title
 
         if vals:
-            article.write(vals)
+            try:
+                with self.env.cr.savepoint():
+                    article.write(vals)
+            except Exception as e:
+                err_str = str(e)
+                if vals.get("url") and ("unique constraint" in err_str.lower() or "UniqueViolation" in err_str):
+                    existing = self.env["news.article"].search(
+                        [("url", "=", vals["url"])], limit=1
+                    )
+                    if existing:
+                        _logger.info("Duplicate URL %s — removing duplicate article %d, keeping %d",
+                                     vals["url"], article.id, existing.id)
+                        article.unlink()
+                        article = existing
+                    else:
+                        raise
+                else:
+                    raise

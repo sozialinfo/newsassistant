@@ -12,7 +12,7 @@ MAX_CONTENT_LENGTH = 30000
 DEFAULT_CRAWL4AI_URL = "http://crawl4ai:11235"
 
 
-def fetch_page(url, crawl4ai_url=None):
+def fetch_page(url, crawl4ai_url=None, crawl4ai_api_token=None):
     """Fetch a page using self-hosted crawl4ai server.
 
     crawl4ai renders JavaScript using Chromium and returns clean markdown
@@ -22,6 +22,7 @@ def fetch_page(url, crawl4ai_url=None):
         url: The URL to fetch.
         crawl4ai_url: Optional crawl4ai server URL. Falls back to
                       DEFAULT_CRAWL4AI_URL if not provided.
+        crawl4ai_api_token: Optional Bearer token for authenticated servers.
 
     Returns:
         Tuple of (content, images_dict):
@@ -35,6 +36,10 @@ def fetch_page(url, crawl4ai_url=None):
     if not crawl4ai_url:
         crawl4ai_url = DEFAULT_CRAWL4AI_URL
     api_url = f"{crawl4ai_url}/crawl"
+
+    headers = {}
+    if crawl4ai_api_token:
+        headers["Authorization"] = f"Bearer {crawl4ai_api_token}"
 
     payload = {
         "urls": [url],
@@ -50,6 +55,7 @@ def fetch_page(url, crawl4ai_url=None):
         response = requests.post(
             api_url,
             json=payload,
+            headers=headers or None,
             timeout=HTTP_TIMEOUT,
         )
     except requests.exceptions.Timeout:

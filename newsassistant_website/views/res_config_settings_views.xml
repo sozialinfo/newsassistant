@@ -15,6 +15,14 @@
                             </div>
                         </div>
                     </setting>
+                    <setting string="crawl4ai API Token"
+                             help="Optional Bearer token for crawl4ai server authentication. Required when using JWT auth. Leave empty if no auth is needed.">
+                        <div class="content-group">
+                            <div class="mt16" style="width: 100%;">
+                                <field name="newsassistant_crawl4ai_api_token" password="True"/>
+                            </div>
+                        </div>
+                    </setting>
                 </block>
             </xpath>
         </field>
