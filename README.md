@@ -35,8 +35,9 @@ technical notes.
 ## Quick Start — Local Development
 
 ```bash
-git clone https://github.com/sozialinfo/newsassistant newsassistant
+git clone https://github.com/sozialinfo/newsassistant
 cd newsassistant
+cp odoo.conf.example odoo.conf
 cp .env.example .env
 # Edit .env with your API keys
 docker compose up -d

@@ -40,9 +40,11 @@ services:
       - INFOMANIAK_AI_API_KEY=${INFOMANIAK_AI_API_KEY}
     volumes:
       - .:/mnt/extra-addons
+      - ./odoo.conf:/etc/odoo/odoo.conf:ro
       - odoo-data:/var/lib/odoo
     networks:
       - newsassistant-net
+      - opencode
 
 volumes:
   postgres-data:
@@ -50,3 +52,5 @@ volumes:
 
 networks:
   newsassistant-net:
+  opencode:
+    external: true
