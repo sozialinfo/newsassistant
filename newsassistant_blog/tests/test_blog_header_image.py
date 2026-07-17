@@ -97,9 +97,9 @@ class TestBlogPostHeaderImage(TransactionCase):
 
         # Create blog post
         blog_post = article._create_blog_post(
-            teaser="This is a test teaser.",
-            log_entries=log_entries,
-            add_entry=add_entry,
+            "This is a test teaser.",
+            log_entries,
+            add_entry,
         )
 
         self.assertIsNotNone(blog_post)
@@ -132,9 +132,9 @@ class TestBlogPostHeaderImage(TransactionCase):
             log_entries.append({"level": level, "message": message, **kwargs})
 
         blog_post = article._create_blog_post(
-            teaser="Test teaser",
-            log_entries=log_entries,
-            add_entry=add_entry,
+            "Test teaser",
+            log_entries,
+            add_entry,
         )
 
         cover_props = json.loads(blog_post.cover_properties)
@@ -187,9 +187,9 @@ class TestBlogPostHeaderImage(TransactionCase):
             mock_get.side_effect = mock_get_side_effect
 
             blog_post = article._create_blog_post(
-                teaser="Test teaser",
-                log_entries=log_entries,
-                add_entry=add_entry,
+                "Test teaser",
+                log_entries,
+                add_entry,
             )
 
         self.assertIsNotNone(blog_post)
@@ -220,9 +220,9 @@ class TestBlogPostHeaderImage(TransactionCase):
             log_entries.append({"level": level, "message": message, **kwargs})
 
         blog_post = article._create_blog_post(
-            teaser="Test teaser",
-            log_entries=log_entries,
-            add_entry=add_entry,
+            "Test teaser",
+            log_entries,
+            add_entry,
         )
 
         # Blog post should still be created
@@ -322,16 +322,16 @@ class TestBlogPostHeaderImage(TransactionCase):
 
         # Create first blog post
         first_post = article._create_blog_post(
-            teaser="First teaser",
-            log_entries=log_entries,
-            add_entry=add_entry,
+            "First teaser",
+            log_entries,
+            add_entry,
         )
 
         # Try to create second blog post for same article
         second_post = article._create_blog_post(
-            teaser="Second teaser",
-            log_entries=log_entries,
-            add_entry=add_entry,
+            "Second teaser",
+            log_entries,
+            add_entry,
         )
 
         # Should return the existing post
@@ -354,9 +354,9 @@ class TestBlogPostHeaderImage(TransactionCase):
             log_entries.append({"level": level, "message": message, **kwargs})
 
         article._create_blog_post(
-            teaser="Test teaser",
-            log_entries=log_entries,
-            add_entry=add_entry,
+            "Test teaser",
+            log_entries,
+            add_entry,
         )
 
         # Find log entry about header image

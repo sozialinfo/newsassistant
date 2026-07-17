@@ -6,6 +6,7 @@ from odoo.tests.common import TransactionCase, tagged
 
 from odoo.addons.queue_job.exception import RetryableJobError
 from odoo.addons.queue_job.tests.common import trap_jobs
+from odoo.addons.newsassistant_website.models.news_source_website import NewsSnapshotWebsite
 
 
 HTML_ARTICLE_CONTENT = """
@@ -209,8 +210,10 @@ class TestSnapshotExtraction(TransactionCase):
         self.assertTrue(child.parent_id, parent.id)
         self.assertIn(child, parent.child_ids)
 
-    def test_base_discover_articles_raises_not_implemented(self):
-        """Base _discover_articles should raise NotImplementedError."""
+    @patch.object(NewsSnapshotWebsite, '_discover_articles_website',
+                   side_effect=NotImplementedError("Test: no website handler"))
+    def test_base_discover_articles_raises_not_implemented(self, mock_discover):
+        """Base _discover_articles should raise NotImplementedError when no handler exists."""
         snapshot = self._create_snapshot(content="<p>test</p>")
         with self.assertRaises(NotImplementedError):
             snapshot._discover_articles()

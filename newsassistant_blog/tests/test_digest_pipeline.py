@@ -105,13 +105,12 @@ class TestDigestPipeline(TransactionCase):
         self.assertEqual(article.stage_id, self.stage_discarded)
 
     def test_handle_uncertain_leaves_in_new(self):
-        """_handle_uncertain should leave article in its current stage."""
+        """_handle_uncertain should move article to shortlist stage for review."""
         article = self._create_article("unc-2")
-        original_stage = article.stage_id
         log_entries = []
         add = lambda l, m, **k: log_entries.append(m)
         article._handle_uncertain("Maybe useful", log_entries, add)
-        self.assertEqual(article.stage_id, original_stage)
+        self.assertEqual(article.stage_id, self.stage_shortlist)
 
     def test_generate_teaser_success(self):
         """_generate_teaser should store teaser on success and return dict."""

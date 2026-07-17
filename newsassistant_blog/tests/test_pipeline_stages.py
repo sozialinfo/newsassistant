@@ -114,8 +114,12 @@ class TestPipelineStages(TransactionCase):
     # --- _handle_shortlist ---
 
     def test_handle_shortlist_moves_to_configured_stage(self):
-        """_handle_shortlist() moves article to configured shortlist stage."""
-        self._set_params(shortlist=self.stage_shortlist, blog=self.blog)
+        """_handle_shortlist() moves article to published stage via blog post creation."""
+        self._set_params(
+            shortlist=self.stage_shortlist,
+            published=self.stage_published,
+            blog=self.blog,
+        )
         article = self._create_article("hs-1")
         entries = []
 
@@ -128,10 +132,15 @@ class TestPipelineStages(TransactionCase):
                 "metadata": metadata,
             })
 
-        with patch.object(type(article), '_generate_teaser', return_value=None):
+        mock_ai_result = {
+            "content": '{"teaser": "A compelling teaser.", "read_more": "Read more at example.com"}',
+            "usage": {"prompt_tokens": 10, "completion_tokens": 5, "total_tokens": 15},
+            "duration_ms": 50,
+        }
+        with patch.object(type(article), '_call_ai', return_value=mock_ai_result):
             article._handle_shortlist("Very relevant", entries, add, job_id=None, start_time=time.time())
 
-        self.assertEqual(article.stage_id, self.stage_shortlist)
+        self.assertEqual(article.stage_id, self.stage_published)
         self.assertEqual(article.blog_reasoning, "Very relevant")
 
     # --- _create_blog_post stage update ---

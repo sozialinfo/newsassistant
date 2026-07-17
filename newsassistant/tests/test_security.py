@@ -80,14 +80,14 @@ class TestSecurityGroups(TransactionCase):
         source = self.env["news.source"].with_user(self.user_user).browse(self.source.id)
         self.assertEqual(source.name, "Security Test Source")
 
-    def test_user_can_create_source(self):
-        """Users can create news sources."""
-        source = self.env["news.source"].with_user(self.user_user).create({
-            "name": "User-Created Source",
-            "source_type": "website",
-            "url": "https://user-test.example.com",
-        })
-        self.assertTrue(source.id)
+    def test_user_cannot_create_source(self):
+        """Users cannot create news sources (admin-only)."""
+        with self.assertRaises(AccessError):
+            self.env["news.source"].with_user(self.user_user).create({
+                "name": "User-Created Source",
+                "source_type": "website",
+                "url": "https://user-test.example.com",
+            })
 
     def test_plain_user_cannot_read_sources(self):
         """Plain internal users (without newsassistant groups) cannot read sources."""
