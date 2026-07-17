@@ -121,7 +121,12 @@ No additional models or access rules beyond the base module.
 ## Testing
 
 ```bash
-make test-module MODULE=newsassistant_website
+docker compose run --rm odoo odoo \
+    -d test_newsassistant_$(date +%s) \
+    -i newsassistant_website \
+    --test-enable \
+    --test-tags=/newsassistant_website \
+    --stop-after-init
 ```
 
 ## License

@@ -1,6 +1,6 @@
 {
     "name": "News Assistant",
-    "version": "18.0.3.2.0",
+    "version": "18.0.3.3.0",
     "category": "Marketing",
     "summary": "Automated news capture and triage — base module",
     "description": """

@@ -1,6 +1,6 @@
 {
     "name": "News Assistant - Strategy Base",
-    "version": "18.0.1.1.0",
+    "version": "18.0.1.2.0",
     "category": "Productivity",
     "summary": "Shared strategy model for the News Assistant strategy ecosystem",
     "description": """

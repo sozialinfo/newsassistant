@@ -1,6 +1,6 @@
 {
     "name": "News Assistant — Website",
-    "version": "18.0.2.0.0",
+    "version": "18.0.2.1.0",
     "category": "Marketing",
     "summary": "Website scraping for News Assistant",
     "description": """

@@ -10,7 +10,7 @@ News Assistant is an Odoo 18 addon system that automatically scrapes news source
 
 | Item | Value |
 |------|-------|
-| URL | https://newsassistant.opencode.socialcloud.ch |
+| URL | http://localhost:8069 |
 | Username | `admin` |
 | Password | `admin` |
 | Database | `newsassistant` |
@@ -272,22 +272,10 @@ cd /home/debian/projects/newsassistant
 docker compose stop odoo-newsassistant
 
 # Upgrade newsassistant
-docker run --rm --network opencode \
-  -v $(pwd)/addons:/mnt/extra-addons \
-  -v $(pwd)/odoo.conf:/etc/odoo/odoo.conf:ro \
-  -v /home/debian/shared/odoo-src/18.0/oca/web:/mnt/oca/web:ro \
-  -v /home/debian/shared/odoo-src/18.0/oca/queue:/mnt/oca/queue:ro \
-  -e HOST=postgres -e PORT=5432 -e USER=opencode -e PASSWORD= \
-  odoo:18.0 odoo -u newsassistant -d newsassistant --stop-after-init
+docker compose run --rm odoo odoo -u newsassistant -d newsassistant --stop-after-init
 
 # Or upgrade the blog extension (also upgrades its dependency newsassistant)
-docker run --rm --network opencode \
-  -v $(pwd)/addons:/mnt/extra-addons \
-  -v $(pwd)/odoo.conf:/etc/odoo/odoo.conf:ro \
-  -v /home/debian/shared/odoo-src/18.0/oca/web:/mnt/oca/web:ro \
-  -v /home/debian/shared/odoo-src/18.0/oca/queue:/mnt/oca/queue:ro \
-  -e HOST=postgres -e PORT=5432 -e USER=opencode -e PASSWORD= \
-  odoo:18.0 odoo -u newsassistant_blog -d newsassistant --stop-after-init
+docker compose run --rm odoo odoo -u newsassistant_blog -d newsassistant --stop-after-init
 
 docker compose start odoo-newsassistant
 ```
@@ -522,22 +510,10 @@ cd /home/debian/projects/newsassistant
 docker compose stop odoo-newsassistant
 
 # Load German and French languages
-docker run --rm --network opencode \
-  -v $(pwd)/addons:/mnt/extra-addons \
-  -v $(pwd)/odoo.conf:/etc/odoo/odoo.conf:ro \
-  -v /home/debian/shared/odoo-src/18.0/oca/web:/mnt/oca/web:ro \
-  -v /home/debian/shared/odoo-src/18.0/oca/queue:/mnt/oca/queue:ro \
-  -e HOST=postgres -e PORT=5432 -e USER=opencode -e PASSWORD= \
-  odoo:18.0 odoo --load-language=de_DE,fr_FR -d newsassistant --stop-after-init
+docker compose run --rm odoo odoo --load-language=de_DE,fr_FR -d newsassistant --stop-after-init
 
 # Update module to load translations from .po files
-docker run --rm --network opencode \
-  -v $(pwd)/addons:/mnt/extra-addons \
-  -v $(pwd)/odoo.conf:/etc/odoo/odoo.conf:ro \
-  -v /home/debian/shared/odoo-src/18.0/oca/web:/mnt/oca/web:ro \
-  -v /home/debian/shared/odoo-src/18.0/oca/queue:/mnt/oca/queue:ro \
-  -e HOST=postgres -e PORT=5432 -e USER=opencode -e PASSWORD= \
-  odoo:18.0 odoo -u newsassistant -d newsassistant --stop-after-init
+docker compose run --rm odoo odoo -u newsassistant -d newsassistant --stop-after-init
 
 # Start Odoo again
 docker compose start odoo-newsassistant
@@ -552,13 +528,7 @@ When translatable strings change (new fields, labels, views, Python `_()` string
 cd /home/debian/projects/newsassistant
 docker compose stop odoo-newsassistant
 
-docker run --rm --network opencode \
-  -v $(pwd)/addons:/mnt/extra-addons \
-  -v $(pwd)/odoo.conf:/etc/odoo/odoo.conf:ro \
-  -v /home/debian/shared/odoo-src/18.0/oca/web:/mnt/oca/web:ro \
-  -v /home/debian/shared/odoo-src/18.0/oca/queue:/mnt/oca/queue:ro \
-  -e HOST=postgres -e PORT=5432 -e USER=opencode -e PASSWORD= \
-  odoo:18.0 odoo -u newsassistant -d newsassistant --stop-after-init
+docker compose run --rm odoo odoo -u newsassistant -d newsassistant --stop-after-init
 
 docker compose start odoo-newsassistant
 ```
@@ -604,13 +574,7 @@ from odoo import _
 cd /home/debian/projects/newsassistant
 docker compose stop odoo-newsassistant
 
-docker run --rm --network opencode \
-  -v $(pwd)/addons:/mnt/extra-addons \
-  -v $(pwd)/odoo.conf:/etc/odoo/odoo.conf:ro \
-  -v /home/debian/shared/odoo-src/18.0/oca/web:/mnt/oca/web:ro \
-  -v /home/debian/shared/odoo-src/18.0/oca/queue:/mnt/oca/queue:ro \
-  -e HOST=postgres -e PORT=5432 -e USER=opencode -e PASSWORD= \
-  odoo:18.0 odoo -u newsassistant -d newsassistant --stop-after-init
+docker compose run --rm odoo odoo -u newsassistant -d newsassistant --stop-after-init
 
 docker compose start odoo-newsassistant
 ```

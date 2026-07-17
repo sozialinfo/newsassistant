@@ -130,7 +130,12 @@ Labels are created automatically during **Distill Prompt**, but can also be crea
 ## Testing
 
 ```bash
-make test-module MODULE=newsassistant_strategy_digest
+docker compose run --rm odoo odoo \
+    -d test_newsassistant_$(date +%s) \
+    -i newsassistant_strategy_digest \
+    --test-enable \
+    --test-tags=/newsassistant_strategy_digest \
+    --stop-after-init
 ```
 
 ## License

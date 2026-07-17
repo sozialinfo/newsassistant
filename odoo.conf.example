@@ -1,8 +1,8 @@
 [options]
 db_host = postgres
 db_port = 5432
-db_user = opencode
-db_password = YOUR_DB_PASSWORD
+db_user = odoo
+db_password = False
 db_name = newsassistant
 db_filter = newsassistant
 addons_path = /mnt/extra-addons,/mnt/oca/web,/mnt/oca/queue

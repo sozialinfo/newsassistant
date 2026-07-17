@@ -1,35 +1,52 @@
-networks:
-  opencode:
-    external: true
-
 services:
+  postgres:
+    image: postgres:16
+    environment:
+      - POSTGRES_DB=newsassistant
+      - POSTGRES_USER=odoo
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-odoo}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - newsassistant-net
+
+  mailpit:
+    image: axllent/mailpit:latest
+    restart: unless-stopped
+    networks:
+      - newsassistant-net
+
   crawl4ai:
     image: unclecode/crawl4ai:latest
     container_name: crawl4ai-newsassistant
     restart: unless-stopped
     shm_size: 1g
+    environment:
+      - CRAWL4AI_API_TOKEN=${CRAWL4AI_API_TOKEN}
     networks:
-      - opencode
+      - newsassistant-net
 
   odoo:
-    image: odoo:18.0
+    build: .
     container_name: odoo-newsassistant
     restart: unless-stopped
-    depends_on: []
+    depends_on:
+      - postgres
     environment:
       - HOST=postgres
       - PORT=5432
-      - USER=opencode
-      - PASSWORD=${POSTGRES_PASSWORD}
+      - USER=odoo
+      - PASSWORD=${POSTGRES_PASSWORD:-odoo}
       - INFOMANIAK_AI_API_KEY=${INFOMANIAK_AI_API_KEY}
     volumes:
       - .:/mnt/extra-addons
-      - ./odoo.conf:/etc/odoo/odoo.conf:ro
       - odoo-data:/var/lib/odoo
-      - /home/debian/shared/odoo-src/18.0/oca/web:/mnt/oca/web:ro
-      - /home/debian/shared/odoo-src/18.0/oca/queue:/mnt/oca/queue:ro
     networks:
-      - opencode
+      - newsassistant-net
 
 volumes:
+  postgres-data:
   odoo-data:
+
+networks:
+  newsassistant-net:

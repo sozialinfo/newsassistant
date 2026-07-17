@@ -1,13 +1,10 @@
 # News Assistant
 
-Automated news monitoring, AI extraction, and content curation.
+Automated news monitoring for Odoo, AI extraction, and content curation.
 
 News Assistant monitors websites and email newsletters, uses AI to extract clean structured content,
 and presents articles in a kanban board for triage. Optional extensions add AI-powered relevance
 scoring, automatic blog publishing, and strategic intelligence briefs.
-
-The core insight: AI acts as a **universal HTML-to-structured-data parser** — no per-source CSS
-selectors, no breakage when websites redesign.
 
 ---
 
@@ -29,26 +26,29 @@ technical notes.
 ## Prerequisites
 
 - **Docker** and **Docker Compose**
-- **External Postgres** container named `postgres` on the `opencode` Docker network (user `opencode`, no password)
-- **OCA addons** cloned on the host:
-  - `/home/debian/shared/odoo-src/18.0/oca/web`
-  - `/home/debian/shared/odoo-src/18.0/oca/queue`
-- **API keys** (see Setup below)
+- **API keys** (see Environment below)
 
 ---
 
-## Setup
-
-### 1. Create `.env`
+## Quick Start — Local Development
 
 ```bash
-cp .env.example .env   # if it exists, otherwise create manually
+git clone <repo-url> newsassistant
+cd newsassistant
+cp .env.example .env
+# Edit .env with your API keys
+docker compose up -d
 ```
+
+After the container starts, the Odoo instance is available on the port configured in `odoo.conf` (default: 8069).
+
+### Environment
 
 ```ini
 # .env
 INFOMANIAK_AI_API_KEY=your-infomaniak-key   # required — all AI calls
 PIXABAY_API_KEY=your-pixabay-key            # optional — blog header images
+CRAWL4AI_API_TOKEN=your-crawl4ai-token      # optional — crawl4ai auth (production)
 ```
 
 | Variable | Required | Purpose |
@@ -56,69 +56,127 @@ PIXABAY_API_KEY=your-pixabay-key            # optional — blog header images
 | `INFOMANIAK_AI_API_KEY` | Yes | AI extraction, triage, digest, strategy evaluation |
 | `POSTGRES_PASSWORD` | Yes | Postgres connection (empty string if no password) |
 | `PIXABAY_API_KEY` | No | Fallback blog header images (also settable via Odoo Settings UI) |
-
-### 2. Build the database from scratch
-
-```bash
-make rebuild
-```
-
-This drops any existing `newsassistant` database, initialises all modules, starts the container,
-applies post-setup (admin language, security groups, Pixabay key), and runs a smoke test.
+| `CRAWL4AI_API_TOKEN` | No | Token to authenticate with crawl4ai (production) |
 
 ---
 
-## Make targets
+## Production Deployment
 
-```bash
-make rebuild        # Full clean slate: drop DB → init → start → post-setup → smoke test
-make init           # Init all modules into a fresh DB (no start)
-make start          # docker compose up -d
-make down           # docker compose down
-make restart        # Reload Python/views only — NOT sufficient after model/view/data changes
-make logs           # Follow container logs
-make shell          # Open an Odoo interactive shell
+Two patterns depending on whether you are setting up everything from scratch or adding
+crawl4ai to an existing Odoo server.
+
+### Pattern 1: Full stack (Odoo + crawl4ai together)
+
+Run the full stack on a single host. Use a dedicated Postgres instance (container or managed).
+Adapt `docker-compose.yml` as needed — typical adjustments:
+
+- Use your own Postgres connection details (host, port, user, password).
+- Pin specific image tags instead of `:latest`.
+- Set `CRAWL4AI_API_TOKEN` to secure the crawl4ai endpoint.
+
+### Pattern 2: crawl4ai as a standalone service
+
+If you already have an Odoo server (or want to share one crawl4ai instance across multiple
+services), deploy crawl4ai behind a reverse proxy with token authentication:
+
+```yaml
+# docker-compose.crawl4ai.yml
+services:
+  crawl4ai:
+    image: unclecode/crawl4ai:latest
+    container_name: crawl4ai
+    shm_size: 1g
+    restart: unless-stopped
+    expose:
+      - "11235"
+    environment:
+      - CRAWL4AI_API_TOKEN=${CRAWL4AI_API_TOKEN}
+    networks:
+      - crawl4ai-net
+
+  caddy:
+    image: caddy:latest
+    container_name: caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+    networks:
+      - crawl4ai-net
+
+volumes:
+  caddy_data:
+
+networks:
+  crawl4ai-net:
 ```
 
-### Testing
+Example `Caddyfile` — requires an `Authorization` header with the token:
 
-```bash
-make test                          # Run all module test suites
-make test-module MODULE=newsassistant_blog   # Run a single module's tests
+```
+crawl4ai.example.com {
+    @health path /health
+    handle @health {
+        reverse_proxy crawl4ai:11235
+    }
+    @noauth not header Authorization *
+    handle @noauth {
+        respond 401
+    }
+    reverse_proxy crawl4ai:11235
+}
 ```
 
-### Translations
+The token is set via `CRAWL4AI_API_TOKEN`. Clients must send it as a Bearer token in the
+`Authorization` header. In Odoo, set the crawl4ai endpoint URL and token in **Settings →
+Technical → System Parameters**:
+
+| Key | Value |
+|---|---|
+| `newsassistant.crawl4ai_endpoint` | `https://crawl4ai.example.com` |
+| `newsassistant.crawl4ai_api_token` | `<your-token>` |
+
+---
+
+## Common Tasks
+
+All commands use native Docker / Docker Compose — no `make` needed.
+
+| Task | Command |
+|---|---|
+| Start services | `docker compose up -d` |
+| Stop services | `docker compose down` |
+| Restart Odoo | `docker compose restart odoo` |
+| Follow Odoo logs | `docker compose logs -f odoo` |
+| Open a shell | `docker compose exec odoo odoo shell -d newsassistant` |
+| Init modules in a fresh DB | `docker compose run --rm odoo odoo -d newsassistant -i <modules> --stop-after-init` |
+| Run all tests | `docker compose run --rm odoo odoo -d test_newsassistant_\`date +%s\` -i <modules> --test-enable --test-tags=/newsassistant --stop-after-init` |
+| Run single module tests | `docker compose run --rm odoo odoo -d test_newsassistant_\`date +%s\` -i <module> --test-enable --test-tags=/<module> --stop-after-init` |
+| Export translations | `docker compose exec odoo odoo -d newsassistant --modules=<module> --i18n-export=/tmp/<module>.pot --stop-after-init` |
+| Send test email | `python scripts/sendmail.py test@example.ch newsassistant` |
+
+**Rebuild from scratch** (drop DB → init → start):
 
 ```bash
-make i18n-update    # Export fresh .pot files for all modules to /tmp/
-make i18n-install   # Reload de_CH / de_DE / fr_FR translations into the running instance
-```
-
-### Email testing
-
-```bash
-make sendmail test@example.ch   # Inject a test HTML newsletter from that address
+docker compose down
+docker compose exec postgres psql -U odoo -d postgres -c 'DROP DATABASE IF EXISTS "newsassistant";'
+docker compose run --rm odoo odoo -d newsassistant -i newsassistant,newsassistant_website,newsassistant_email,newsassistant_blog,newsassistant_strategy,newsassistant_strategy_digest,newsassistant_strategy_watch --stop-after-init
+docker compose up -d
 ```
 
 ---
 
 ## Upgrading after code changes
 
-A plain `make restart` reloads Python files but does **not** apply new fields, updated views, or
-data file changes. After any model, view, or data change, upgrade the affected module(s):
+After any model, view, or data change, upgrade the affected module(s):
 
 ```bash
-make down
+docker compose run --rm odoo odoo -u newsassistant -d newsassistant --stop-after-init
 
-docker run --rm --network opencode \
-  -v $(pwd):/mnt/extra-addons \
-  -v $(pwd)/odoo.conf:/etc/odoo/odoo.conf:ro \
-  -v /home/debian/shared/odoo-src/18.0/oca/web:/mnt/oca/web:ro \
-  -v /home/debian/shared/odoo-src/18.0/oca/queue:/mnt/oca/queue:ro \
-  --env-file $(pwd)/.env \
-  odoo:18.0 odoo -u newsassistant -d newsassistant --stop-after-init
-
-make start
+docker compose restart odoo
 ```
 
 Replace `newsassistant` with the addon you changed (e.g. `newsassistant_blog`). Upgrading an
@@ -178,14 +236,14 @@ key `newsassistant.infomaniak_product_id`.
 server_wide_modules = web,queue_job
 workers = 2
 ```
-Then `make restart`.
+Then `docker compose restart odoo`.
 
 ### "Infomaniak AI API key not configured"
 
 **Cause:** `INFOMANIAK_AI_API_KEY` not passed to the container.
 
 **Fix:** Check `.env` has the key and `docker-compose.yml` passes it via `--env-file`.
-Verify with: `docker exec odoo-newsassistant env | grep INFOMANIAK`
+Verify with: `docker compose exec odoo env | grep INFOMANIAK`
 
 ### Source shows "Error" after scraping
 

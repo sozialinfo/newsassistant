@@ -50,7 +50,7 @@ which appear in the kanban board under the **New** stage.
 Send a test newsletter:
 
 ```bash
-make sendmail test@example.ch
+python scripts/sendmail.py test@example.ch newsassistant
 ```
 
 This injects a realistic HTML newsletter from `test@example.ch` via XMLRPC and triggers the
@@ -121,7 +121,7 @@ docker exec odoo-newsassistant odoo --test-tags newsassistant_email --stop-after
 To test the end-to-end inbound flow manually:
 
 ```bash
-make sendmail editor@skos.ch
+python scripts/sendmail.py editor@skos.ch newsassistant
 ```
 
 ## License
