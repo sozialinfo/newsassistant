@@ -39,11 +39,19 @@ git clone https://github.com/sozialinfo/newsassistant
 cd newsassistant
 cp odoo.conf.example odoo.conf
 cp .env.example .env
-# Edit .env with your API keys
+# Edit .env with your INFOMANIAK_AI_API_KEY (other defaults are fine for local dev)
 docker compose up -d
+# Initialize the database with all modules
+docker compose run --rm odoo odoo -d newsassistant \
+  -i newsassistant,newsassistant_website,newsassistant_email,newsassistant_blog,newsassistant_strategy,newsassistant_strategy_digest,newsassistant_strategy_watch \
+  --stop-after-init
+docker compose restart odoo
 ```
 
-After the container starts, the Odoo instance is available on the port configured in `odoo.conf` (default: 8069).
+After the container starts, Odoo is available at **http://localhost:8069**.
+
+> **Note for the impatient:** The `-i` command above installs all addons. If you only want the base
+> module, use `-i newsassistant,newsassistant_website` instead.
 
 ### Environment
 
@@ -51,15 +59,15 @@ After the container starts, the Odoo instance is available on the port configure
 # .env
 INFOMANIAK_AI_API_KEY=your-infomaniak-key   # required — all AI calls
 PIXABAY_API_KEY=your-pixabay-key            # optional — blog header images
-CRAWL4AI_API_TOKEN=your-crawl4ai-token      # optional — crawl4ai auth (production)
+CRAWL4AI_API_TOKEN=dev-token                # optional — defaults to dev-token in docker-compose
 ```
 
 | Variable | Required | Purpose |
 |---|---|---|
 | `INFOMANIAK_AI_API_KEY` | Yes | AI extraction, triage, digest, strategy evaluation |
-| `POSTGRES_PASSWORD` | Yes | Postgres connection (empty string if no password) |
+| `POSTGRES_PASSWORD` | Yes | Postgres connection (default: `odoo`) |
 | `PIXABAY_API_KEY` | No | Fallback blog header images (also settable via Odoo Settings UI) |
-| `CRAWL4AI_API_TOKEN` | No | Token to authenticate with crawl4ai (production) |
+| `CRAWL4AI_API_TOKEN` | No (dev) / Yes (prod) | Token for crawl4ai auth. Defaults to `dev-token` in docker-compose. Set a secure value in production. |
 
 ---
 
@@ -240,6 +248,33 @@ server_wide_modules = web,queue_job
 workers = 2
 ```
 Then `docker compose restart odoo`.
+
+### Scraping cron not running
+
+**Cause:** The scraping cron may be inactive after the initial install.
+
+**Fix:** Activate it via **Settings → Technical → Scheduled Actions**, find
+**"News Assistant: Scrape All Website Sources"** and check **Active**.
+Or run from the CLI:
+```bash
+docker compose exec odoo odoo shell -d newsassistant --no-http \
+  -c "env['ir.cron'].browse(19).write({'active': True})"
+```
+
+### crawl4ai jobs fail with "HTTP 401" or "crawl4ai connection refused"
+
+**Cause:** The crawl4ai container binds to loopback only when no `CRAWL4AI_API_TOKEN`
+is set, making it unreachable from the Odoo container.
+
+**Fix:** Ensure `CRAWL4AI_API_TOKEN` is set in `.env` (defaults to `dev-token` in
+docker-compose) and recreate the container:
+```bash
+docker compose up -d crawl4ai --force-recreate
+```
+Then restart Odoo so it picks up the token:
+```bash
+docker compose restart odoo
+```
 
 ### "Infomaniak AI API key not configured"
 

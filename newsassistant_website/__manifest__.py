@@ -30,4 +30,5 @@
     "installable": True,
     "application": False,
     "auto_install": False,
+    "post_init_hook": "hooks.post_init_hook",
 }

@@ -11,8 +11,9 @@ class ResConfigSettings(models.TransientModel):
     )
     newsassistant_crawl4ai_api_token = fields.Char(
         string="crawl4ai API Token",
-        help="Optional Bearer token for crawl4ai server authentication. "
-             "Leave empty if no authentication is required.",
+        default="dev-token",
+        help="Bearer token for crawl4ai server authentication. "
+             "Defaults to 'dev-token' in docker-compose. Set to empty for no auth.",
     )
 
     @api.model
@@ -25,7 +26,7 @@ class ResConfigSettings(models.TransientModel):
         )
         res["newsassistant_crawl4ai_api_token"] = ICP.get_param(
             "newsassistant_website.crawl4ai_api_token",
-            default="",
+            default="dev-token",
         )
         return res
 

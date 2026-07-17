@@ -112,11 +112,11 @@ class NewsSourceWebsite(models.Model):
         )
 
     def _get_crawl4ai_api_token(self):
-        """Get the configured crawl4ai API token from settings or empty string."""
+        """Get the configured crawl4ai API token from settings or fallback to dev default."""
         ICP = self.env["ir.config_parameter"].sudo()
         return ICP.get_param(
             "newsassistant_website.crawl4ai_api_token",
-            default="",
+            default="dev-token",
         )
 
     def _scrape_listing(self):

@@ -22,7 +22,7 @@ services:
     restart: unless-stopped
     shm_size: 1g
     environment:
-      - CRAWL4AI_API_TOKEN=${CRAWL4AI_API_TOKEN}
+      - CRAWL4AI_API_TOKEN=${CRAWL4AI_API_TOKEN:-dev-token}
     networks:
       - newsassistant-net
 
@@ -32,6 +32,8 @@ services:
     restart: unless-stopped
     depends_on:
       - postgres
+    ports:
+      - "8069:8069"
     environment:
       - HOST=postgres
       - PORT=5432
@@ -44,7 +46,6 @@ services:
       - odoo-data:/var/lib/odoo
     networks:
       - newsassistant-net
-      - opencode
 
 volumes:
   postgres-data:
@@ -52,5 +53,3 @@ volumes:
 
 networks:
   newsassistant-net:
-  opencode:
-    external: true
