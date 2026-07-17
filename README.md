@@ -16,7 +16,9 @@ scoring, automatic blog publishing, and strategic intelligence briefs.
 | `newsassistant_website` | Scrapes news websites via crawl4ai + AI | Optional |
 | `newsassistant_email` | Captures inbound email newsletters via mail alias | Optional |
 | `newsassistant_blog` | AI triage (relevant/uncertain/discard) + blog publishing | Optional |
+| `newsassistant_strategy` | Strategy Base: shared strategy model for strategy ecosystem | Optional |
 | `newsassistant_strategy_digest` | Strategy labels, article evaluation, executive PDF briefs | Optional |
+| `newsassistant_strategy_watch` | Strategy Watch: flag articles with strategic watch relevance | Optional |
 
 Each addon has its own `README.md` with detailed field references, configuration tables, and
 technical notes.
@@ -33,7 +35,7 @@ technical notes.
 ## Quick Start — Local Development
 
 ```bash
-git clone <repo-url> newsassistant
+git clone https://github.com/sozialinfo/newsassistant newsassistant
 cd newsassistant
 cp .env.example .env
 # Edit .env with your API keys

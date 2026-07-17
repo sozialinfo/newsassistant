@@ -1,6 +1,6 @@
 {
     "name": "News Assistant - Strategy Digest",
-    "version": "18.0.3.1.0",
+    "version": "18.0.4.0.0",
     "category": "Productivity",
     "summary": "AI-powered strategy digest: label articles by strategic relevance and generate executive briefs",
     "description": """
