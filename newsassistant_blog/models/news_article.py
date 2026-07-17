@@ -780,7 +780,7 @@ class NewsArticle(models.Model):
             f"{language_hint}\n\n"
             "Return a JSON object with exactly two fields:\n"
             '- "teaser": the teaser text (in the article\'s language)\n'
-            '- "read_more": a short link text such as "Read the full article at {domain} →" '
+            '- "read_more": a short link text such as "Read the full article at example.com" '
             "written in the same language as the article\n\n"
             "Return ONLY valid JSON, no markdown, no code fences, no explanation."
         )
@@ -963,11 +963,15 @@ class NewsArticle(models.Model):
         domain = urlparse(self.url).netloc if self.url else ""
         # Use AI-generated link text if available, else English fallback
         if not read_more:
-            read_more = f"Read the full article at {domain} →" if domain else "Read the full article →"
+            read_more = f"Read the full article at {domain}" if domain else "Read the full article"
+
+        # Substitute {domain} placeholder in AI-generated read_more text
+        if domain and "{domain}" in read_more:
+            read_more = read_more.replace("{domain}", domain)
 
         content = f"""
 <p>{teaser}</p>
-<p><a href="{self.url}" target="_blank" rel="noopener noreferrer">
+<p><a href="{self.url}" class="btn btn-primary" target="_blank" rel="noopener noreferrer">
     {read_more}
 </a></p>
 """

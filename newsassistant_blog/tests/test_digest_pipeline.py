@@ -121,7 +121,7 @@ class TestDigestPipeline(TransactionCase):
 
         mock_result = self._mock_ai({
             "teaser": "A compelling two-sentence teaser for this article.",
-            "read_more": "Ganzen Artikel lesen bei digest-test.example.com →",
+            "read_more": "Ganzen Artikel lesen bei digest-test.example.com",
         })
 
         with patch.object(type(article), "_call_ai", return_value=mock_result):
@@ -129,7 +129,7 @@ class TestDigestPipeline(TransactionCase):
 
         self.assertIsInstance(result, dict)
         self.assertEqual(result["teaser"], "A compelling two-sentence teaser for this article.")
-        self.assertEqual(result["read_more"], "Ganzen Artikel lesen bei digest-test.example.com →")
+        self.assertEqual(result["read_more"], "Ganzen Artikel lesen bei digest-test.example.com")
         self.assertEqual(article.teaser, result["teaser"])
 
     def test_create_blog_post_success(self):
@@ -140,7 +140,7 @@ class TestDigestPipeline(TransactionCase):
 
         teaser_result = {
             "teaser": "A great teaser!",
-            "read_more": "Ganzen Artikel lesen bei digest-test.example.com →",
+            "read_more": "Ganzen Artikel lesen bei digest-test.example.com",
         }
         post = article._create_blog_post(teaser_result, log_entries, add)
         self.assertIsNotNone(post)

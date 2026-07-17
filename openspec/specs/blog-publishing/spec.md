@@ -38,11 +38,12 @@ The system SHALL create blog posts with: the article title as post name, the gen
 - **WHEN** a blog post is created from a German article
 - **THEN** the `content` field SHALL include the generated teaser text in German
 - **THEN** the `content` field SHALL include a link to the original article URL
-- **THEN** the link text SHALL be in German (e.g. "Ganzen Artikel lesen bei example.de →")
+- **THEN** the link text SHALL be in German (e.g. "Ganzen Artikel lesen bei example.de")
 
 #### Scenario: Blog post falls back gracefully when read_more missing
 - **WHEN** the AI response omits the `read_more` field
-- **THEN** the system SHALL use a default English fallback "Read the full article at {domain} →"
+- **THEN** the system SHALL use a default English fallback "Read the full article at {domain}"
+- **THEN** the `{domain}` placeholder SHALL be replaced with the actual source domain
 - **THEN** the blog post SHALL still be created successfully
 
 ### Requirement: Deduplication of blog posts
