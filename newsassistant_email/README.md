@@ -56,6 +56,13 @@ python scripts/sendmail.py test@example.ch newsassistant
 This injects a realistic HTML newsletter from `test@example.ch` via XMLRPC and triggers the
 full inbound pipeline. Check **News Assistant → Articles** after a few seconds.
 
+### API key
+
+This module requires the `INFOMANIAK_AI_API_KEY` environment variable to be set. Odoo
+reads the key from the process environment at runtime — no database configuration needed.
+If the variable is missing, AI-powered features (source name lookup, article extraction)
+will log an error and fall back gracefully.
+
 ### Subscription
 
 Subscribe the alias to any email newsletter or mailing list you want to monitor. New emails

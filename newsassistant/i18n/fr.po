@@ -6,8 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-13 12:49+0000\n"
-"PO-Revision-Date: 2026-04-13 12:49+0000\n"
+"POT-Creation-Date: 2026-07-17 06:29+0000\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "Language: fr\n"
@@ -20,6 +19,11 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:newsassistant.news_article_view_form
 msgid "<strong>Skipped:</strong>"
 msgstr "<strong>Ignoré :</strong>"
+
+#. module: newsassistant
+#: model_terms:ir.ui.view,arch_db:newsassistant.res_config_settings_view_form_newsassistant
+msgid "AI Configuration"
+msgstr "Configuration"
 
 #. module: newsassistant
 #: model:ir.model.fields,field_description:newsassistant.field_news_article__active
@@ -39,6 +43,12 @@ msgid "Admin"
 msgstr "Administrateur"
 
 #. module: newsassistant
+#. odoo-python
+#: code:addons/newsassistant/models/news_article.py:0
+msgid "Already Skipped"
+msgstr "Déjà ignoré"
+
+#. module: newsassistant
 #: model:ir.model.constraint,message:newsassistant.constraint_news_article_url_unique
 msgid "An article with this URL already exists."
 msgstr "Un article avec cette URL existe déjà."
@@ -56,15 +66,33 @@ msgid "Article"
 msgstr "Article"
 
 #. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_snapshot__article_count
 #: model:ir.model.fields,field_description:newsassistant.field_news_source__article_count
 msgid "Article Count"
 msgstr "Nombre d'articles"
+
+#. module: newsassistant
+#: model_terms:ir.ui.view,arch_db:newsassistant.res_config_settings_view_form_newsassistant
+msgid "Article Defaults"
+msgstr "Valeurs par défaut des articles"
 
 #. module: newsassistant
 #: model:ir.model.fields.selection,name:newsassistant.selection__news_log__category__extraction
 #: model_terms:ir.ui.view,arch_db:newsassistant.news_log_view_search
 msgid "Article Extraction"
 msgstr "Extraction d'article"
+
+#. module: newsassistant
+#. odoo-python
+#: code:addons/newsassistant/models/news_article.py:0
+msgid "Article Reset"
+msgstr "Article réinitialisé"
+
+#. module: newsassistant
+#. odoo-python
+#: code:addons/newsassistant/models/news_article.py:0
+msgid "Article Skipped"
+msgstr "Article ignoré"
 
 #. module: newsassistant
 #: model:ir.actions.act_window,name:newsassistant.news_article_stage_action
@@ -78,9 +106,28 @@ msgid "Article Title"
 msgstr "Titre de l'article"
 
 #. module: newsassistant
+#. odoo-python
+#: code:addons/newsassistant/models/news_article.py:0
+msgid "Article marked as skipped and archived."
+msgstr "Article marqué comme ignoré et archivé."
+
+#. module: newsassistant
+#. odoo-python
+#: code:addons/newsassistant/models/news_article.py:0
+msgid "Article reset to pending and unarchived."
+msgstr "Article remis en attente et désarchivé."
+
+#. module: newsassistant
+#: model:ir.model.fields,help:newsassistant.field_news_snapshot__child_ids
+msgid "Article snapshots discovered from this listing snapshot."
+msgstr "Instantanés d'articles découverts à partir de cet instantané de liste."
+
+#. module: newsassistant
 #: model:ir.actions.act_window,name:newsassistant.news_article_action
+#: model:ir.model.fields,field_description:newsassistant.field_news_snapshot__article_ids
 #: model:ir.model.fields,field_description:newsassistant.field_news_source__article_ids
 #: model:ir.ui.menu,name:newsassistant.menu_news_articles
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_snapshot_view_form
 #: model_terms:ir.ui.view,arch_db:newsassistant.news_source_view_form
 msgid "Articles"
 msgstr "Articles"
@@ -98,13 +145,41 @@ msgid ""
 "                You can also trigger a manual scrape from the Sources menu."
 msgstr ""
 "Les articles apparaîtront ici après l'exécution de la collecte quotidienne.\n"
-"                Vous pouvez également déclencher une collecte manuelle depuis le menu Sources."
+"                Vous pouvez également déclencher une collecte manuelle "
+"depuis le menu Sources."
+
+#. module: newsassistant
+#. odoo-python
+#: code:addons/newsassistant/models/news_article.py:0
+msgid "Cannot Re-extract"
+msgstr "Impossible de réextraire"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_snapshot__captured_at
+msgid "Captured At"
+msgstr "Capturé le"
+
+#. module: newsassistant
+#: model:ir.model.fields,help:newsassistant.field_news_snapshot__raw_content
+msgid "Captured HTML content — the raw input for article extraction."
+msgstr "Contenu HTML capturé — l'entrée brute pour l'extraction d'articles."
 
 #. module: newsassistant
 #: model:ir.model.fields,field_description:newsassistant.field_news_log__category
 #: model_terms:ir.ui.view,arch_db:newsassistant.news_log_view_search
 msgid "Category"
 msgstr "Catégorie"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_snapshot__child_ids
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_snapshot_view_form
+msgid "Child Snapshots"
+msgstr "Captures"
+
+#. module: newsassistant
+#: model:ir.model,name:newsassistant.model_res_config_settings
+msgid "Config Settings"
+msgstr "Paramètres de configuration"
 
 #. module: newsassistant
 #: model:ir.ui.menu,name:newsassistant.menu_news_configuration
@@ -118,6 +193,7 @@ msgstr "Configurez les sites web à surveiller pour les articles d'actualités."
 
 #. module: newsassistant
 #: model:ir.model.fields,field_description:newsassistant.field_news_article__content
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_snapshot_view_form
 msgid "Content"
 msgstr "Contenu"
 
@@ -136,6 +212,7 @@ msgstr "Articles créés"
 #: model:ir.model.fields,field_description:newsassistant.field_news_article_stage__create_uid
 #: model:ir.model.fields,field_description:newsassistant.field_news_log__create_uid
 #: model:ir.model.fields,field_description:newsassistant.field_news_log_entry__create_uid
+#: model:ir.model.fields,field_description:newsassistant.field_news_snapshot__create_uid
 #: model:ir.model.fields,field_description:newsassistant.field_news_source__create_uid
 msgid "Created by"
 msgstr "Créé par"
@@ -145,6 +222,7 @@ msgstr "Créé par"
 #: model:ir.model.fields,field_description:newsassistant.field_news_article_stage__create_date
 #: model:ir.model.fields,field_description:newsassistant.field_news_log__create_date
 #: model:ir.model.fields,field_description:newsassistant.field_news_log_entry__create_date
+#: model:ir.model.fields,field_description:newsassistant.field_news_snapshot__create_date
 #: model:ir.model.fields,field_description:newsassistant.field_news_source__create_date
 msgid "Created on"
 msgstr "Créé le"
@@ -167,6 +245,12 @@ msgid "Debug"
 msgstr "Débogage"
 
 #. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_res_config_settings__newsassistant_new_article_stage_id
+#: model_terms:ir.ui.view,arch_db:newsassistant.res_config_settings_view_form_newsassistant
+msgid "Default Stage for New Articles"
+msgstr "Étape par défaut pour les nouveaux articles"
+
+#. module: newsassistant
 #: model_terms:ir.ui.view,arch_db:newsassistant.news_log_view_form
 msgid "Detail Entries"
 msgstr "Entrées détaillées"
@@ -181,6 +265,7 @@ msgstr "Rejeté"
 #: model:ir.model.fields,field_description:newsassistant.field_news_article_stage__display_name
 #: model:ir.model.fields,field_description:newsassistant.field_news_log__display_name
 #: model:ir.model.fields,field_description:newsassistant.field_news_log_entry__display_name
+#: model:ir.model.fields,field_description:newsassistant.field_news_snapshot__display_name
 #: model:ir.model.fields,field_description:newsassistant.field_news_source__display_name
 msgid "Display Name"
 msgstr "Nom affiché"
@@ -190,6 +275,28 @@ msgstr "Nom affiché"
 #: model:ir.model.fields,field_description:newsassistant.field_news_log_entry__duration
 msgid "Duration (s)"
 msgstr "Durée (s)"
+
+#. module: newsassistant
+#: model:ir.model.fields.selection,name:newsassistant.selection__news_source__source_type__email
+msgid "E-Mail"
+msgstr "E-Mail"
+
+#. module: newsassistant
+#: model:ir.model.fields.selection,name:newsassistant.selection__news_log__category__email
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_log_view_search
+msgid "Email Inbound"
+msgstr "E-mail entrant"
+
+#. module: newsassistant
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_source_view_search
+msgid "Email Sources"
+msgstr "Sources e-mail"
+
+#. module: newsassistant
+#: model:ir.model.fields,help:newsassistant.field_news_source__sender_domain
+msgid "Email domain to match inbound emails (e.g. newsletter.example.com)"
+msgstr ""
+"Domaine e-mail pour les newsletters entrantes (p. ex. newsletter.example.com)"
 
 #. module: newsassistant
 #: model:ir.model.fields,field_description:newsassistant.field_news_log__entry_ids
@@ -217,10 +324,9 @@ msgid "Error Message"
 msgstr "Message d'erreur"
 
 #. module: newsassistant
-#: model:ir.model.fields,field_description:newsassistant.field_res_config_settings__newsassistant_new_article_stage_id
-#: model_terms:ir.ui.view,arch_db:newsassistant.res_config_settings_view_form_newsassistant
-msgid "Default Stage for New Articles"
-msgstr "Étape par défaut pour les nouveaux articles"
+#: model:ir.model.fields,help:newsassistant.field_news_snapshot__url
+msgid "Exact URL of the web page that was fetched to produce this snapshot."
+msgstr "URL exacte de la page Web récupérée pour produire cet instantané."
 
 #. module: newsassistant
 #: model:ir.model.fields,field_description:newsassistant.field_news_article_stage__fold
@@ -244,13 +350,36 @@ msgid "Has Errors"
 msgstr "Avec erreurs"
 
 #. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_article__header_image
+msgid "Header Image"
+msgstr "Image d'en-tête"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_article__header_image_filename
+msgid "Header Image Filename"
+msgstr "Nom de fichier de l'image d'en-tête"
+
+#. module: newsassistant
+#: model:ir.model.fields,help:newsassistant.field_news_article__header_image
+msgid "Header image extracted from the article, suitable for blog covers"
+msgstr "Image d'en-tête extraite de l'article, adaptée aux couvertures de blog"
+
+#. module: newsassistant
 #: model:ir.model.fields,field_description:newsassistant.field_news_article__id
 #: model:ir.model.fields,field_description:newsassistant.field_news_article_stage__id
 #: model:ir.model.fields,field_description:newsassistant.field_news_log__id
 #: model:ir.model.fields,field_description:newsassistant.field_news_log_entry__id
+#: model:ir.model.fields,field_description:newsassistant.field_news_snapshot__id
 #: model:ir.model.fields,field_description:newsassistant.field_news_source__id
 msgid "ID"
 msgstr "ID"
+
+#. module: newsassistant
+#: model:ir.model.fields,help:newsassistant.field_news_snapshot__is_listing
+msgid ""
+"If True, this snapshot contains a listing page or newsletter with multiple "
+"discoverable articles rather than a single article."
+msgstr ""
 
 #. module: newsassistant
 #: model:ir.model.fields.selection,name:newsassistant.selection__news_log_entry__level__info
@@ -258,9 +387,37 @@ msgid "Info"
 msgstr "Info"
 
 #. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_res_config_settings__newsassistant_infomaniak_product_id
+#: model_terms:ir.ui.view,arch_db:newsassistant.res_config_settings_view_form_newsassistant
+msgid "Infomaniak AI Product ID"
+msgstr "ID du produit Infomaniak IA"
+
+#. module: newsassistant
+#: model:ir.model.fields,help:newsassistant.field_res_config_settings__newsassistant_infomaniak_product_id
+msgid "Infomaniak AI product ID used for AI API calls. Default: 103794."
+msgstr "ID du produit Infomaniak IA pour les appels API. Défaut : 103794."
+
+#. module: newsassistant
+#: model_terms:ir.ui.view,arch_db:newsassistant.res_config_settings_view_form_newsassistant
+msgid "Infomaniak AI product ID used for all AI API calls. Default: 103794."
+msgstr "ID du produit Infomaniak IA pour tous les appels API. Défaut : 103794."
+
+#. module: newsassistant
 #: model:ir.model.fields,field_description:newsassistant.field_news_log__job_id
 msgid "Job"
 msgstr "Tâche"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_article__lang_id
+msgid "Language"
+msgstr "Langue"
+
+#. module: newsassistant
+#: model:ir.model.fields,help:newsassistant.field_news_article__lang_id
+msgid ""
+"Language of the article content. Auto-detected by LLM during extraction; can "
+"be overridden manually."
+msgstr ""
 
 #. module: newsassistant
 #: model:ir.model.fields,field_description:newsassistant.field_news_article__last_error_date
@@ -277,6 +434,7 @@ msgstr "Dernière collecte"
 #: model:ir.model.fields,field_description:newsassistant.field_news_article_stage__write_uid
 #: model:ir.model.fields,field_description:newsassistant.field_news_log__write_uid
 #: model:ir.model.fields,field_description:newsassistant.field_news_log_entry__write_uid
+#: model:ir.model.fields,field_description:newsassistant.field_news_snapshot__write_uid
 #: model:ir.model.fields,field_description:newsassistant.field_news_source__write_uid
 msgid "Last Updated by"
 msgstr "Dernière mise à jour par"
@@ -286,6 +444,7 @@ msgstr "Dernière mise à jour par"
 #: model:ir.model.fields,field_description:newsassistant.field_news_article_stage__write_date
 #: model:ir.model.fields,field_description:newsassistant.field_news_log__write_date
 #: model:ir.model.fields,field_description:newsassistant.field_news_log_entry__write_date
+#: model:ir.model.fields,field_description:newsassistant.field_news_snapshot__write_date
 #: model:ir.model.fields,field_description:newsassistant.field_news_source__write_date
 msgid "Last Updated on"
 msgstr "Dernière mise à jour le"
@@ -309,24 +468,35 @@ msgid "Listing Scrape"
 msgstr "Collecte de liste"
 
 #. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_snapshot__is_listing
+msgid "Listing/Overview"
+msgstr "Collecte de liste"
+
+#. module: newsassistant
 #: model:ir.model.fields,field_description:newsassistant.field_news_log_entry__log_id
 #: model_terms:ir.ui.view,arch_db:newsassistant.news_article_view_form
-#: model_terms:ir.ui.view,arch_db:newsassistant.news_source_view_form
 msgid "Log"
 msgstr "Journal"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_source__log_count
+msgid "Log Count"
+msgstr "Nombre de journaux"
 
 #. module: newsassistant
 #: model:ir.actions.act_window,name:newsassistant.news_log_action
 #: model:ir.model.fields,field_description:newsassistant.field_news_article__log_ids
 #: model:ir.model.fields,field_description:newsassistant.field_news_source__log_ids
 #: model:ir.ui.menu,name:newsassistant.menu_news_logs
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_source_view_form
 msgid "Logs"
 msgstr "Journaux"
 
 #. module: newsassistant
 #: model_terms:ir.actions.act_window,help:newsassistant.news_log_action
 msgid "Logs will appear here after scraping jobs run."
-msgstr "Les journaux apparaîtront ici après l'exécution des tâches de collecte."
+msgstr ""
+"Les journaux apparaîtront ici après l'exécution des tâches de collecte."
 
 #. module: newsassistant
 #: model:ir.actions.server,name:newsassistant.action_article_skip_selected
@@ -369,8 +539,8 @@ msgstr "Nouveau"
 
 #. module: newsassistant
 #: model:ir.model,name:newsassistant.model_news_article
-msgid "News Article"
-msgstr "Article"
+msgid "News Article (Blog Extension)"
+msgstr "Étape d'article"
 
 #. module: newsassistant
 #: model:ir.model,name:newsassistant.model_news_article_stage
@@ -380,13 +550,14 @@ msgstr "Étape d'article"
 #. module: newsassistant
 #: model:ir.module.category,name:newsassistant.module_category_newsassistant
 #: model:ir.ui.menu,name:newsassistant.menu_news_assistant_root
+#: model_terms:ir.ui.view,arch_db:newsassistant.res_config_settings_view_form_newsassistant
 msgid "News Assistant"
 msgstr "Assistant Actualités"
 
 #. module: newsassistant
-#: model:ir.actions.server,name:newsassistant.ir_cron_scrape_news_ir_actions_server
-msgid "News Assistant: Scrape All Sources"
-msgstr "Assistant Actualités : Collecter toutes les sources"
+#: model:ir.actions.act_window,name:newsassistant.action_newsassistant_settings
+msgid "News Assistant Settings"
+msgstr "Paramètres News Assistant"
 
 #. module: newsassistant
 #: model:ir.model,name:newsassistant.model_news_log
@@ -397,6 +568,11 @@ msgstr "Journal d'actualités"
 #: model:ir.model,name:newsassistant.model_news_log_entry
 msgid "News Log Entry"
 msgstr "Entrée de journal d'actualités"
+
+#. module: newsassistant
+#: model:ir.model,name:newsassistant.model_news_snapshot
+msgid "News Snapshot (Email)"
+msgstr "Capture d'actualités"
 
 #. module: newsassistant
 #: model:ir.model,name:newsassistant.model_news_source
@@ -414,10 +590,21 @@ msgid "No logs yet"
 msgstr "Aucun journal pour l'instant"
 
 #. module: newsassistant
+#. odoo-python
+#: code:addons/newsassistant/models/news_article.py:0
+msgid "No snapshot linked to this article."
+msgstr "Aucune capture liée à cet article."
+
+#. module: newsassistant
 #: model:ir.model.fields.selection,name:newsassistant.selection__news_source__state__ok
 #: model_terms:ir.ui.view,arch_db:newsassistant.news_source_view_search
 msgid "OK"
 msgstr "OK"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_snapshot__parent_id
+msgid "Parent Listing"
+msgstr "Liste parente"
 
 #. module: newsassistant
 #: model:ir.model.fields.selection,name:newsassistant.selection__news_article__state__pending
@@ -426,85 +613,44 @@ msgid "Pending"
 msgstr "En attente"
 
 #. module: newsassistant
+#: model:news.article.stage,name:newsassistant.news_article_stage_published
+msgid "Published"
+msgstr "Publié"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_article__job_count
+#: model:ir.model.fields,field_description:newsassistant.field_news_source__job_count
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_article_view_form
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_source_view_form
+msgid "Queue Jobs"
+msgstr "Files de tâches"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_snapshot__raw_content
+msgid "Raw Content"
+msgstr "Contenu brut"
+
+#. module: newsassistant
 #: model:ir.actions.server,name:newsassistant.action_article_refetch_form
-msgid "Re-fetch"
-msgstr "Recolleter"
+msgid "Re-extract"
+msgstr "Impossible de réextraire"
 
 #. module: newsassistant
 #: model:ir.actions.server,name:newsassistant.action_article_refetch_selected
-msgid "Re-fetch Selected"
+msgid "Re-extract Selected"
 msgstr "Recollecter la sélection"
 
 #. module: newsassistant
 #. odoo-python
 #: code:addons/newsassistant/models/news_article.py:0
-msgid "Already Skipped"
-msgstr "Déjà ignoré"
+msgid "Re-extract Started"
+msgstr "Réextraction démarrée"
 
 #. module: newsassistant
 #. odoo-python
 #: code:addons/newsassistant/models/news_article.py:0
-msgid "Article Reset"
-msgstr "Article réinitialisé"
-
-#. module: newsassistant
-#. odoo-python
-#: code:addons/newsassistant/models/news_article.py:0
-msgid "Article Skipped"
-msgstr "Article ignoré"
-
-#. module: newsassistant
-#. odoo-python
-#: code:addons/newsassistant/models/news_article.py:0
-msgid "Article marked as skipped and archived."
-msgstr "Article marqué comme ignoré et archivé."
-
-#. module: newsassistant
-#. odoo-python
-#: code:addons/newsassistant/models/news_article.py:0
-msgid "Article reset to pending and unarchived."
-msgstr "Article remis en attente et désarchivé."
-
-#. module: newsassistant
-#. odoo-python
-#: code:addons/newsassistant/models/news_article.py:0
-msgid "Cannot Re-fetch"
-msgstr "Collecte impossible"
-
-#. module: newsassistant
-#. odoo-python
-#: code:addons/newsassistant/models/news_article.py:0
-msgid "Cannot re-fetch skipped articles. Reset first."
-msgstr "Impossible de collecter les articles ignorés. Réinitialisez d'abord."
-
-#. module: newsassistant
-#. odoo-python
-#: code:addons/newsassistant/models/news_article.py:0
-msgid "Re-fetch Started"
-msgstr "Collecte démarrée"
-
-#. module: newsassistant
-#. odoo-python
-#: code:addons/newsassistant/models/news_article.py:0
-msgid "Re-fetching article in background..."
-msgstr "Collecte de l'article en arrière-plan..."
-
-#. module: newsassistant
-#. odoo-python
-#: code:addons/newsassistant/models/news_article.py:0
-msgid "This article is already skipped."
-msgstr "Cet article est déjà ignoré."
-
-#. module: newsassistant
-#: model:news.article.stage,name:newsassistant.news_article_stage_shortlist
-#: model_terms:ir.ui.view,arch_db:newsassistant.news_article_view_search
-msgid "Shortlist"
-msgstr "Sélection"
-
-#. module: newsassistant
-#: model:news.article.stage,name:newsassistant.news_article_stage_published
-msgid "Published"
-msgstr "Publié"
+msgid "Re-extracting article from snapshot in background..."
+msgstr "Réextraction de l'article depuis la capture en arrière-plan..."
 
 #. module: newsassistant
 #: model:ir.actions.server,name:newsassistant.action_article_reset_form
@@ -527,26 +673,9 @@ msgid "Scrape Date"
 msgstr "Date de collecte"
 
 #. module: newsassistant
-#: model_terms:ir.ui.view,arch_db:newsassistant.news_source_view_form
-msgid "Scrape Now"
-msgstr "Collecter maintenant"
-
-#. module: newsassistant
 #: model:ir.actions.server,name:newsassistant.action_source_scrape_selected
 msgid "Scrape Selected"
 msgstr "Collecter la sélection"
-
-#. module: newsassistant
-#. odoo-python
-#: code:addons/newsassistant/models/news_source.py:0
-msgid "Scrape Started"
-msgstr "Collecte démarrée"
-
-#. module: newsassistant
-#. odoo-python
-#: code:addons/newsassistant/models/news_source.py:0
-msgid "Scraping source in background..."
-msgstr "Collecte de la source en arrière-plan..."
 
 #. module: newsassistant
 #: model:ir.model.fields.selection,name:newsassistant.selection__news_article__state__scraped
@@ -560,9 +689,25 @@ msgid "Scraping"
 msgstr "Collecte en cours"
 
 #. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_source__sender_domain
+msgid "Sender Domain"
+msgstr "Domaine expéditeur"
+
+#. module: newsassistant
 #: model:ir.model.fields,field_description:newsassistant.field_news_article_stage__sequence
 msgid "Sequence"
 msgstr "Séquence"
+
+#. module: newsassistant
+#: model:ir.ui.menu,name:newsassistant.menu_news_settings
+msgid "Settings"
+msgstr "Paramètres de configuration"
+
+#. module: newsassistant
+#: model:news.article.stage,name:newsassistant.news_article_stage_shortlist
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_article_view_search
+msgid "Shortlist"
+msgstr "Sélection"
 
 #. module: newsassistant
 #: model:ir.actions.server,name:newsassistant.action_article_skip_form
@@ -576,8 +721,30 @@ msgid "Skipped"
 msgstr "Ignoré"
 
 #. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_article__snapshot_id
+#: model:ir.model.fields,field_description:newsassistant.field_news_log__snapshot_id
+#: model:ir.model.fields,field_description:newsassistant.field_news_snapshot__name
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_article_view_form
+msgid "Snapshot"
+msgstr "Capture"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_source__snapshot_count
+msgid "Snapshot Count"
+msgstr "Nombre de captures"
+
+#. module: newsassistant
+#: model:ir.actions.act_window,name:newsassistant.news_snapshot_action
+#: model:ir.model.fields,field_description:newsassistant.field_news_article__snapshot_count
+#: model:ir.model.fields,field_description:newsassistant.field_news_source__snapshot_ids
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_source_view_form
+msgid "Snapshots"
+msgstr "Captures"
+
+#. module: newsassistant
 #: model:ir.model.fields,field_description:newsassistant.field_news_article__source_id
 #: model:ir.model.fields,field_description:newsassistant.field_news_log__source_id
+#: model:ir.model.fields,field_description:newsassistant.field_news_snapshot__source_id
 #: model_terms:ir.ui.view,arch_db:newsassistant.news_article_view_search
 #: model_terms:ir.ui.view,arch_db:newsassistant.news_log_view_search
 msgid "Source"
@@ -600,6 +767,17 @@ msgstr "Sources"
 #: model_terms:ir.ui.view,arch_db:newsassistant.news_article_view_search
 msgid "Stage"
 msgstr "Étape"
+
+#. module: newsassistant
+#: model:ir.model.fields,help:newsassistant.field_res_config_settings__newsassistant_new_article_stage_id
+msgid "Stage assigned to newly created articles. Defaults to 'New' if not set."
+msgstr "Étape attribuée aux nouveaux articles. Par défaut : 'Nouveau'."
+
+#. module: newsassistant
+#: model_terms:ir.ui.view,arch_db:newsassistant.res_config_settings_view_form_newsassistant
+msgid ""
+"Stage assigned when a new article is created. Defaults to 'New' if not set."
+msgstr ""
 
 #. module: newsassistant
 #: model_terms:ir.actions.act_window,help:newsassistant.news_article_stage_action
@@ -640,6 +818,11 @@ msgid "Summary"
 msgstr "Résumé"
 
 #. module: newsassistant
+#: model:ir.model.fields,help:newsassistant.field_news_snapshot__parent_id
+msgid "The listing snapshot that this article snapshot was discovered from."
+msgstr "L'instantané de liste à partir duquel cet instantané d'article a été découvert."
+
+#. module: newsassistant
 #: model_terms:ir.ui.view,arch_db:newsassistant.news_article_view_search
 msgid "This Month"
 msgstr "Ce mois-ci"
@@ -649,6 +832,12 @@ msgstr "Ce mois-ci"
 #: model_terms:ir.ui.view,arch_db:newsassistant.news_log_view_search
 msgid "This Week"
 msgstr "Cette semaine"
+
+#. module: newsassistant
+#. odoo-python
+#: code:addons/newsassistant/models/news_article.py:0
+msgid "This article is already skipped."
+msgstr "Cet article est déjà ignoré."
 
 #. module: newsassistant
 #: model:ir.model.fields,field_description:newsassistant.field_news_log__timestamp
@@ -668,8 +857,18 @@ msgid "Today"
 msgstr "Aujourd'hui"
 
 #. module: newsassistant
-#: model:ir.model.fields,field_description:newsassistant.field_news_article__url
+#: model:ir.model.fields,field_description:newsassistant.field_news_source__source_type
+msgid "Type"
+msgstr "Type"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_snapshot__url
 #: model:ir.model.fields,field_description:newsassistant.field_news_source__url
+msgid "URL"
+msgstr "URL"
+
+#. module: newsassistant
+#: model:ir.model.fields,field_description:newsassistant.field_news_article__url
 msgid "Url"
 msgstr "URL"
 
@@ -691,119 +890,42 @@ msgid "Warning"
 msgstr "Avertissement"
 
 #. module: newsassistant
-msgid "Article Defaults"
-msgstr "Valeurs par défaut des articles"
-
-#. module: newsassistant
-msgid "Cannot Re-extract"
-msgstr "Impossible de réextraire"
-
-#. module: newsassistant
-msgid "Captured At"
-msgstr "Capturé le"
-
-#. module: newsassistant
-msgid "Captured HTML content — the raw input for article extraction."
-msgstr "Contenu HTML capturé — l'entrée brute pour l'extraction d'articles."
-
-#. module: newsassistant
-msgid "Config Settings"
-msgstr "Paramètres de configuration"
-
-#. module: newsassistant
-msgid "E-Mail"
-msgstr "E-Mail"
-
-#. module: newsassistant
-msgid "Email Inbound"
-msgstr "E-mail entrant"
-
-#. module: newsassistant
-msgid "Email Sources"
-msgstr "Sources e-mail"
-
-#. module: newsassistant
-msgid "Email domain to match inbound emails (e.g. newsletter.example.com)"
-msgstr "Domaine e-mail pour les newsletters entrantes (p. ex. newsletter.example.com)"
-
-#. module: newsassistant
-msgid "Header Image"
-msgstr "Image d'en-tête"
-
-#. module: newsassistant
-msgid "Header Image Filename"
-msgstr "Nom de fichier de l'image d'en-tête"
-
-#. module: newsassistant
-msgid "Header image extracted from the article, suitable for blog covers"
-msgstr "Image d'en-tête extraite de l'article, adaptée aux couvertures de blog"
-
-#. module: newsassistant
-msgid "News Assistant Settings"
-msgstr "Paramètres News Assistant"
-
-#. module: newsassistant
-msgid "News Snapshot (Email)"
-msgstr "Capture d'actualités"
-
-#. module: newsassistant
-msgid "No snapshot linked to this article."
-msgstr "Aucune capture liée à cet article."
-
-#. module: newsassistant
-msgid "Raw Content"
-msgstr "Contenu brut"
-
-#. module: newsassistant
-msgid "Re-extract Started"
-msgstr "Réextraction démarrée"
-
-#. module: newsassistant
-msgid "Re-extracting article from snapshot in background..."
-msgstr "Réextraction de l'article depuis la capture en arrière-plan..."
-
-#. module: newsassistant
-msgid "Sender Domain"
-msgstr "Domaine expéditeur"
-
-#. module: newsassistant
-msgid "Snapshot"
-msgstr "Capture"
-
-#. module: newsassistant
-msgid "Snapshots"
-msgstr "Captures"
-
-#. module: newsassistant
-msgid "Type"
-msgstr "Type"
-
-#. module: newsassistant
-msgid "URL"
-msgstr "URL"
-
-#. module: newsassistant
+#: model:ir.model.fields.selection,name:newsassistant.selection__news_source__source_type__website
 msgid "Website"
 msgstr "Site web"
 
 #. module: newsassistant
+#: model_terms:ir.ui.view,arch_db:newsassistant.news_source_view_search
 msgid "Website Sources"
 msgstr "Sources site web"
 
-#. module: newsassistant
-#: model:ir.model.fields,field_description:newsassistant.field_news_article__job_count
-#: model:ir.model.fields,field_description:newsassistant.field_news_source__job_count
-#: model_terms:ir.ui.view,arch_db:newsassistant.news_article_view_form
-#: model_terms:ir.ui.view,arch_db:newsassistant.news_source_view_form
-msgid "Queue Jobs"
-msgstr "Files de tâches"
+#~ msgid "News Article"
+#~ msgstr "Article"
 
-#. module: newsassistant
-#: model:ir.model.fields,field_description:newsassistant.field_news_source__log_count
-msgid "Log Count"
-msgstr "Nombre de journaux"
+#~ msgid "News Assistant: Scrape All Sources"
+#~ msgstr "Assistant Actualités : Collecter toutes les sources"
 
-#. module: newsassistant
-#: model:ir.model.fields,field_description:newsassistant.field_news_source__snapshot_count
-msgid "Snapshot Count"
-msgstr "Nombre de captures"
+#~ msgid "Re-fetch"
+#~ msgstr "Recolleter"
+
+#~ msgid "Cannot Re-fetch"
+#~ msgstr "Collecte impossible"
+
+#~ msgid "Cannot re-fetch skipped articles. Reset first."
+#~ msgstr ""
+#~ "Impossible de collecter les articles ignorés. Réinitialisez d'abord."
+
+#~ msgid "Re-fetch Started"
+#~ msgstr "Collecte démarrée"
+
+#~ msgid "Re-fetching article in background..."
+#~ msgstr "Collecte de l'article en arrière-plan..."
+
+#~ msgid "Scrape Now"
+#~ msgstr "Collecter maintenant"
+
+#~ msgid "Scrape Started"
+#~ msgstr "Collecte démarrée"
+
+#~ msgid "Scraping source in background..."
+#~ msgstr "Collecte de la source en arrière-plan..."

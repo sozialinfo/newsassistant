@@ -5,14 +5,17 @@ import mimetypes
 import os
 import re
 import time
+from functools import partial
 from html import unescape
 from urllib.parse import urlparse
 
 import requests
 
-from odoo import _, fields, models
+from odoo import _, api, fields, models
 from odoo.exceptions import UserError
+from odoo.tools.json import scriptsafe as json_scriptsafe
 
+from odoo.addons.newsassistant.models.news_source import parse_ai_json
 from odoo.addons.queue_job.exception import RetryableJobError
 
 _logger = logging.getLogger(__name__)
@@ -23,6 +26,7 @@ AI_TIMEOUT = 120
 
 class NewsArticle(models.Model):
     _inherit = "news.article"
+    _description = "News Article (Blog Extension)"
 
     # Digest state tracking
     digest_state = fields.Selection(
@@ -97,61 +101,32 @@ class NewsArticle(models.Model):
     # Configuration Helpers
     # -------------------------------------------------------------------------
 
+    def _get_config_param_or_raise(self, key, error_msg):
+        val = self.env["ir.config_parameter"].sudo().get_param(key, default="")
+        if not val or not val.strip():
+            raise UserError(_(error_msg))
+        return val.strip()
+
     def _get_content_strategy(self):
-        """Get the content strategy prompt from system parameters.
-
-        Returns:
-            str: The content strategy prompt.
-
-        Raises:
-            UserError: If the parameter is not configured.
-        """
-        strategy = self.env["ir.config_parameter"].sudo().get_param(
-            "newsassistant_blog.content_strategy", default=""
+        return self._get_config_param_or_raise(
+            "newsassistant_blog.content_strategy",
+            "Newsassistant Blog content strategy is not configured. "
+            "Please set the 'newsassistant_blog.content_strategy' system parameter."
         )
-        if not strategy or not strategy.strip():
-            raise UserError(
-                _("Newsassistant Blog content strategy is not configured. "
-                  "Please set the 'newsassistant_blog.content_strategy' system parameter.")
-            )
-        return strategy.strip()
 
     def _get_teaser_prompt(self):
-        """Get the teaser generation prompt from system parameters.
-
-        Returns:
-            str: The teaser prompt.
-
-        Raises:
-            UserError: If the parameter is not configured.
-        """
-        prompt = self.env["ir.config_parameter"].sudo().get_param(
-            "newsassistant_blog.teaser_prompt", default=""
+        return self._get_config_param_or_raise(
+            "newsassistant_blog.teaser_prompt",
+            "Newsassistant Blog teaser prompt is not configured. "
+            "Please set the 'newsassistant_blog.teaser_prompt' system parameter."
         )
-        if not prompt or not prompt.strip():
-            raise UserError(
-                _("Newsassistant Blog teaser prompt is not configured. "
-                  "Please set the 'newsassistant_blog.teaser_prompt' system parameter.")
-            )
-        return prompt.strip()
 
     def _get_target_blog(self):
-        """Get and validate the target blog from system parameters.
-
-        Returns:
-            blog.blog: The target blog record.
-
-        Raises:
-            UserError: If the parameter is not configured or blog doesn't exist.
-        """
-        blog_id_str = self.env["ir.config_parameter"].sudo().get_param(
-            "newsassistant_blog.blog_id", default=""
+        blog_id_str = self._get_config_param_or_raise(
+            "newsassistant_blog.blog_id",
+            "Newsassistant Blog target blog is not configured. "
+            "Please set the 'newsassistant_blog.blog_id' system parameter."
         )
-        if not blog_id_str or not blog_id_str.strip():
-            raise UserError(
-                _("Newsassistant Blog target blog is not configured. "
-                  "Please set the 'newsassistant_blog.blog_id' system parameter.")
-            )
 
         try:
             blog_id = int(blog_id_str.strip())
@@ -495,14 +470,13 @@ class NewsArticle(models.Model):
 
     def _parse_ai_json(self, raw_text):
         """Parse JSON from AI response using the core module's robust parser."""
-        from odoo.addons.newsassistant.models.news_source import parse_ai_json
-
         return parse_ai_json(raw_text, expect_array=False)
 
     # -------------------------------------------------------------------------
     # Digest Pipeline
     # -------------------------------------------------------------------------
 
+    @api.model
     def _cron_digest_all_impl(self):
         """Implementation of cron digest - find and queue unprocessed articles."""
         # Find articles that are scraped but not yet processed by digest
@@ -543,15 +517,7 @@ class NewsArticle(models.Model):
             job = self.env["queue.job"].search([("uuid", "=", job_id)], limit=1)
             job_id = job.id if job else None
 
-        def add_entry(level, message, duration=None, metadata=None):
-            """Append a structured log entry to the log_entries list."""
-            log_entries.append({
-                "timestamp": fields.Datetime.now(),
-                "level": level,
-                "message": message,
-                "duration": duration,
-                "metadata": metadata,
-            })
+        add_entry = partial(self._add_digest_entry, log_entries)
 
         add_entry(
             "info",
@@ -590,16 +556,16 @@ class NewsArticle(models.Model):
             )
             return
 
-        # Update digest state
-        self.write({"digest_state": "processed"})
-
         # Handle decision
         if decision == "discard":
             self._handle_discard(reasoning, log_entries, add_entry)
+            self.write({"digest_state": "processed"})
         elif decision == "uncertain":
             self._handle_uncertain(reasoning, log_entries, add_entry)
+            self.write({"digest_state": "processed"})
         elif decision == "relevant":
             self._handle_shortlist(reasoning, log_entries, add_entry, job_id, start_time)
+            self.write({"digest_state": "processed"})
             return  # _handle_shortlist creates its own log
 
         # Create log for discard/uncertain
@@ -611,6 +577,16 @@ class NewsArticle(models.Model):
             entries=log_entries,
             job_id=job_id,
         )
+
+    def _add_digest_entry(self, log_entries, level, message, duration=None, metadata=None):
+        """Append a structured log entry to the log_entries list."""
+        log_entries.append({
+            "timestamp": fields.Datetime.now(),
+            "level": level,
+            "message": message,
+            "duration": duration,
+            "metadata": metadata,
+        })
 
     def _clean_article_content(self, max_chars=None):
         """Return cleaned article text: stripped HTML, decoded entities, collapsed whitespace."""
@@ -862,19 +838,12 @@ class NewsArticle(models.Model):
         return attachment
 
     def _set_blog_cover_properties(self, blog_post, attachment):
-        """Set the blog post's cover_properties to use the header image.
-
-        Args:
-            blog_post: The blog.post record.
-            attachment: The ir.attachment with the header image.
-        """
-        cover_properties = json.dumps({
+        blog_post.write({"cover_properties": json_scriptsafe.dumps({
             "background-image": f"url(/web/image/{attachment.id})",
             "background_color_class": "o_cc3",
             "opacity": "0.4",
             "resize_class": "o_half_screen_height",
-        })
-        blog_post.write({"cover_properties": cover_properties})
+        })})
 
     def _get_header_image_for_blog(self, add_entry):
         """Get header image for blog post: article image or Pixabay fallback.
@@ -1023,7 +992,19 @@ class NewsArticle(models.Model):
             return None
 
     def _create_digest_log(self, level, message, duration=None, entries=None, job_id=None):
-        """Create a digest log record using the existing news.log model."""
+        """Create a digest log record using the existing news.log model.
+
+        Args:
+            level (str): Log severity level (e.g. 'info', 'warning', 'error').
+            message (str): Human-readable description of the digest operation.
+            duration (float, optional): Execution time in seconds.
+            entries (list of dict, optional): Per-step log entry data. Each dict may
+                contain 'timestamp', 'level', 'message', 'duration', 'metadata'.
+            job_id (int, optional): ID of the associated queue job.
+
+        Returns:
+            news.log: The created log record.
+        """
         Log = self.env["news.log"]
         LogEntry = self.env["news.log.entry"]
 
@@ -1044,7 +1025,7 @@ class NewsArticle(models.Model):
             for entry_data in entries:
                 metadata = entry_data.get("metadata")
                 if metadata and not isinstance(metadata, str):
-                    metadata = json.dumps(metadata, ensure_ascii=False)
+                    metadata = json_scriptsafe.dumps(metadata, ensure_ascii=False)
                 entry_vals.append({
                     "log_id": log.id,
                     "timestamp": entry_data.get("timestamp", now),

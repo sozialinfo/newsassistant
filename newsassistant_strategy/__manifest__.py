@@ -1,6 +1,6 @@
 {
     "name": "News Assistant - Strategy Base",
-    "version": "18.0.1.2.0",
+    "version": "18.0.1.3.0",
     "category": "Productivity",
     "summary": "Shared strategy model for the News Assistant strategy ecosystem",
     "description": """
@@ -24,6 +24,7 @@
     ],
     "data": [
         "security/ir.model.access.csv",
+        "security/strategy_record_rules.xml",
         "data/ir_cron_data.xml",
         "views/strategy_strategy_views.xml",
         "views/menu.xml",
@@ -34,4 +35,5 @@
     "installable": True,
     "application": False,
     "auto_install": False,
+    "sequence": 99,
 }

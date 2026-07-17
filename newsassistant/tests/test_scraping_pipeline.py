@@ -1,12 +1,16 @@
 """Tests for snapshot-based article extraction pipeline."""
 import json
+import unittest
 from unittest.mock import MagicMock, patch
 
 from odoo.tests.common import TransactionCase, tagged
 
 from odoo.addons.queue_job.exception import RetryableJobError
 from odoo.addons.queue_job.tests.common import trap_jobs
-from odoo.addons.newsassistant_website.models.news_source_website import NewsSnapshotWebsite
+try:
+    from odoo.addons.newsassistant_website.models.news_source_website import NewsSnapshotWebsite
+except ImportError:
+    NewsSnapshotWebsite = None
 
 
 HTML_ARTICLE_CONTENT = """
@@ -210,6 +214,7 @@ class TestSnapshotExtraction(TransactionCase):
         self.assertTrue(child.parent_id, parent.id)
         self.assertIn(child, parent.child_ids)
 
+    @unittest.skipIf(NewsSnapshotWebsite is None, "newsassistant_website not installed")
     @patch.object(NewsSnapshotWebsite, '_discover_articles_website',
                    side_effect=NotImplementedError("Test: no website handler"))
     def test_base_discover_articles_raises_not_implemented(self, mock_discover):

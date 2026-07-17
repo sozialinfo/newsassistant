@@ -3,5 +3,6 @@
     <record id="mail_alias_news_snapshot" model="mail.alias">
         <field name="alias_name">newsassistant</field>
         <field name="alias_model_id" ref="newsassistant.model_news_snapshot"/>
+        <field name="alias_contact">followers</field>
     </record>
 </odoo>

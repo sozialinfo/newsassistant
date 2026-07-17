@@ -174,7 +174,7 @@ class TestNewsLogEntry(TransactionCase):
         result = self.env["news.log.entry"]._gc_successful_log_entries()
         # Entry should be deleted
         self.assertFalse(old_entry.exists())
-        self.assertIn("Deleted", result)
+        self.assertTrue(result)
 
     def test_gc_keeps_recent_success_entries(self):
         """_gc_successful_log_entries should keep recent success entries."""

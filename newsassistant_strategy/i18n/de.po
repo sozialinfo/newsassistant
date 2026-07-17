@@ -6,8 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-02 13:04+0000\n"
-"PO-Revision-Date: 2026-06-02 13:04+0000\n"
+"POT-Creation-Date: 2026-07-17 06:29+0000\n"
 "Last-Translator: \n"
 "Language-Team: German\n"
 "Language: de\n"
@@ -24,6 +23,11 @@ msgid ""
 msgstr ""
 "<br/><br/>\n"
 "                        Möchten Sie fortfahren?"
+
+#. module: newsassistant_strategy
+#: model:ir.model.fields,field_description:newsassistant_strategy.field_strategy_strategy__message_needaction
+msgid "Action Needed"
+msgstr "Aktion erforderlich"
 
 #. module: newsassistant_strategy
 #: model_terms:ir.ui.view,arch_db:newsassistant_strategy.strategy_strategy_view_form
@@ -43,6 +47,11 @@ msgid "Archived"
 msgstr "Archiviert"
 
 #. module: newsassistant_strategy
+#: model:ir.model.fields,field_description:newsassistant_strategy.field_strategy_strategy__message_attachment_count
+msgid "Attachment Count"
+msgstr "Anzahl Anhänge"
+
+#. module: newsassistant_strategy
 #: model:ir.model.fields,field_description:newsassistant_strategy.field_strategy_distill_confirm__confirm_body
 msgid "Body"
 msgstr "Inhalt"
@@ -60,7 +69,8 @@ msgid ""
 "\n"
 "Please add PDF documents or a description first."
 msgstr ""
-"Diese Strategie kann nicht aktiviert werden: Es sind keine Inhalte vorhanden.\n"
+"Diese Strategie kann nicht aktiviert werden: Es sind keine Inhalte "
+"vorhanden.\n"
 "\n"
 "Bitte fügen Sie zuerst PDF-Dokumente oder eine Beschreibung hinzu."
 
@@ -73,11 +83,14 @@ msgstr "Prompt-Überschreibung bestätigen"
 #: model_terms:ir.actions.act_window,help:newsassistant_strategy.strategy_strategy_action
 msgid ""
 "Create a strategy to start labelling articles by strategic relevance.\n"
-"                Upload PDF documents and click \"Distill All Prompts\" to generate\n"
+"                Upload PDF documents and click \"Distill All Prompts\" to "
+"generate\n"
 "                the AI prompts for installed modules."
 msgstr ""
-"Erstellen Sie eine Strategie, um Artikel nach strategischer Relevanz zu kennzeichnen.\n"
-"                Laden Sie PDF-Dokumente hoch und klicken Sie auf „Alle Prompts destillieren\", um\n"
+"Erstellen Sie eine Strategie, um Artikel nach strategischer Relevanz zu "
+"kennzeichnen.\n"
+"                Laden Sie PDF-Dokumente hoch und klicken Sie auf „Alle "
+"Prompts destillieren\", um\n"
 "                die KI-Prompts für installierte Module zu generieren."
 
 #. module: newsassistant_strategy
@@ -103,8 +116,8 @@ msgid ""
 "Describe the strategy in your own words (used alongside PDF documents for "
 "prompt distillation)..."
 msgstr ""
-"Beschreiben Sie die Strategie in Ihren eigenen Worten (wird zusammen mit "
-"PDF-Dokumenten für die Prompt-Destillation verwendet)..."
+"Beschreiben Sie die Strategie in Ihren eigenen Worten (wird zusammen mit PDF-"
+"Dokumenten für die Prompt-Destillation verwendet)..."
 
 #. module: newsassistant_strategy
 #: model:ir.model.fields,field_description:newsassistant_strategy.field_strategy_strategy__description
@@ -151,10 +164,49 @@ msgid "End date of the strategy (leave empty for no end limit)."
 msgstr "Enddatum der Strategie (leer lassen für kein Endlimit)."
 
 #. module: newsassistant_strategy
+#: model:ir.model.fields,field_description:newsassistant_strategy.field_strategy_strategy__message_follower_ids
+msgid "Followers"
+msgstr "Abonnenten"
+
+#. module: newsassistant_strategy
+#: model:ir.model.fields,field_description:newsassistant_strategy.field_strategy_strategy__message_partner_ids
+msgid "Followers (Partners)"
+msgstr "Abonnenten (Partner)"
+
+#. module: newsassistant_strategy
+#: model:ir.model.fields,field_description:newsassistant_strategy.field_strategy_strategy__has_message
+msgid "Has Message"
+msgstr "Hat Nachricht"
+
+#. module: newsassistant_strategy
 #: model:ir.model.fields,field_description:newsassistant_strategy.field_strategy_distill_confirm__id
 #: model:ir.model.fields,field_description:newsassistant_strategy.field_strategy_strategy__id
 msgid "ID"
 msgstr "ID"
+
+#. module: newsassistant_strategy
+#: model:ir.model.fields,help:newsassistant_strategy.field_strategy_strategy__message_needaction
+msgid "If checked, new messages require your attention."
+msgstr "Wenn aktiviert, erfordern neue Nachrichten Ihre Aufmerksamkeit."
+
+#. module: newsassistant_strategy
+#: model:ir.model.fields,help:newsassistant_strategy.field_strategy_strategy__message_has_error
+#: model:ir.model.fields,help:newsassistant_strategy.field_strategy_strategy__message_has_sms_error
+msgid "If checked, some messages have a delivery error."
+msgstr "Wenn aktiviert, haben einige Nachrichten einen Zustellfehler."
+
+#. module: newsassistant_strategy
+#. odoo-python
+#: code:addons/newsassistant_strategy/models/strategy_strategy.py:0
+msgid ""
+"Infomaniak AI API key not configured. Set the INFOMANIAK_AI_API_KEY "
+"environment variable."
+msgstr ""
+
+#. module: newsassistant_strategy
+#: model:ir.model.fields,field_description:newsassistant_strategy.field_strategy_strategy__message_is_follower
+msgid "Is Follower"
+msgstr "Ist Abonnent"
 
 #. module: newsassistant_strategy
 #: model:ir.model.fields,field_description:newsassistant_strategy.field_strategy_distill_confirm__write_uid
@@ -169,30 +221,86 @@ msgid "Last Updated on"
 msgstr "Zuletzt aktualisiert am"
 
 #. module: newsassistant_strategy
+#: model:ir.model.fields,field_description:newsassistant_strategy.field_strategy_strategy__message_has_error
+msgid "Message Delivery error"
+msgstr "Nachrichtenzustellungsfehler"
+
+#. module: newsassistant_strategy
+#: model:ir.model.fields,field_description:newsassistant_strategy.field_strategy_strategy__message_ids
+msgid "Messages"
+msgstr "Nachrichten"
+
+#. module: newsassistant_strategy
 #: model:ir.model.fields,field_description:newsassistant_strategy.field_strategy_distill_confirm__method_name
 msgid "Method"
 msgstr "Methode"
 
 #. module: newsassistant_strategy
 #: model:ir.model.fields,field_description:newsassistant_strategy.field_strategy_strategy__name
-#: model_terms:ir.ui.view,arch_db:newsassistant_strategy.strategy_strategy_view_search
 msgid "Name"
 msgstr "Name"
 
 #. module: newsassistant_strategy
-#: model:ir.model,name:newsassistant_strategy.model_news_article
-msgid "News Article"
-msgstr "Nachrichtenartikel"
+#: model:ir.model.fields,help:newsassistant_strategy.field_strategy_distill_confirm__method_name
+msgid ""
+"Name of the distillation method to call on confirmation. If empty, calls "
+"_do_distill_prompt() for all modules."
+msgstr ""
 
 #. module: newsassistant_strategy
-#: model:ir.cron,cron_name:newsassistant_strategy.ir_cron_strategy_eval
+#: model:ir.model,name:newsassistant_strategy.model_news_article
+msgid "News Article (Blog Extension)"
+msgstr "Nachrichtenartikel (Blog-Erweiterung)"
+
+#. module: newsassistant_strategy
+#: model:ir.actions.server,name:newsassistant_strategy.ir_cron_strategy_eval_ir_actions_server
 msgid "News Assistant: Strategy Evaluation"
 msgstr "News Assistant: Strategie-Auswertung"
+
+#. module: newsassistant_strategy
+#. odoo-python
+#: code:addons/newsassistant_strategy/models/strategy_strategy.py:0
+msgid ""
+"No content available to distill. Please upload PDF documents or add a "
+"description."
+msgstr ""
+"Diese Strategie kann nicht aktiviert werden: Es sind keine Inhalte "
+"vorhanden.\n"
+"\n"
+"Bitte fügen Sie zuerst PDF-Dokumente oder eine Beschreibung hinzu."
+
+#. module: newsassistant_strategy
+#. odoo-python
+#: code:addons/newsassistant_strategy/models/strategy_strategy.py:0
+msgid ""
+"No distillation modules are installed. Please install at least one sister "
+"module (digest or watch)."
+msgstr ""
 
 #. module: newsassistant_strategy
 #: model_terms:ir.actions.act_window,help:newsassistant_strategy.strategy_strategy_action
 msgid "No strategies defined yet"
 msgstr "Noch keine Strategien definiert"
+
+#. module: newsassistant_strategy
+#: model:ir.model.fields,field_description:newsassistant_strategy.field_strategy_strategy__message_needaction_counter
+msgid "Number of Actions"
+msgstr "Anzahl Aktionen"
+
+#. module: newsassistant_strategy
+#: model:ir.model.fields,field_description:newsassistant_strategy.field_strategy_strategy__message_has_error_counter
+msgid "Number of errors"
+msgstr "Anzahl Fehler"
+
+#. module: newsassistant_strategy
+#: model:ir.model.fields,help:newsassistant_strategy.field_strategy_strategy__message_needaction_counter
+msgid "Number of messages requiring action"
+msgstr "Anzahl Nachrichten mit erforderlicher Aktion"
+
+#. module: newsassistant_strategy
+#: model:ir.model.fields,help:newsassistant_strategy.field_strategy_strategy__message_has_error_counter
+msgid "Number of messages with delivery error"
+msgstr "Anzahl Nachrichten mit Zustellfehler"
 
 #. module: newsassistant_strategy
 #: model_terms:ir.ui.view,arch_db:newsassistant_strategy.strategy_distill_confirm_view_form
@@ -202,12 +310,19 @@ msgstr "Prompt überschreiben?"
 #. module: newsassistant_strategy
 #: model:ir.model.fields,help:newsassistant_strategy.field_strategy_strategy__document_ids
 msgid "PDF documents defining this strategy. Used to distill the AI prompts."
-msgstr "PDF-Dokumente, die diese Strategie definieren. Werden zur Destillation der KI-Prompts verwendet."
+msgstr ""
+"PDF-Dokumente, die diese Strategie definieren. Werden zur Destillation der "
+"KI-Prompts verwendet."
 
 #. module: newsassistant_strategy
 #: model:ir.model.fields,field_description:newsassistant_strategy.field_strategy_distill_confirm__is_plural
 msgid "Plural"
 msgstr "Plural"
+
+#. module: newsassistant_strategy
+#: model_terms:ir.ui.view,arch_db:newsassistant_strategy.strategy_strategy_view_form
+msgid "Prompt"
+msgstr "Prompt"
 
 #. module: newsassistant_strategy
 #. odoo-python
@@ -216,9 +331,9 @@ msgid "Prompt Distilled"
 msgstr "Prompt destilliert"
 
 #. module: newsassistant_strategy
-#: model_terms:ir.ui.view,arch_db:newsassistant_strategy.strategy_strategy_view_form
-msgid "Prompt"
-msgstr "Prompt"
+#: model:ir.model.fields,field_description:newsassistant_strategy.field_strategy_strategy__message_has_sms_error
+msgid "SMS Delivery error"
+msgstr "SMS-Zustellungsfehler"
 
 #. module: newsassistant_strategy
 #: model:ir.model.fields,help:newsassistant_strategy.field_strategy_strategy__date_from
@@ -237,6 +352,13 @@ msgid "Strategies"
 msgstr "Strategien"
 
 #. module: newsassistant_strategy
+#: model:ir.model,name:newsassistant_strategy.model_strategy_strategy
+#: model:ir.model.fields,field_description:newsassistant_strategy.field_strategy_distill_confirm__strategy_id
+#: model:ir.ui.menu,name:newsassistant_strategy.menu_strategy_root
+msgid "Strategy"
+msgstr "Strategie"
+
+#. module: newsassistant_strategy
 #: model:ir.model,name:newsassistant_strategy.model_strategy_ai_mixin
 msgid "Strategy AI Mixin"
 msgstr "Strategie-KI-Mixin"
@@ -247,10 +369,13 @@ msgid "Strategy name..."
 msgstr "Strategiename..."
 
 #. module: newsassistant_strategy
-#: model:ir.model,name:newsassistant_strategy.model_strategy_strategy
-#: model:ir.ui.menu,name:newsassistant_strategy.menu_strategy_root
-msgid "Strategy"
-msgstr "Strategie"
+#: model:ir.model.fields,help:newsassistant_strategy.field_strategy_strategy__description
+msgid ""
+"Text description of the strategy. Used alongside PDF documents for prompt "
+"distillation."
+msgstr ""
+"Beschreiben Sie die Strategie in Ihren eigenen Worten (wird zusammen mit PDF-"
+"Dokumenten für die Prompt-Destillation verwendet)..."
 
 #. module: newsassistant_strategy
 #: model:ir.model.fields,field_description:newsassistant_strategy.field_strategy_distill_confirm__confirm_title
@@ -258,7 +383,7 @@ msgid "Title"
 msgstr "Titel"
 
 #. module: newsassistant_strategy
-#: model:ir.actions.act_window,name:newsassistant_strategy.action_strategy_upload_document
+#: model:ir.model.fields,field_description:newsassistant_strategy.field_strategy_strategy__document_ids
 msgid "Upload Strategy Document"
 msgstr "Strategiedokument hochladen"
 
@@ -273,6 +398,19 @@ msgid "Valid To"
 msgstr "Gültig bis"
 
 #. module: newsassistant_strategy
+#: model:ir.model.fields,field_description:newsassistant_strategy.field_strategy_strategy__website_message_ids
+msgid "Website Messages"
+msgstr "Website-Nachrichten"
+
+#. module: newsassistant_strategy
+#: model:ir.model.fields,help:newsassistant_strategy.field_strategy_strategy__website_message_ids
+msgid "Website communication history"
+msgstr "Verlauf der Website-Kommunikation"
+
+#. module: newsassistant_strategy
 #: model:ir.model.fields,help:newsassistant_strategy.field_strategy_distill_confirm__is_plural
 msgid "Whether the warning text should be plural (all vs. single prompt)."
 msgstr "Ob der Warntext im Plural sein soll (alle vs. einzelner Prompt)."
+
+#~ msgid "News Article"
+#~ msgstr "Nachrichtenartikel"

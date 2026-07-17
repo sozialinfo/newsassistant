@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="queue_job_channel_email_extraction" model="queue.job.channel">
+        <field name="name">root.email_extraction</field>
+        <field name="parent_id" ref="queue_job.channel_root"/>
+    </record>
+</odoo>

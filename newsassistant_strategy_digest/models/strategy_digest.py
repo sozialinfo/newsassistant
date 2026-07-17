@@ -15,8 +15,6 @@ from odoo.addons.queue_job.exception import RetryableJobError
 
 _logger = logging.getLogger(__name__)
 
-AI_TIMEOUT = 120
-TRANSIENT_HTTP_CODES = {408, 429, 500, 502, 503, 504}
 MAX_ARTICLES_IN_BRIEF = 50
 
 
@@ -245,6 +243,9 @@ class StrategyDigest(models.Model):
             raise UserError(_("AI call failed: %s") % str(e)) from e
 
         # Strip any <think> blocks from AI output
+        # Note: regex duplicated inline rather than calling _parse_ai_json because
+        # this is HTML content (not JSON), so _parse_ai_json's JSON processing
+        # would be incorrect. Only the think-block stripping is needed here.
         brief_html = result["content"].strip()
         brief_html = re.sub(r"<think>.*?</think>", "", brief_html, flags=re.DOTALL).strip()
         # Strip markdown fences if present

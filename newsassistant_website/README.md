@@ -15,7 +15,6 @@ Requires `newsassistant` (base module).
 
 - AI-powered article URL discovery from listing pages
 - crawl4ai integration for JavaScript-rendered pages (bypasses Cloudflare and similar bot protection)
-- PDF support: text extracted via `pdfminer`, then sent to AI
 - Header image selection with validation: landscape orientation (min 800×400 px), JPEG/PNG/WebP only
 - Deduplication by normalized URL — known articles are never re-fetched
 - Daily cron job for all active website sources

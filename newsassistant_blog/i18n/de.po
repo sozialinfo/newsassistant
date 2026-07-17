@@ -6,8 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-01 08:34+0000\n"
-"PO-Revision-Date: 2026-05-01 08:34+0000\n"
+"POT-Creation-Date: 2026-07-17 06:29+0000\n"
 "Last-Translator: \n"
 "Language-Team: German\n"
 "Language: de\n"
@@ -18,255 +17,441 @@ msgstr ""
 
 #. module: newsassistant_blog
 #. odoo-python
+#: code:addons/newsassistant_blog/models/news_article.py:0
 msgid " Skipped %d article(s) not in 'Scraped' state."
 msgstr " %d Artikel übersprungen (nicht im Status 'Abgerufen')."
 
 #. module: newsassistant_blog
+#: model_terms:ir.ui.view,arch_db:newsassistant_blog.res_config_settings_view_form_newsassistant_blog
 msgid "<strong>Example prompt:</strong>"
 msgstr "<strong>Beispiel-Prompt:</strong>"
 
 #. module: newsassistant_blog
+#: model:ir.model.constraint,message:newsassistant_blog.constraint_blog_post_news_article_unique
 msgid "A blog post already exists for this news article."
 msgstr "Für diesen Artikel existiert bereits ein Blogeintrag."
 
 #. module: newsassistant_blog
+#: model:ir.model.fields,help:newsassistant_blog.field_news_article__blog_reasoning
 msgid "AI reasoning for why this article is relevant for the blog"
 msgstr "KI-Begründung für die Relevanz des Artikels für den Blog"
 
 #. module: newsassistant_blog
+#: model:ir.model.fields,help:newsassistant_blog.field_news_article__teaser
 msgid "AI-generated teaser for blog publishing"
 msgstr "KI-generierter Teaser für die Blogveröffentlichung"
 
 #. module: newsassistant_blog
-msgid "Article must be in 'Scraped' state to process. Current state: %s"
-msgstr "Der Artikel muss sich im Status 'Abgerufen' befinden. Aktueller Status: %s"
+#: model:ir.model.fields,help:newsassistant_blog.field_res_config_settings__newsfeed_pixabay_api_key
+msgid ""
+"API key for Pixabay image service. Used as fallback when articles don't have "
+"suitable header images."
+msgstr ""
 
 #. module: newsassistant_blog
+#. odoo-python
+#: code:addons/newsassistant_blog/models/news_article.py:0
+msgid "Article must be in 'Scraped' state to process. Current state: %s"
+msgstr ""
+"Der Artikel muss sich im Status 'Abgerufen' befinden. Aktueller Status: %s"
+
+#. module: newsassistant_blog
+#: model_terms:ir.ui.view,arch_db:newsassistant_blog.news_article_view_form_newsassistant_blog
 msgid "Blog"
 msgstr "Blog"
 
 #. module: newsassistant_blog
+#: model:ir.model,name:newsassistant_blog.model_blog_post
+#: model_terms:ir.ui.view,arch_db:newsassistant_blog.news_article_view_form_newsassistant_blog
 msgid "Blog Post"
 msgstr "Blogeintrag"
 
 #. module: newsassistant_blog
+#: model:ir.model.fields,field_description:newsassistant_blog.field_news_article__blog_post_count
 msgid "Blog Post Count"
 msgstr "Anzahl Blogeinträge"
 
 #. module: newsassistant_blog
+#: model:ir.model.fields,field_description:newsassistant_blog.field_news_article__blog_post_ids
 msgid "Blog Posts"
 msgstr "Blogeinträge"
 
 #. module: newsassistant_blog
-msgid "Blog Settings"
-msgstr "Blog-Einstellungen"
-
-#. module: newsassistant_blog
+#: model:ir.model.fields,help:newsassistant_blog.field_res_config_settings__newsfeed_blog_id
 msgid "Blog where curated articles will be published."
 msgstr "Blog, in dem kuratierte Artikel veröffentlicht werden."
 
 #. module: newsassistant_blog
+#. odoo-python
+#: code:addons/newsassistant_blog/models/news_article.py:0
 msgid "Cannot Process"
 msgstr "Kann nicht verarbeitet werden"
 
 #. module: newsassistant_blog
+#: model:ir.model.fields,field_description:newsassistant_blog.field_news_log__category
 msgid "Category"
 msgstr "Kategorie"
 
 #. module: newsassistant_blog
+#: model:ir.model,name:newsassistant_blog.model_res_config_settings
 msgid "Config Settings"
 msgstr "Konfigurationseinstellungen"
 
 #. module: newsassistant_blog
+#: model:ir.model.fields,field_description:newsassistant_blog.field_res_config_settings__newsfeed_content_strategy
+#: model_terms:ir.ui.view,arch_db:newsassistant_blog.res_config_settings_view_form_newsassistant_blog
 msgid "Content Strategy"
 msgstr "Inhaltsstrategie"
 
 #. module: newsassistant_blog
+#: model_terms:ir.ui.view,arch_db:newsassistant_blog.res_config_settings_view_form_newsassistant_blog
 msgid "Define how teasers should be written for relevant articles."
-msgstr "Definieren Sie, wie Teaser für relevante Artikel geschrieben werden sollen."
-
-#. module: newsassistant_blog
-msgid "Evaluate"
-msgstr "Auswerten"
-
-#. module: newsassistant_blog
-msgid "Digest Pending"
-msgstr "Verarbeitung ausstehend"
-
-#. module: newsassistant_blog
-msgid "Digest Processed"
-msgstr "Verarbeitung abgeschlossen"
-
-#. module: newsassistant_blog
-msgid "Digest Processing"
-msgstr "Digest-Verarbeitung"
-
-#. module: newsassistant_blog
-msgid "Digest Selected Articles"
-msgstr "Ausgewählte Artikel verarbeiten"
-
-#. module: newsassistant_blog
-msgid "Digest Started"
-msgstr "Verarbeitung gestartet"
-
-#. module: newsassistant_blog
-msgid "Digest State"
-msgstr "Verarbeitungsstatus"
-
-#. module: newsassistant_blog
-msgid "Discard Stage"
-msgstr "Status für verworfene Artikel"
-
-#. module: newsassistant_blog
-msgid "Get your free API key at"
-msgstr "Holen Sie sich Ihren kostenlosen API-Schlüssel bei"
-
-#. module: newsassistant_blog
-msgid "Header Images"
-msgstr "Titelbilder"
-
-#. module: newsassistant_blog
-msgid "News Article"
-msgstr "Nachrichtenartikel"
-
-#. module: newsassistant_blog
-msgid "News Log"
-msgstr "Nachrichtenprotokoll"
-
-#. module: newsassistant_blog
-msgid "Newsassistant Blog"
-msgstr "Newsassistant Blog"
-
-#. module: newsassistant_blog
-msgid "Newsassistant Blog: Process Digest"
-msgstr "Newsassistant Blog: Digest verarbeiten"
-
-#. module: newsassistant_blog
-msgid "No Articles to Process"
-msgstr "Keine Artikel zu verarbeiten"
-
-#. module: newsassistant_blog
-msgid "No Blog Post"
-msgstr "Kein Blogeintrag"
-
-#. module: newsassistant_blog
-msgid "No blog post has been created for this article yet."
-msgstr "Für diesen Artikel wurde noch kein Blogeintrag erstellt."
-
-#. module: newsassistant_blog
-msgid "None of the selected articles are in 'Scraped' state."
-msgstr "Keiner der ausgewählten Artikel befindet sich im Status 'Abgerufen'."
-
-#. module: newsassistant_blog
-msgid "Pending"
-msgstr "Ausstehend"
-
-#. module: newsassistant_blog
-msgid "Pipeline Stages"
-msgstr "Pipeline-Stufen"
-
-#. module: newsassistant_blog
-msgid "Pixabay API Key"
-msgstr "Pixabay API-Schlüssel"
-
-#. module: newsassistant_blog
-msgid "Process this article through the digest pipeline"
-msgstr "Diesen Artikel durch die Digest-Pipeline verarbeiten"
-
-#. module: newsassistant_blog
-msgid "Processed"
-msgstr "Verarbeitet"
-
-#. module: newsassistant_blog
-msgid "Processing article in background..."
-msgstr "Artikel wird im Hintergrund verarbeitet..."
-
-#. module: newsassistant_blog
-msgid "Published Stage"
-msgstr "Status für veröffentlichte Artikel"
-
-#. module: newsassistant_blog
-msgid "Publishing"
-msgstr "Veröffentlichung"
-
-#. module: newsassistant_blog
-msgid "Queued %d article(s) for digest processing."
-msgstr "%d Artikel zur Digest-Verarbeitung in die Warteschlange gestellt."
-
-#. module: newsassistant_blog
-msgid "Reasoning"
-msgstr "Begründung"
-
-#. module: newsassistant_blog
-msgid "Relevance Criteria"
-msgstr "Relevanzkriterien"
-
-#. module: newsassistant_blog
-msgid "Shortlist Stage"
-msgstr "Status für die Shortlist"
-
-#. module: newsassistant_blog
-msgid "Source Article"
-msgstr "Quellartikel"
-
-#. module: newsassistant_blog
-msgid "Stage assigned to articles that have been auto-published to the blog."
-msgstr "Status für Artikel, die automatisch im Blog veröffentlicht wurden."
-
-#. module: newsassistant_blog
-msgid "Stage assigned to articles that need human review before publishing."
-msgstr "Status für Artikel, die vor der Veröffentlichung manuell geprüft werden müssen."
-
-#. module: newsassistant_blog
-msgid "Stage assigned to articles that the pipeline has discarded as not relevant."
-msgstr "Status für Artikel, die von der Pipeline als nicht relevant eingestuft wurden."
-
-#. module: newsassistant_blog
-msgid "Target Blog"
-msgstr "Ziel-Blog"
-
-#. module: newsassistant_blog
-msgid "Teaser"
-msgstr "Teaser"
-
-#. module: newsassistant_blog
-msgid "Teaser Generation"
-msgstr "Teaser-Generierung"
-
-#. module: newsassistant_blog
-msgid "Teaser Prompt"
-msgstr "Teaser-Prompt"
-
-#. module: newsassistant_blog
-msgid "Teaser Style"
-msgstr "Teaser-Stil"
-
-#. module: newsassistant_blog
-msgid "The news article this blog post was generated from"
-msgstr "Der Nachrichtenartikel, aus dem dieser Blogeintrag generiert wurde"
-
-#. module: newsassistant_blog
-msgid "Your Content Strategy"
-msgstr "Ihre Inhaltsstrategie"
-
-#. module: newsassistant_blog
-msgid "Your Teaser Prompt"
-msgstr "Ihr Teaser-Prompt"
-
-#. module: newsassistant_blog
-msgid "pixabay.com/api/docs"
-msgstr "pixabay.com/api/docs"
+msgstr ""
+"Definieren Sie, wie Teaser für relevante Artikel geschrieben werden sollen."
 
 #. module: newsassistant_blog
 #: model_terms:ir.ui.view,arch_db:newsassistant_blog.res_config_settings_view_form_newsassistant_blog
 msgid ""
 "Define what makes articles relevant, uncertain, or discardable. The AI "
-"classifies each article into one of three outcomes: Relevant (auto-published"
-" to the blog), Uncertain (moved to Shortlist for human review), or Discard "
+"classifies each article into one of three outcomes: Relevant (auto-published "
+"to the blog), Uncertain (moved to Shortlist for human review), or Discard "
 "(moved to Discard stage and skipped)."
 msgstr ""
 "Definieren Sie, was Artikel relevant, unsicher oder nicht relevant macht. "
 "Die KI klassifiziert jeden Artikel in eines von drei Ergebnissen: Relevant "
-"(automatisch im Blog veröffentlicht), Unsicher (zur manuellen Prüfung in "
-"die Shortlist verschoben), oder Verwerfen (in die Verwerfen-Phase "
-"verschoben und übersprungen)."
+"(automatisch im Blog veröffentlicht), Unsicher (zur manuellen Prüfung in die "
+"Shortlist verschoben), oder Verwerfen (in die Verwerfen-Phase verschoben und "
+"übersprungen)."
+
+#. module: newsassistant_blog
+#: model_terms:ir.ui.view,arch_db:newsassistant_blog.news_article_view_search_newsassistant_blog
+msgid "Digest Pending"
+msgstr "Verarbeitung ausstehend"
+
+#. module: newsassistant_blog
+#: model_terms:ir.ui.view,arch_db:newsassistant_blog.news_article_view_search_newsassistant_blog
+msgid "Digest Processed"
+msgstr "Verarbeitung abgeschlossen"
+
+#. module: newsassistant_blog
+#: model:ir.model.fields.selection,name:newsassistant_blog.selection__news_log__category__digest
+msgid "Digest Processing"
+msgstr "Digest-Verarbeitung"
+
+#. module: newsassistant_blog
+#: model:ir.actions.server,name:newsassistant_blog.action_digest_selected_articles
+msgid "Digest Selected Articles"
+msgstr "Ausgewählte Artikel verarbeiten"
+
+#. module: newsassistant_blog
+#. odoo-python
+#: code:addons/newsassistant_blog/models/news_article.py:0
+msgid "Digest Started"
+msgstr "Verarbeitung gestartet"
+
+#. module: newsassistant_blog
+#: model_terms:ir.ui.view,arch_db:newsassistant_blog.news_article_view_search_newsassistant_blog
+msgid "Digest State"
+msgstr "Verarbeitungsstatus"
+
+#. module: newsassistant_blog
+#: model:ir.model.fields,field_description:newsassistant_blog.field_res_config_settings__newsassistant_blog_discard_stage_id
+#: model_terms:ir.ui.view,arch_db:newsassistant_blog.res_config_settings_view_form_newsassistant_blog
+msgid "Discard Stage"
+msgstr "Status für verworfene Artikel"
+
+#. module: newsassistant_blog
+#: model_terms:ir.ui.view,arch_db:newsassistant_blog.news_article_view_form_newsassistant_blog
+msgid "Evaluate"
+msgstr "Auswerten"
+
+#. module: newsassistant_blog
+#: model:ir.model.fields,field_description:newsassistant_blog.field_news_article__digest_state
+msgid "Evaluation Status"
+msgstr "Bewertungsstatus"
+
+#. module: newsassistant_blog
+#: model_terms:ir.ui.view,arch_db:newsassistant_blog.res_config_settings_view_form_newsassistant_blog
+msgid "Get your free API key at"
+msgstr "Holen Sie sich Ihren kostenlosen API-Schlüssel bei"
+
+#. module: newsassistant_blog
+#: model_terms:ir.ui.view,arch_db:newsassistant_blog.res_config_settings_view_form_newsassistant_blog
+msgid "Header Images"
+msgstr "Titelbilder"
+
+#. module: newsassistant_blog
+#. odoo-python
+#: code:addons/newsassistant_blog/models/news_article.py:0
+msgid ""
+"Infomaniak AI API key not configured. Set the INFOMANIAK_AI_API_KEY "
+"environment variable."
+msgstr ""
+
+#. module: newsassistant_blog
+#. odoo-python
+#: code:addons/newsassistant_blog/models/news_article.py:0
+msgid ""
+"Invalid newsassistant_blog.blog_id value: '%s'. Must be a valid blog ID."
+msgstr ""
+
+#. module: newsassistant_blog
+#: model:ir.model,name:newsassistant_blog.model_news_article
+msgid "News Article (Blog Extension)"
+msgstr "Nachrichtenartikel (Blog-Erweiterung)"
+
+#. module: newsassistant_blog
+#: model:ir.model,name:newsassistant_blog.model_news_log
+msgid "News Log"
+msgstr "Nachrichtenprotokoll"
+
+#. module: newsassistant_blog
+#: model:ir.actions.server,name:newsassistant_blog.ir_cron_digest_all_ir_actions_server
+msgid "Newsassistant Blog: Process Digest"
+msgstr "Newsassistant Blog: Digest verarbeiten"
+
+#. module: newsassistant_blog
+#. odoo-python
+#: code:addons/newsassistant_blog/models/news_article.py:0
+msgid "No Articles to Process"
+msgstr "Keine Artikel zu verarbeiten"
+
+#. module: newsassistant_blog
+#. odoo-python
+#: code:addons/newsassistant_blog/models/news_article.py:0
+msgid "No Blog Post"
+msgstr "Kein Blogeintrag"
+
+#. module: newsassistant_blog
+#. odoo-python
+#: code:addons/newsassistant_blog/models/news_article.py:0
+msgid "No blog post has been created for this article yet."
+msgstr "Für diesen Artikel wurde noch kein Blogeintrag erstellt."
+
+#. module: newsassistant_blog
+#. odoo-python
+#: code:addons/newsassistant_blog/models/news_article.py:0
+msgid "None of the selected articles are in 'Scraped' state."
+msgstr "Keiner der ausgewählten Artikel befindet sich im Status 'Abgerufen'."
+
+#. module: newsassistant_blog
+#: model:ir.model.fields.selection,name:newsassistant_blog.selection__news_article__digest_state__pending
+msgid "Pending"
+msgstr "Ausstehend"
+
+#. module: newsassistant_blog
+#: model_terms:ir.ui.view,arch_db:newsassistant_blog.res_config_settings_view_form_newsassistant_blog
+msgid "Pipeline Stages"
+msgstr "Pipeline-Stufen"
+
+#. module: newsassistant_blog
+#: model:ir.model.fields,field_description:newsassistant_blog.field_res_config_settings__newsfeed_pixabay_api_key
+#: model_terms:ir.ui.view,arch_db:newsassistant_blog.res_config_settings_view_form_newsassistant_blog
+msgid "Pixabay API Key"
+msgstr "Pixabay API-Schlüssel"
+
+#. module: newsassistant_blog
+#: model_terms:ir.ui.view,arch_db:newsassistant_blog.news_article_view_form_newsassistant_blog
+msgid "Process this article through the digest pipeline"
+msgstr "Diesen Artikel durch die Digest-Pipeline verarbeiten"
+
+#. module: newsassistant_blog
+#: model:ir.model.fields.selection,name:newsassistant_blog.selection__news_article__digest_state__processed
+msgid "Processed"
+msgstr "Verarbeitet"
+
+#. module: newsassistant_blog
+#. odoo-python
+#: code:addons/newsassistant_blog/models/news_article.py:0
+msgid "Processing article in background..."
+msgstr "Artikel wird im Hintergrund verarbeitet..."
+
+#. module: newsassistant_blog
+#: model:ir.model.fields,help:newsassistant_blog.field_res_config_settings__newsfeed_teaser_prompt
+msgid ""
+"Prompt that defines how to generate teasers for relevant articles. Should "
+"describe the style, tone, and length of teasers."
+msgstr ""
+
+#. module: newsassistant_blog
+#: model:ir.model.fields,help:newsassistant_blog.field_res_config_settings__newsfeed_content_strategy
+msgid ""
+"Prompt that defines relevance criteria for article triage. Should describe "
+"what makes an article 'relevant', 'uncertain', or 'discard'."
+msgstr ""
+
+#. module: newsassistant_blog
+#: model:ir.model.fields,field_description:newsassistant_blog.field_res_config_settings__newsassistant_blog_published_stage_id
+#: model_terms:ir.ui.view,arch_db:newsassistant_blog.res_config_settings_view_form_newsassistant_blog
+msgid "Published Stage"
+msgstr "Status für veröffentlichte Artikel"
+
+#. module: newsassistant_blog
+#: model_terms:ir.ui.view,arch_db:newsassistant_blog.res_config_settings_view_form_newsassistant_blog
+msgid "Publishing"
+msgstr "Veröffentlichung"
+
+#. module: newsassistant_blog
+#. odoo-python
+#: code:addons/newsassistant_blog/models/news_article.py:0
+msgid "Queued %d article(s) for digest processing."
+msgstr "%d Artikel zur Digest-Verarbeitung in die Warteschlange gestellt."
+
+#. module: newsassistant_blog
+#: model:ir.model.fields,field_description:newsassistant_blog.field_news_article__blog_reasoning
+#: model_terms:ir.ui.view,arch_db:newsassistant_blog.news_article_view_form_newsassistant_blog
+msgid "Reasoning"
+msgstr "Begründung"
+
+#. module: newsassistant_blog
+#: model_terms:ir.ui.view,arch_db:newsassistant_blog.res_config_settings_view_form_newsassistant_blog
+msgid "Relevance Criteria"
+msgstr "Relevanzkriterien"
+
+#. module: newsassistant_blog
+#: model_terms:ir.ui.view,arch_db:newsassistant_blog.res_config_settings_view_form_newsassistant_blog
+msgid ""
+"Select which blog to publish curated articles to. Create a blog first if you "
+"don't have one."
+msgstr ""
+
+#. module: newsassistant_blog
+#: model:ir.model.fields,field_description:newsassistant_blog.field_res_config_settings__newsassistant_blog_shortlist_stage_id
+#: model_terms:ir.ui.view,arch_db:newsassistant_blog.res_config_settings_view_form_newsassistant_blog
+msgid "Shortlist Stage"
+msgstr "Status für die Shortlist"
+
+#. module: newsassistant_blog
+#: model:ir.model.fields,field_description:newsassistant_blog.field_blog_post__news_article_id
+msgid "Source Article"
+msgstr "Quellartikel"
+
+#. module: newsassistant_blog
+#: model:ir.model.fields,help:newsassistant_blog.field_res_config_settings__newsassistant_blog_published_stage_id
+#: model_terms:ir.ui.view,arch_db:newsassistant_blog.res_config_settings_view_form_newsassistant_blog
+msgid "Stage assigned to articles that have been auto-published to the blog."
+msgstr "Status für Artikel, die automatisch im Blog veröffentlicht wurden."
+
+#. module: newsassistant_blog
+#: model:ir.model.fields,help:newsassistant_blog.field_res_config_settings__newsassistant_blog_shortlist_stage_id
+#: model_terms:ir.ui.view,arch_db:newsassistant_blog.res_config_settings_view_form_newsassistant_blog
+msgid "Stage assigned to articles that need human review before publishing."
+msgstr ""
+"Status für Artikel, die vor der Veröffentlichung manuell geprüft werden "
+"müssen."
+
+#. module: newsassistant_blog
+#: model:ir.model.fields,help:newsassistant_blog.field_res_config_settings__newsassistant_blog_discard_stage_id
+#: model_terms:ir.ui.view,arch_db:newsassistant_blog.res_config_settings_view_form_newsassistant_blog
+msgid ""
+"Stage assigned to articles that the pipeline has discarded as not relevant."
+msgstr ""
+"Status für Artikel, die von der Pipeline als nicht relevant eingestuft "
+"wurden."
+
+#. module: newsassistant_blog
+#: model:ir.model.fields,field_description:newsassistant_blog.field_res_config_settings__newsfeed_blog_id
+#: model_terms:ir.ui.view,arch_db:newsassistant_blog.res_config_settings_view_form_newsassistant_blog
+msgid "Target Blog"
+msgstr "Ziel-Blog"
+
+#. module: newsassistant_blog
+#. odoo-python
+#: code:addons/newsassistant_blog/models/news_article.py:0
+msgid ""
+"Target blog with ID %d does not exist. Please update the "
+"'newsassistant_blog.blog_id' system parameter."
+msgstr ""
+
+#. module: newsassistant_blog
+#: model:ir.model.fields,field_description:newsassistant_blog.field_news_article__teaser
+#: model_terms:ir.ui.view,arch_db:newsassistant_blog.news_article_view_form_newsassistant_blog
+msgid "Teaser"
+msgstr "Teaser"
+
+#. module: newsassistant_blog
+#: model_terms:ir.ui.view,arch_db:newsassistant_blog.res_config_settings_view_form_newsassistant_blog
+msgid "Teaser Generation"
+msgstr "Teaser-Generierung"
+
+#. module: newsassistant_blog
+#: model:ir.model.fields,field_description:newsassistant_blog.field_res_config_settings__newsfeed_teaser_prompt
+msgid "Teaser Prompt"
+msgstr "Teaser-Prompt"
+
+#. module: newsassistant_blog
+#: model_terms:ir.ui.view,arch_db:newsassistant_blog.res_config_settings_view_form_newsassistant_blog
+msgid "Teaser Style"
+msgstr "Teaser-Stil"
+
+#. module: newsassistant_blog
+#: model:ir.model.fields,help:newsassistant_blog.field_blog_post__news_article_id
+msgid "The news article this blog post was generated from"
+msgstr "Der Nachrichtenartikel, aus dem dieser Blogeintrag generiert wurde"
+
+#. module: newsassistant_blog
+#: model_terms:ir.ui.view,arch_db:newsassistant_blog.res_config_settings_view_form_newsassistant_blog
+msgid ""
+"When articles don't have suitable header images, Pixabay can provide "
+"fallback images. Get a free API key at pixabay.com."
+msgstr ""
+
+#. module: newsassistant_blog
+#: model_terms:ir.ui.view,arch_db:newsassistant_blog.res_config_settings_view_form_newsassistant_blog
+msgid ""
+"Write a teaser for this news article following these guidelines:\n"
+"\n"
+"- Length: 2-3 sentences (max 280 characters)\n"
+"- Tone: Professional but accessible, informative\n"
+"- Structure: Start with the key news, then why it matters\n"
+"- Language: Use the same language as the original article\n"
+"- Style: Neutral, factual, no clickbait or sensationalism\n"
+"- Goal: Help readers quickly decide if they want to read the full article"
+msgstr ""
+
+#. module: newsassistant_blog
+#: model_terms:ir.ui.view,arch_db:newsassistant_blog.res_config_settings_view_form_newsassistant_blog
+msgid ""
+"You are curating a newsfeed for Swiss social sector professionals.\n"
+"\n"
+"HIGHLY RELEVANT (auto-publish):\n"
+"- Policy changes affecting social institutions in Switzerland\n"
+"- Research findings on disability, integration, poverty, or social work\n"
+"- Funding announcements for social projects\n"
+"- Legal changes impacting NGOs or social services\n"
+"\n"
+"MAYBE RELEVANT (needs human review):\n"
+"- General political news that might affect the social sector\n"
+"- Events and conferences in the social field\n"
+"- News from neighboring countries with Swiss implications\n"
+"\n"
+"NOT RELEVANT (discard):\n"
+"- Entertainment, sports, lifestyle news\n"
+"- News from other countries without Swiss connection\n"
+"- Commercial press releases unrelated to social sector\n"
+"- Duplicate or very similar content to recent articles"
+msgstr ""
+
+#. module: newsassistant_blog
+#: model_terms:ir.ui.view,arch_db:newsassistant_blog.res_config_settings_view_form_newsassistant_blog
+msgid "Your Content Strategy"
+msgstr "Ihre Inhaltsstrategie"
+
+#. module: newsassistant_blog
+#: model_terms:ir.ui.view,arch_db:newsassistant_blog.res_config_settings_view_form_newsassistant_blog
+msgid "Your Teaser Prompt"
+msgstr "Ihr Teaser-Prompt"
+
+#. module: newsassistant_blog
+#: model_terms:ir.ui.view,arch_db:newsassistant_blog.res_config_settings_view_form_newsassistant_blog
+msgid "pixabay.com/api/docs"
+msgstr "pixabay.com/api/docs"
+
+#~ msgid "Blog Settings"
+#~ msgstr "Blog-Einstellungen"
+
+#~ msgid "News Article"
+#~ msgstr "Nachrichtenartikel"
+
+#~ msgid "Newsassistant Blog"
+#~ msgstr "Newsassistant Blog"

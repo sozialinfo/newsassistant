@@ -87,5 +87,5 @@ class NewsLogEntry(models.Model):
         if old_success_entries:
             count = len(old_success_entries)
             old_success_entries.unlink()
-            return f"Deleted {count} old log entries from successful operations"
-        return "No old log entries to clean up"
+            return count
+        return 0

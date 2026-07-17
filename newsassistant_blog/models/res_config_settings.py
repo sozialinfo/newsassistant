@@ -23,6 +23,7 @@ class ResConfigSettings(models.TransientModel):
         string="Pixabay API Key",
         help="API key for Pixabay image service. Used as fallback when "
              "articles don't have suitable header images.",
+        groups="newsassistant.newsassistant_group_admin",
     )
     newsassistant_blog_shortlist_stage_id = fields.Many2one(
         "news.article.stage",

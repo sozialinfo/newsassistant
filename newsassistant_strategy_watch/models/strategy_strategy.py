@@ -39,6 +39,7 @@ class StrategyStrategy(models.Model):
     )
 
     def action_distill_watch_prompt(self):
+        """Open the distillation confirmation wizard to generate a watch prompt."""
         self.ensure_one()
         wizard = self.env["strategy.distill.confirm"].create({
             "strategy_id": self.id,

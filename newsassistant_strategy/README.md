@@ -1,6 +1,6 @@
 # News Assistant - Strategy Base
 
-**Version:** 18.0.1.0.0  
+**Version:** 18.0.1.2.0  
 **License:** LGPL-3
 
 Base module providing the shared `strategy.strategy` model plus unified strategy evaluation infrastructure.
@@ -12,6 +12,19 @@ Base module providing the shared `strategy.strategy` model plus unified strategy
 - AI-powered prompt distillation from PDF content
 - Unified cron dispatches evaluation to all installed sister modules
 - `strategy.distill.confirm` wizard with overwrite protection
+
+## Usage
+
+### Creating a strategy
+
+1. Go to **News Assistant → Strategies** and click **New**.
+2. Set a name, date range, and upload a PDF document for AI distillation.
+3. Click **Distill Prompts** to generate AI prompts from the PDF content.
+4. Switch state to **Active** to enable evaluation by sister modules.
+
+### Evaluation flow
+
+Once active, the daily cron job evaluates all articles against each active strategy's prompt.
 
 ## Models
 
@@ -25,7 +38,7 @@ Base module providing the shared `strategy.strategy` model plus unified strategy
 | `date_to` | Date | Valid until |
 | `description` | Text | Optional notes |
 | `document_ids` | Many2many | Linked PDF attachments |
-| `prompt` | Text | Extensible prompt tab (sister modules inject here) |
+| `prompt` | Text | Extensible prompt tab (injected by sister modules such as newsassistant_strategy_watch) |
 
 ### strategy.distill.confirm
 

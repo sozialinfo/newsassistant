@@ -1,15 +1,10 @@
 {
     "name": "News Assistant — Email",
-    "version": "18.0.1.1.0",
+    "version": "18.0.1.2.0",
     "category": "Productivity",
     "summary": "Inbound email capture for News Assistant",
-    "description": """
-        Extends News Assistant with inbound email capabilities:
-        - Configurable mail alias (default: newsassistant@yourdomain.com)
-        - Automatic news source creation from sender domain with AI naming
-        - HTML sanitization of inbound emails
-        - Snapshot creation per received email (auto-triggers article extraction)
-    """,
+    "description": "Inbound email capture, alias-based snapshot creation, and AI-powered news source discovery for News Assistant.",
+    "images": ["static/description/icon.png"],
     "author": "Verein sozialinfo.ch",
     "website": "https://sozialinfo.ch",
     "license": "LGPL-3",
@@ -18,6 +13,8 @@
         "mail",
     ],
     "data": [
+        "data/queue_job_email_data.xml",
+        "security/ir.model.access.csv",
         "data/mail_alias_data.xml",
         "views/res_config_settings_views.xml",
         "views/news_snapshot_views.xml",

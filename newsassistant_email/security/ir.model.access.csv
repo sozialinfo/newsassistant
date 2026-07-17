@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_news_snapshot_email_user,news.snapshot.email.user,model_news_snapshot,newsassistant.newsassistant_group_user,1,1,0,0
+access_news_snapshot_email_admin,news.snapshot.email.admin,model_news_snapshot,newsassistant.newsassistant_group_admin,1,1,1,1
+access_news_snapshot_email_system,news.snapshot.email.system,model_news_snapshot,base.group_system,1,1,1,1

@@ -8,10 +8,8 @@ import time
 
 import requests
 
-from odoo import _, fields, models
+from odoo import _, api, fields, models
 from odoo.exceptions import UserError
-
-from odoo.addons.newsassistant.models.utils import html_to_markdown
 
 from odoo.addons.queue_job.exception import RetryableJobError
 
@@ -133,7 +131,7 @@ class StrategyAiMixin(models.AbstractModel):
 
 class StrategyStrategy(models.Model):
     _name = "strategy.strategy"
-    _inherit = ["strategy.ai.mixin"]
+    _inherit = ["strategy.ai.mixin", "mail.thread"]
     _description = "Strategy"
     _order = "name"
 
@@ -156,13 +154,17 @@ class StrategyStrategy(models.Model):
         default="draft",
         required=True,
         copy=False,
+        tracking=True,
+        index=True,
     )
     date_from = fields.Date(
         string="Valid From",
+        index=True,
         help="Start date of the strategy (leave empty for no start limit).",
     )
     date_to = fields.Date(
         string="Valid To",
+        index=True,
         help="End date of the strategy (leave empty for no end limit).",
     )
     description = fields.Text(
@@ -184,7 +186,7 @@ class StrategyStrategy(models.Model):
     # -------------------------------------------------------------------------
 
     def action_activate(self):
-        """Activate the strategy (auto-distills prompt if not yet set)."""
+        """Activate the strategy."""
         self.ensure_one()
         self.write({"state": "active"})
 
@@ -391,8 +393,6 @@ class StrategyDistillConfirm(models.TransientModel):
 
     _name = "strategy.distill.confirm"
     _description = "Confirm Prompt Overwrite"
-    _order = "id"
-
     strategy_id = fields.Many2one(
         "strategy.strategy",
         string="Strategy",
@@ -418,6 +418,7 @@ class StrategyDistillConfirm(models.TransientModel):
         compute="_compute_confirm_text",
     )
 
+    @api.depends("is_plural")
     def _compute_confirm_text(self):
         """Compute confirm_title and confirm_body based on is_plural flag."""
         for wizard in self:
@@ -437,7 +438,7 @@ class StrategyDistillConfirm(models.TransientModel):
                 )
 
     def action_confirm_distill(self):
-        """Confirm overwrite and run distillation; return form reload action."""
+        """Confirm overwrite and run the distillation for the strategy."""
         self.ensure_one()
         if self.method_name and hasattr(self.strategy_id, self.method_name):
             getattr(self.strategy_id, self.method_name)()

@@ -1,6 +1,6 @@
 {
     "name": "News Assistant — Website",
-    "version": "18.0.2.1.0",
+    "version": "18.0.2.2.0",
     "category": "Marketing",
     "summary": "Website scraping for News Assistant",
     "description": """
@@ -30,5 +30,6 @@
     "installable": True,
     "application": False,
     "auto_install": False,
-    "post_init_hook": "hooks.post_init_hook",
+"post_init_hook": "hooks.post_init_hook",
+    "external_dependencies": {"python": ["requests"]},
 }

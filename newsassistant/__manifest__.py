@@ -1,6 +1,6 @@
 {
     "name": "News Assistant",
-    "version": "18.0.3.4.0",
+    "version": "18.0.3.5.0",
     "category": "Marketing",
     "summary": "Automated news capture and triage — base module",
     "description": """
@@ -14,14 +14,17 @@
         Install newsassistant_email for inbound email capture.
     """,
     "author": "Verein sozialinfo.ch",
+    "maintainer": "Verein sozialinfo.ch",
     "website": "https://sozialinfo.ch",
     "license": "LGPL-3",
+    "external_dependencies": {"python": ["requests", "beautifulsoup4"]},
     "depends": [
         "base",
         "queue_job",
     ],
     "data": [
         "security/newsassistant_security.xml",
+        "security/newsassistant_record_rules.xml",
         "security/ir.model.access.csv",
         "data/news_article_stage_data.xml",
         "data/ir_config_parameter_data.xml",

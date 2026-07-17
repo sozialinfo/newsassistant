@@ -1,6 +1,6 @@
 # News Assistant - Strategy Watch
 
-**Version:** 18.0.1.0.0  
+**Version:** 18.0.1.1.0  
 **License:** LGPL-3
 
 Strategy impact detection: flags articles with strategic watch relevance using AI evaluation against watch prompts.

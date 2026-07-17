@@ -6,8 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-01 12:26+0000\n"
-"PO-Revision-Date: 2026-05-01 12:26+0000\n"
+"POT-Creation-Date: 2026-07-17 06:29+0000\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "Language: fr\n"
@@ -15,6 +14,11 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#. module: newsassistant_website
+#: model:ir.model,name:newsassistant_website.model_res_config_settings
+msgid "Config Settings"
+msgstr "Paramètres de configuration"
 
 #. module: newsassistant_website
 #: model:ir.actions.server,name:newsassistant_website.ir_cron_scrape_news_website_ir_actions_server
@@ -32,6 +36,20 @@ msgid "News Source"
 msgstr "Source d'actualités"
 
 #. module: newsassistant_website
+#: model:ir.model.fields,help:newsassistant_website.field_res_config_settings__newsassistant_crawl4ai_api_token
+msgid ""
+"Optional Bearer token for crawl4ai server authentication. Leave empty if no "
+"authentication is required."
+msgstr ""
+
+#. module: newsassistant_website
+#: model_terms:ir.ui.view,arch_db:newsassistant_website.res_config_settings_view_form_newsassistant_website
+msgid ""
+"Optional Bearer token for crawl4ai server authentication. Required when "
+"using JWT auth. Leave empty if no auth is needed."
+msgstr ""
+
+#. module: newsassistant_website
 #: model_terms:ir.ui.view,arch_db:newsassistant_website.news_source_view_form_website
 msgid "Scrape Now"
 msgstr "Explorer maintenant"
@@ -43,7 +61,36 @@ msgid "Scrape Started"
 msgstr "Exploration démarrée"
 
 #. module: newsassistant_website
+#: model_terms:ir.ui.view,arch_db:newsassistant_website.res_config_settings_view_form_newsassistant_website
+msgid "Scraping"
+msgstr "Scraping"
+
+#. module: newsassistant_website
 #. odoo-python
 #: code:addons/newsassistant_website/models/news_source_website.py:0
 msgid "Scraping source in background..."
 msgstr "Exploration de la source en arrière-plan..."
+
+#. module: newsassistant_website
+#: model_terms:ir.ui.view,arch_db:newsassistant_website.res_config_settings_view_form_newsassistant_website
+msgid ""
+"URL of the self-hosted crawl4ai server used for all web page fetching. "
+"Default: http://crawl4ai:11235"
+msgstr ""
+
+#. module: newsassistant_website
+#: model:ir.model.fields,help:newsassistant_website.field_res_config_settings__newsassistant_crawl4ai_url
+msgid "URL of the self-hosted crawl4ai server. Default: http://crawl4ai:11235"
+msgstr "URL du serveur crawl4ai auto-hébergé. Défaut : http://crawl4ai:11235"
+
+#. module: newsassistant_website
+#: model:ir.model.fields,field_description:newsassistant_website.field_res_config_settings__newsassistant_crawl4ai_api_token
+#: model_terms:ir.ui.view,arch_db:newsassistant_website.res_config_settings_view_form_newsassistant_website
+msgid "crawl4ai API Token"
+msgstr "Jeton API crawl4ai"
+
+#. module: newsassistant_website
+#: model:ir.model.fields,field_description:newsassistant_website.field_res_config_settings__newsassistant_crawl4ai_url
+#: model_terms:ir.ui.view,arch_db:newsassistant_website.res_config_settings_view_form_newsassistant_website
+msgid "crawl4ai Server URL"
+msgstr "URL du serveur crawl4ai"

@@ -6,8 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-01 12:26+0000\n"
-"PO-Revision-Date: 2026-05-01 12:26+0000\n"
+"POT-Creation-Date: 2026-07-17 06:29+0000\n"
 "Last-Translator: \n"
 "Language-Team: German\n"
 "Language: de\n"
@@ -15,6 +14,18 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. module: newsassistant_email
+#: model:ir.model.fields,help:newsassistant_email.field_news_snapshot__alias_defaults
+msgid ""
+"A Python dictionary that will be evaluated to provide default values when "
+"creating new records for this alias."
+msgstr ""
+
+#. module: newsassistant_email
+#: model:ir.model.fields,field_description:newsassistant_email.field_news_snapshot__message_needaction
+msgid "Action Needed"
+msgstr "Aktion erforderlich"
 
 #. module: newsassistant_email
 #: model:ir.model.fields,field_description:newsassistant_email.field_news_snapshot__alias_id
@@ -35,6 +46,11 @@ msgstr "Alias-Domain-Name"
 #: model:ir.model.fields,field_description:newsassistant_email.field_news_snapshot__alias_name
 msgid "Alias Name"
 msgstr "Alias-Name"
+
+#. module: newsassistant_email
+#: model:ir.model.fields,field_description:newsassistant_email.field_news_snapshot__message_attachment_count
+msgid "Attachment Count"
+msgstr "Anzahl Anhänge"
 
 #. module: newsassistant_email
 #: model:ir.model,name:newsassistant_email.model_res_config_settings
@@ -59,16 +75,117 @@ msgid "Email Capture"
 msgstr "E-Mail-Erfassung"
 
 #. module: newsassistant_email
+#: model:ir.model.fields,help:newsassistant_email.field_news_snapshot__alias_domain
+msgid "Email domain e.g. 'example.com' in 'odoo@example.com'"
+msgstr "E-Mail-Domain z.B. 'example.com' in 'odoo@example.com'"
+
+#. module: newsassistant_email
+#: model:ir.model.fields,field_description:newsassistant_email.field_news_snapshot__message_follower_ids
+msgid "Followers"
+msgstr "Abonnenten"
+
+#. module: newsassistant_email
+#: model:ir.model.fields,field_description:newsassistant_email.field_news_snapshot__message_partner_ids
+msgid "Followers (Partners)"
+msgstr "Abonnenten (Partner)"
+
+#. module: newsassistant_email
+#: model:ir.model.fields,field_description:newsassistant_email.field_news_snapshot__has_message
+msgid "Has Message"
+msgstr "Hat Nachricht"
+
+#. module: newsassistant_email
+#: model:ir.model.fields,help:newsassistant_email.field_news_snapshot__message_needaction
+msgid "If checked, new messages require your attention."
+msgstr "Wenn aktiviert, erfordern neue Nachrichten Ihre Aufmerksamkeit."
+
+#. module: newsassistant_email
+#: model:ir.model.fields,help:newsassistant_email.field_news_snapshot__message_has_error
+#: model:ir.model.fields,help:newsassistant_email.field_news_snapshot__message_has_sms_error
+msgid "If checked, some messages have a delivery error."
+msgstr "Wenn aktiviert, haben einige Nachrichten einen Zustellfehler."
+
+#. module: newsassistant_email
+#: model:ir.model.fields,field_description:newsassistant_email.field_news_snapshot__message_is_follower
+msgid "Is Follower"
+msgstr "Ist Abonnent"
+
+#. module: newsassistant_email
+#: model:ir.model.fields,field_description:newsassistant_email.field_news_snapshot__message_has_error
+msgid "Message Delivery error"
+msgstr "Nachrichtenzustellungsfehler"
+
+#. module: newsassistant_email
+#: model:ir.model.fields,field_description:newsassistant_email.field_news_snapshot__message_ids
+msgid "Messages"
+msgstr "Nachrichten"
+
+#. module: newsassistant_email
 #: model:ir.model,name:newsassistant_email.model_news_snapshot
 msgid "News Snapshot (Email)"
 msgstr "Nachrichten-Snapshot (E-Mail)"
 
 #. module: newsassistant_email
 #: model_terms:ir.ui.view,arch_db:newsassistant_email.res_config_settings_view_form_newsassistant_email
-msgid "Newsletters sent to this address will be captured as snapshots. Format: alias@yourdomain.com"
-msgstr "An diese Adresse gesendete Newsletter werden als Snapshots erfasst. Format: alias@ihredomain.com"
+msgid ""
+"Newsletters sent to this address will be captured as snapshots. Format: "
+"alias@yourdomain.com"
+msgstr ""
+"An diese Adresse gesendete Newsletter werden als Snapshots erfasst. Format: "
+"alias@ihredomain.com"
+
+#. module: newsassistant_email
+#: model:ir.model.fields,field_description:newsassistant_email.field_news_snapshot__message_needaction_counter
+msgid "Number of Actions"
+msgstr "Anzahl Aktionen"
+
+#. module: newsassistant_email
+#: model:ir.model.fields,field_description:newsassistant_email.field_news_snapshot__message_has_error_counter
+msgid "Number of errors"
+msgstr "Anzahl Fehler"
+
+#. module: newsassistant_email
+#: model:ir.model.fields,help:newsassistant_email.field_news_snapshot__message_needaction_counter
+msgid "Number of messages requiring action"
+msgstr "Anzahl Nachrichten mit erforderlicher Aktion"
+
+#. module: newsassistant_email
+#: model:ir.model.fields,help:newsassistant_email.field_news_snapshot__message_has_error_counter
+msgid "Number of messages with delivery error"
+msgstr "Anzahl Nachrichten mit Zustellfehler"
+
+#. module: newsassistant_email
+#: model:ir.model.fields,field_description:newsassistant_email.field_news_snapshot__message_has_sms_error
+msgid "SMS Delivery error"
+msgstr "SMS-Zustellungsfehler"
 
 #. module: newsassistant_email
 #: model:ir.model.fields,help:newsassistant_email.field_res_config_settings__newsassistant_email_alias_name
-msgid "The alias name for inbound newsletters (e.g. 'newsassistant' → newsassistant@yourdomain.com)"
-msgstr "Der Alias-Name für eingehende Newsletter (z. B. 'newsassistant' → newsassistant@ihredomain.com)"
+msgid ""
+"The alias name for inbound newsletters (e.g. 'newsassistant' → "
+"newsassistant@yourdomain.com)"
+msgstr ""
+"Der Alias-Name für eingehende Newsletter (z. B. 'newsassistant' → "
+"newsassistant@ihredomain.com)"
+
+#. module: newsassistant_email
+#: model:ir.model.fields,help:newsassistant_email.field_news_snapshot__alias_name
+msgid ""
+"The name of the email alias, e.g. 'jobs' if you want to catch emails for "
+"<jobs@example.odoo.com>"
+msgstr ""
+
+#. module: newsassistant_email
+#: model:ir.model.fields,field_description:newsassistant_email.field_news_snapshot__website_message_ids
+msgid "Website Messages"
+msgstr "Website-Nachrichten"
+
+#. module: newsassistant_email
+#: model:ir.model.fields,help:newsassistant_email.field_news_snapshot__website_message_ids
+msgid "Website communication history"
+msgstr "Verlauf der Website-Kommunikation"
+
+#. module: newsassistant_email
+#: model_terms:ir.ui.view,arch_db:newsassistant_email.res_config_settings_view_form_newsassistant_email
+msgid "newsassistant"
+msgstr "Nachrichtenassistent"

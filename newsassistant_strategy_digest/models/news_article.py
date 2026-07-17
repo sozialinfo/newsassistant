@@ -14,9 +14,6 @@ from odoo.addons.newsassistant.models.utils import html_to_markdown
 
 _logger = logging.getLogger(__name__)
 
-AI_TIMEOUT = 120
-TRANSIENT_HTTP_CODES = {408, 429, 500, 502, 503, 504}
-
 
 class NewsArticle(models.Model):
     _inherit = "news.article"
@@ -47,11 +44,15 @@ class NewsArticle(models.Model):
     strategy_reasoning = fields.Text(
         string="Reasoning",
         readonly=True,
+        groups="newsassistant.newsassistant_group_admin",
         help="LLM reasoning for strategy label assignments, concatenated per strategy.",
     )
 
     def _call_ai(self, system_prompt, user_content, temperature=0.1):
         """Delegate AI call to the shared StrategyAiMixin via strategy.strategy."""
+        # Delegation is used instead of inheriting strategy.ai.mixin directly
+        # because news.article is inherited from newsassistant and adding the
+        # mixin would couple it to the strategy module's abstract model.
         return self.env["strategy.strategy"]._call_ai(
             system_prompt, user_content, temperature=temperature
         )

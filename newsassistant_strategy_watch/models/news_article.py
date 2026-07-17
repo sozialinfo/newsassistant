@@ -1,3 +1,4 @@
+import json
 import logging
 
 from odoo import _, fields, models
@@ -7,9 +8,6 @@ from odoo.addons.queue_job.exception import RetryableJobError
 from odoo.addons.newsassistant.models.utils import html_to_markdown
 
 _logger = logging.getLogger(__name__)
-
-AI_TIMEOUT = 120
-TRANSIENT_HTTP_CODES = {408, 429, 500, 502, 503, 504}
 
 
 class NewsArticle(models.Model):
@@ -38,6 +36,7 @@ class NewsArticle(models.Model):
     strategy_watch_reasoning = fields.Text(
         string="Watch Reasoning",
         readonly=True,
+        groups="newsassistant.newsassistant_group_admin",
         help="LLM reasoning for the strategy watch decision.",
     )
 
@@ -175,6 +174,9 @@ class NewsArticle(models.Model):
             "strategy_watch": False,
         })
 
+        # Call _evaluate_strategies (the base class method) instead of
+        # _evaluate_strategy_watch directly so that all strategy evaluations
+        # run together, not just this module's watch evaluation.
         self.with_delay(
             channel="root.newsassistant",
             description=f"Strategy watch eval (manual): {self.title[:50]}",

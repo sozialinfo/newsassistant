@@ -6,10 +6,9 @@ import time
 
 from bs4 import BeautifulSoup
 
-from odoo import _, fields, models
-from odoo.addons.queue_job.exception import RetryableJobError
-
+from odoo import _, api, fields, models
 from odoo.addons.newsassistant.models.news_source import parse_ai_json
+from odoo.addons.queue_job.exception import RetryableJobError
 
 _logger = logging.getLogger(__name__)
 
@@ -86,19 +85,10 @@ class NewsSnapshotEmail(models.Model):
     """Extends news.snapshot with inbound email handling via mail.alias.mixin."""
 
     _name = "news.snapshot"
-    _inherit = ["news.snapshot", "mail.thread", "mail.alias.mixin"]
+    _inherit = ["news.snapshot", "mail.thread", "mail.alias.mixin.optional"]
     _description = "News Snapshot (Email)"
 
-    def _alias_get_creation_values(self):
-        """Return default values for the mail alias."""
-        values = super()._alias_get_creation_values()
-        values["alias_model_id"] = self.env["ir.model"]._get("news.snapshot").id
-        return values
-
-    @classmethod
-    def _get_alias_model_name(cls, vals):
-        return "news.snapshot"
-
+    @api.model
     def message_new(self, msg_dict, custom_values=None):
         """Handle inbound email: create listing snapshot, auto-create source if needed.
 
@@ -166,7 +156,7 @@ class NewsSnapshotEmail(models.Model):
                 "source_id": source.id,
                 "snapshot_id": snapshot.id,
             })
-        except Exception:
+        except (KeyError, ValueError):
             _logger.exception("Failed to create email log")
 
         return snapshot
@@ -213,19 +203,10 @@ class NewsSnapshotEmail(models.Model):
         log_entries = []
         job_id = self._resolve_job_id()
 
-        def add_entry(level, message, duration=None, metadata=None):
-            log_entries.append({
-                "timestamp": fields.Datetime.now(),
-                "level": level,
-                "message": message,
-                "duration": duration,
-                "metadata": metadata,
-            })
-
-        add_entry("info", f"Starting newsletter article discovery: {self.name}")
+        self._add_discovery_log_entry(log_entries, "info", f"Starting newsletter article discovery: {self.name}")
 
         if not self.raw_content or not self.raw_content.strip():
-            add_entry("warning", "Newsletter has no content — skipping discovery")
+            self._add_discovery_log_entry(log_entries,"warning", "Newsletter has no content — skipping discovery")
             self._create_discovery_log(
                 level="warning",
                 message="No content to discover",
@@ -236,7 +217,7 @@ class NewsSnapshotEmail(models.Model):
             _logger.warning("Newsletter snapshot %s has no raw_content", self.name)
             return
 
-        add_entry("info", "Calling LLM for newsletter article splitting")
+        self._add_discovery_log_entry(log_entries,"info", "Calling LLM for newsletter article splitting")
         # Extract plain text to reduce token count and avoid timeout
         content_soup = BeautifulSoup(self.raw_content, "lxml")
         for tag_name in ("script", "style", "nav", "footer", "aside", "noscript", "svg", "iframe"):
@@ -246,13 +227,13 @@ class NewsSnapshotEmail(models.Model):
         # Truncate to avoid AI timeout on very large newsletters
         if len(clean_text) > 20000:
             clean_text = clean_text[:20000]
-        add_entry("info", f"Text content: {len(clean_text)} chars (was {len(self.raw_content)} chars HTML)")
+        self._add_discovery_log_entry(log_entries,"info", f"Text content: {len(clean_text)} chars (was {len(self.raw_content)} chars HTML)")
         try:
             ai_result = self.source_id._call_infomaniak_ai(
                 self._NEWSLETTER_SPLIT_PROMPT, clean_text, temperature=0.1
             )
             ai_response = ai_result["content"]
-            add_entry(
+            self._add_discovery_log_entry(log_entries,
                 "info",
                 f"LLM response received ({ai_result['usage']['total_tokens']} tokens)",
                 duration=ai_result["duration_ms"] / 1000,
@@ -267,7 +248,7 @@ class NewsSnapshotEmail(models.Model):
             raise
         except Exception as e:
             _logger.exception("AI error discovering articles from newsletter %s", self.name)
-            add_entry("error", f"AI newsletter splitting failed: {e}")
+            self._add_discovery_log_entry(log_entries,"error", f"AI newsletter splitting failed: {e}")
             self._create_discovery_log(
                 level="error",
                 message=f"AI newsletter splitting failed: {e}",
@@ -289,7 +270,7 @@ class NewsSnapshotEmail(models.Model):
             if not isinstance(articles_data, list):
                 raise ValueError("'articles' must be a JSON array")
         except (ValueError, json.JSONDecodeError) as e:
-            add_entry("error", f"Invalid AI response: {e}",
+            self._add_discovery_log_entry(log_entries,"error", f"Invalid AI response: {e}",
                       metadata={"raw_response_preview": ai_response[:500]})
             self._create_discovery_log(
                 level="error",
@@ -301,7 +282,7 @@ class NewsSnapshotEmail(models.Model):
             return
 
         if not articles_data:
-            add_entry("warning", "No articles identified in newsletter")
+            self._add_discovery_log_entry(log_entries,"warning", "No articles identified in newsletter")
             self._create_discovery_log(
                 level="warning",
                 message="No articles found in newsletter",
@@ -346,10 +327,10 @@ class NewsSnapshotEmail(models.Model):
                 "content": content,
             })
             created_count += 1
-            add_entry("info", f"Article created: {title[:50]} (id={article.id})",
+            self._add_discovery_log_entry(log_entries,"info", f"Article created: {title[:50]} (id={article.id})",
                       metadata={"article_id": article.id, "title": title, "child_id": child.id})
 
-        add_entry("info", f"Discovery complete: {created_count} articles created")
+        self._add_discovery_log_entry(log_entries,"info", f"Discovery complete: {created_count} articles created")
         self._create_discovery_log(
             level="success",
             message=f"Discovered {created_count} articles from newsletter",
@@ -359,8 +340,30 @@ class NewsSnapshotEmail(models.Model):
         )
         _logger.info("Newsletter %s: discovered %d articles", self.name, created_count)
 
+    def _add_discovery_log_entry(self, log_entries, level, message, duration=None, metadata=None):
+        log_entries.append({
+            "timestamp": fields.Datetime.now(),
+            "level": level,
+            "message": message,
+            "duration": duration,
+            "metadata": metadata,
+        })
+
     def _create_discovery_log(self, level, message, duration=None, entries=None, job_id=None, created_count=0):
-        """Create a news.log record for a newsletter discovery operation."""
+        """Create a news.log record for a newsletter discovery operation.
+
+        Args:
+            level: Log severity level (e.g. 'info', 'warning', 'error').
+            message: Human-readable description of the discovery operation.
+            duration: Optional execution time in seconds.
+            entries: Optional list of dicts with per-article log entry data.
+                Each dict may contain 'timestamp', 'level', 'message', 'duration', 'metadata'.
+            job_id: Optional ID of the associated queue job.
+            created_count: Number of articles created during discovery.
+
+        Returns:
+            The newly created news.log record.
+        """
         Log = self.env["news.log"]
         LogEntry = self.env["news.log.entry"]
 
@@ -376,11 +379,12 @@ class NewsSnapshotEmail(models.Model):
         })
 
         if entries:
+            entry_vals = []
             for entry_data in entries:
                 metadata = entry_data.get("metadata")
                 if metadata and not isinstance(metadata, str):
                     metadata = json.dumps(metadata, ensure_ascii=False)
-                LogEntry.create({
+                entry_vals.append({
                     "log_id": log.id,
                     "timestamp": entry_data.get("timestamp", fields.Datetime.now()),
                     "level": entry_data.get("level", "info"),
@@ -388,6 +392,7 @@ class NewsSnapshotEmail(models.Model):
                     "duration": entry_data.get("duration"),
                     "metadata": metadata,
                 })
+            LogEntry.create(entry_vals)
 
         return log
 
@@ -403,7 +408,7 @@ class NewsSnapshotEmail(models.Model):
         NewsSource = self.env["news.source"]
 
         # Look for existing email source with this domain
-        source = NewsSource.search(
+        source = NewsSource.sudo().search(
             [("source_type", "=", "email"), ("sender_domain", "=", domain)],
             limit=1,
         )
@@ -415,7 +420,7 @@ class NewsSnapshotEmail(models.Model):
         name = self._ai_get_source_name(domain)
 
         _logger.info("Creating new email source for domain %s with name '%s'", domain, name)
-        source = NewsSource.create({
+        source = NewsSource.sudo().create({
             "name": name,
             "source_type": "email",
             "sender_domain": domain,
@@ -444,7 +449,7 @@ class NewsSnapshotEmail(models.Model):
             )
             user_content = f"Email domain: {domain}"
 
-            result = self.source_id._call_infomaniak_ai(system_prompt, user_content)
+            result = self.env["news.source"]._call_infomaniak_ai(system_prompt, user_content)
             name = result.get("content", "").strip()
 
             name = name.strip('"\'').strip()

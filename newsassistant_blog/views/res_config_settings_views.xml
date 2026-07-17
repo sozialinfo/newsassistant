@@ -13,7 +13,7 @@
                         <div class="content-group">
                             <div class="mt8 text-muted small">
                                 <p><strong>Example prompt:</strong></p>
-                                <pre class="bg-light p-2 rounded" style="white-space: pre-wrap; font-size: 0.85em;">You are curating a newsfeed for Swiss social sector professionals.
+                                <pre class="bg-light p-2 rounded o_pre_wrap">You are curating a newsfeed for Swiss social sector professionals.
 
 HIGHLY RELEVANT (auto-publish):
 - Policy changes affecting social institutions in Switzerland
@@ -32,9 +32,9 @@ NOT RELEVANT (discard):
 - Commercial press releases unrelated to social sector
 - Duplicate or very similar content to recent articles</pre>
                             </div>
-                            <div class="mt16" style="width: 100%;">
+                            <div class="mt16">
                                 <label class="o_form_label d-block mb4" for="newsfeed_content_strategy">Your Content Strategy</label>
-                                <field name="newsfeed_content_strategy" widget="text" class="o_text_overflow w-100" style="min-height: 200px;"/>
+                                <field name="newsfeed_content_strategy" widget="text" class="o_text_overflow w-100 o_min_height_200"/>
                             </div>
                         </div>
                     </setting>
@@ -44,7 +44,7 @@ NOT RELEVANT (discard):
                         <div class="content-group">
                             <div class="mt8 text-muted small">
                                 <p><strong>Example prompt:</strong></p>
-                                <pre class="bg-light p-2 rounded" style="white-space: pre-wrap; font-size: 0.85em;">Write a teaser for this news article following these guidelines:
+                                <pre class="bg-light p-2 rounded o_pre_wrap">Write a teaser for this news article following these guidelines:
 
 - Length: 2-3 sentences (max 280 characters)
 - Tone: Professional but accessible, informative
@@ -53,9 +53,9 @@ NOT RELEVANT (discard):
 - Style: Neutral, factual, no clickbait or sensationalism
 - Goal: Help readers quickly decide if they want to read the full article</pre>
                             </div>
-                            <div class="mt16" style="width: 100%;">
+                            <div class="mt16">
                                 <label class="o_form_label d-block mb4" for="newsfeed_teaser_prompt">Your Teaser Prompt</label>
-                                <field name="newsfeed_teaser_prompt" widget="text" class="o_text_overflow w-100" style="min-height: 150px;"/>
+                                <field name="newsfeed_teaser_prompt" widget="text" class="o_text_overflow w-100 o_min_height_150"/>
                             </div>
                         </div>
                     </setting>
